@@ -74,7 +74,7 @@ export async function createToy(userId: string, params: ToyParams): Promise<Toy>
     shape: params.shape,
     color: params.color,
     pattern: params.pattern || null,
-    sticker: params.sticker || null,
+    sticker: null, // Sticker больше не используется в интерфейсе
     wish_text: params.wish_text || null,
     wish_for_others: params.wish_for_others || null,
     image_url: imageUrl || null,
