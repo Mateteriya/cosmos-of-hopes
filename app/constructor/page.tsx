@@ -113,3 +113,7 @@ export default function ConstructorPage() {
   );
 }
 
+// Force dynamic rendering for pages with useSearchParams
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+

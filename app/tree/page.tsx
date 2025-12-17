@@ -267,3 +267,6 @@ export default function TreePage() {
   );
 }
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
