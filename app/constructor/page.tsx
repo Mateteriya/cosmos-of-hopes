@@ -7,10 +7,6 @@ import type { ToyParams } from '@/types/toy';
 import { createToy } from '@/lib/toys';
 import { supabase } from '@/lib/supabase';
 
-// Route segment config
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
-
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 

@@ -14,10 +14,6 @@ import type { Toy } from '@/types/toy';
 import type { Room } from '@/types/room';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
 
-// Route segment config
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
-
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 

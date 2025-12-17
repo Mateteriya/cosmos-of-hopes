@@ -16,10 +16,6 @@ import RoomParticipants from '@/components/rooms/RoomParticipants';
 import InviteLink from '@/components/rooms/InviteLink';
 import VoiceChat from '@/components/rooms/VoiceChat';
 
-// Route segment config
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
-
 // Временный userId для тестирования (позже будет из Telegram)
 // Используем localStorage для сохранения ID между перезагрузками
 const getTempUserId = (): string => {
