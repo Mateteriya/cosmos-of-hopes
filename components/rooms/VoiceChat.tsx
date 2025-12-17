@@ -91,7 +91,7 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
             currentUserId,
             userId,
             'ice-candidate',
-            event.candidate.toJSON() as any
+            (event.candidate as any).toJSON()
           );
         } catch (err) {
           console.error('Ошибка отправки ICE кандидата:', err);
@@ -166,7 +166,7 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
             currentUserId,
             from_user_id,
             'answer',
-            answer.toJSON() as any
+            (answer as any).toJSON()
           );
         } else if (signal_type === 'answer') {
           // Устанавливаем удаленное описание
@@ -220,7 +220,7 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
           currentUserId,
           userId,
           'offer',
-          offer.toJSON() as any
+          (offer as any).toJSON()
         );
       }
     } catch (err) {
