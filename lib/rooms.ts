@@ -114,7 +114,7 @@ export async function createRoom(
       midnight_utc: midnightUTC.toISOString(),
       design_theme: 'classic', // Дефолтный дизайн
       event_program: 'chat', // Дефолтная программа - простой чат
-    })
+    } as never)
     .select()
     .single();
   
@@ -195,7 +195,7 @@ export async function joinRoom(roomId: string, userId: string): Promise<void> {
     .insert({
       room_id: roomId,
       user_id: userId,
-    })
+    } as never)
     .select();
   
   if (error) {
@@ -393,7 +393,7 @@ export async function updateRoomName(
   // Обновляем название
   const { data, error } = await supabase
     .from('rooms')
-    .update({ name: newName })
+    .update({ name: newName } as never)
     .eq('id', roomId)
     .select()
     .single();
@@ -472,7 +472,7 @@ export async function updateRoomDesign(
   
   const { data, error } = await supabase
     .from('rooms')
-    .update(updateData)
+    .update(updateData as never)
     .eq('id', roomId)
     .select()
     .single();
@@ -510,7 +510,7 @@ export async function updateRoomProgram(
   // Обновляем программу
   const { data, error } = await supabase
     .from('rooms')
-    .update({ event_program: eventProgram })
+    .update({ event_program: eventProgram } as never)
     .eq('id', roomId)
     .select()
     .single();
