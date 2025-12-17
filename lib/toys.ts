@@ -253,7 +253,7 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
       .insert({
         toy_id: toyId,
         supporter_tg_id: supporterId,
-      });
+      } as never);
 
     if (error) {
       // Если таблица не существует, просто игнорируем (миграция еще не применена)
