@@ -1,0 +1,307 @@
+/**
+ * Сервис для работы с игрушками
+ */
+
+import { supabase } from './supabase';
+import type { ToyParams, Toy } from '@/types/toy';
+
+/**
+ * Загружает изображение в Supabase Storage
+ */
+async function uploadImage(file: File, userId: string, type: 'toy' | 'user'): Promise<string> {
+  const fileExt = file.name.split('.').pop();
+  // Путь внутри bucket (без названия bucket!)
+  const filePath = `${userId}/${type}_${Date.now()}.${fileExt}`;
+
+  console.log('Загрузка изображения:', { filePath, fileName: file.name, size: file.size });
+
+  // Загружаем файл
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from('toy-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    console.error('Ошибка загрузки:', uploadError);
+    throw new Error(`Ошибка загрузки изображения: ${uploadError.message}`);
+  }
+
+  console.log('Изображение загружено:', uploadData);
+
+  // Получаем публичную ссылку
+  const { data: urlData } = supabase.storage
+    .from('toy-images')
+    .getPublicUrl(filePath);
+
+  console.log('Публичная ссылка:', urlData.publicUrl);
+
+  return urlData.publicUrl;
+}
+
+/**
+ * Создает новую игрушку
+ */
+export async function createToy(userId: string, params: ToyParams): Promise<Toy> {
+  console.log('Создание игрушки:', { userId, hasImage: !!params.image_file, hasPhoto: !!params.user_photo_file, room_id: params.room_id });
+
+  // Загружаем изображения, если есть
+  let imageUrl: string | undefined;
+  let userPhotoUrl: string | undefined;
+
+  try {
+    if (params.image_file) {
+      console.log('Загрузка изображения игрушки...');
+      imageUrl = await uploadImage(params.image_file, userId, 'toy');
+      console.log('Изображение игрушки загружено:', imageUrl);
+    }
+
+    if (params.user_photo_file) {
+      console.log('Загрузка фото пользователя...');
+      userPhotoUrl = await uploadImage(params.user_photo_file, userId, 'user');
+      console.log('Фото пользователя загружено:', userPhotoUrl);
+    }
+  } catch (error) {
+    console.error('Ошибка при загрузке изображений:', error);
+    // Продолжаем сохранение даже если изображения не загрузились
+    // (чтобы пользователь не потерял данные)
+  }
+
+  // Сохраняем игрушку в базу
+  const insertData: any = {
+    user_id: userId,
+    shape: params.shape,
+    color: params.color,
+    pattern: params.pattern || null,
+    sticker: params.sticker || null,
+    wish_text: params.wish_text || null,
+    wish_for_others: params.wish_for_others || null,
+    image_url: imageUrl || null,
+    user_photo_url: userPhotoUrl || null,
+    status: 'on_tree',
+    room_id: params.room_id || null, // Привязываем к комнате, если указана
+  };
+  
+  console.log('Данные для вставки игрушки:', { room_id: insertData.room_id, userId, status: insertData.status });
+
+  // Добавляем новые поля, если они есть (после миграции будут доступны)
+  if (params.ball_size !== undefined) insertData.ball_size = params.ball_size;
+  if (params.surface_type) insertData.surface_type = params.surface_type;
+  if (params.effects) insertData.effects = params.effects;
+  if (params.filters) insertData.filters = params.filters;
+  if (params.second_color) insertData.second_color = params.second_color;
+  if (params.user_name) insertData.user_name = params.user_name;
+  if (params.selected_country) insertData.selected_country = params.selected_country;
+  if (params.birth_year) insertData.birth_year = params.birth_year;
+
+  const { data, error } = await supabase
+    .from('toys')
+    .insert(insertData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Ошибка вставки игрушки в БД:', { error, insertData });
+    throw new Error(`Ошибка сохранения игрушки: ${error.message}`);
+  }
+
+  console.log('✅ Игрушка успешно создана в БД:', { 
+    toyId: data.id, 
+    room_id: data.room_id, 
+    status: data.status,
+    userId: data.user_id 
+  });
+
+  return data as Toy;
+}
+
+/**
+ * Получает все игрушки на ёлке
+ */
+export async function getToysOnTree(roomId?: string): Promise<Toy[]> {
+  console.log('Загрузка игрушек для комнаты:', { roomId });
+  
+  let query = supabase
+    .from('toys')
+    .select('*')
+    .eq('status', 'on_tree')
+    .order('created_at', { ascending: false });
+
+  if (roomId) {
+    query = query.eq('room_id', roomId);
+    console.log('Фильтр: room_id =', roomId);
+  } else {
+    query = query.is('room_id', null); // Только общие игрушки
+    console.log('Фильтр: room_id IS NULL (общие игрушки)');
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Ошибка загрузки игрушек:', error);
+    throw new Error(`Ошибка загрузки игрушек: ${error.message}`);
+  }
+
+  console.log('Загружено игрушек:', data?.length || 0, 'для комнаты:', roomId || 'общие');
+  if (data && data.length > 0) {
+    console.log('Примеры игрушек:', data.slice(0, 3).map(t => ({ id: t.id, room_id: t.room_id, status: t.status })));
+  }
+
+  return (data || []) as Toy[];
+}
+
+/**
+ * Получает все звезды в космосе
+ */
+export async function getStarsInCosmos(): Promise<Toy[]> {
+  const { data, error } = await supabase
+    .from('toys')
+    .select('*')
+    .eq('status', 'in_cosmos')
+    .not('cosmos_x', 'is', null)
+    .order('transformed_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Ошибка загрузки звезд: ${error.message}`);
+  }
+
+  return (data || []) as Toy[];
+}
+
+/**
+ * Получает игрушку по ID
+ */
+export async function getToyById(id: string): Promise<Toy | null> {
+  const { data, error } = await supabase
+    .from('toys')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null; // Не найдено
+    }
+    throw new Error(`Ошибка загрузки игрушки: ${error.message}`);
+  }
+
+  return data as Toy;
+}
+
+/**
+ * Проверяет, лайкнул ли пользователь хотя бы один шар
+ * Пока таблица supports может не существовать (до миграции), возвращаем false
+ */
+export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('supports')
+      .select('id')
+      .eq('supporter_tg_id', userId)
+      .limit(1);
+
+    if (error) {
+      // Если таблица не существует (PGRST205, 42P01, 404), возвращаем false без логирования
+      if (error.code === 'PGRST205' || error.code === '42P01' || error.status === 404 || 
+          error.message?.includes('does not exist') || error.message?.includes('schema cache')) {
+        // Таблица еще не создана - это нормально до миграции
+        // Не логируем, чтобы не засорять консоль
+        return false;
+      }
+      // Другие ошибки логируем только в dev режиме
+      if (process.env.NODE_ENV === 'development') {
+      console.warn('Ошибка проверки лайков (игнорируется):', error.code);
+      }
+      return false;
+    }
+
+    return (data?.length || 0) > 0;
+  } catch (err: any) {
+    // Если таблица не существует, просто возвращаем false без логирования
+    if (err?.code === 'PGRST205' || err?.status === 404 || err?.message?.includes('schema cache')) {
+      return false;
+    }
+    // Логируем только в dev режиме
+    if (process.env.NODE_ENV === 'development') {
+    console.warn('Ошибка проверки лайков (игнорируется)');
+    }
+    return false;
+  }
+}
+
+/**
+ * Добавляет поддержку (лайк) к шару
+ * Пока таблица supports может не существовать (до миграции)
+ */
+export async function addSupport(toyId: string, supporterId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('supports')
+      .insert({
+        toy_id: toyId,
+        supporter_tg_id: supporterId,
+      });
+
+    if (error) {
+      // Если таблица не существует, просто игнорируем (миграция еще не применена)
+      if (error.code === '42P01' || error.message.includes('does not exist')) {
+        console.log('Таблица supports еще не создана, лайк не сохранен');
+        return;
+      }
+      // Если уже есть лайк от этого пользователя, игнорируем ошибку
+      if (error.code === '23505') {
+        return; // Unique constraint violation
+      }
+      throw new Error(`Ошибка добавления поддержки: ${error.message}`);
+    }
+  } catch (err: any) {
+    // Если таблица не существует, просто игнорируем
+    if (err?.message?.includes('does not exist') || err?.code === '42P01') {
+      console.log('Таблица supports еще не создана, лайк не сохранен');
+      return;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Получает все шары на общей ёлке
+ * ВАЖНО: Оптимизировано для миллионов шаров - возвращает только видимые/популярные
+ * @param limit - Максимальное количество шаров для загрузки (по умолчанию 1000)
+ * @param offset - Смещение для пагинации
+ */
+export async function getToysOnVirtualTree(limit: number = 1000, offset: number = 0): Promise<Toy[]> {
+  // Пока используем status='on_tree', после миграции будет is_on_tree
+  // Сначала загружаем самые популярные (с поддержками), затем новые
+  const { data, error } = await supabase
+    .from('toys')
+    .select('*')
+    .eq('status', 'on_tree')
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    throw new Error(`Ошибка загрузки шаров на ёлке: ${error.message}`);
+  }
+
+  return (data || []) as Toy[];
+}
+
+/**
+ * Получает количество шаров на ёлке (для статистики)
+ */
+export async function getToysOnTreeCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('toys')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'on_tree');
+
+  if (error) {
+    console.error('Ошибка подсчёта шаров:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
