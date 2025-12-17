@@ -149,12 +149,14 @@ export async function getToysOnTree(roomId?: string): Promise<Toy[]> {
     throw new Error(`Ошибка загрузки игрушек: ${error.message}`);
   }
 
-  console.log('Загружено игрушек:', data?.length || 0, 'для комнаты:', roomId || 'общие');
-  if (data && data.length > 0) {
-    console.log('Примеры игрушек:', data.slice(0, 3).map(t => ({ id: t.id, room_id: t.room_id, status: t.status })));
+  const toys = (data || []) as Toy[];
+  
+  console.log('Загружено игрушек:', toys.length, 'для комнаты:', roomId || 'общие');
+  if (toys.length > 0) {
+    console.log('Примеры игрушек:', toys.slice(0, 3).map(t => ({ id: t.id, room_id: t.room_id, status: t.status })));
   }
 
-  return (data || []) as Toy[];
+  return toys;
 }
 
 /**
