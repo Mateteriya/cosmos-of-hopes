@@ -35,6 +35,10 @@ export async function sendRoomMessage(
     throw new Error(`Ошибка отправки сообщения: ${error.message}`);
   }
 
+  if (!data) {
+    throw new Error('Не удалось отправить сообщение: данные не получены');
+  }
+
   return data as RoomMessage;
 }
 

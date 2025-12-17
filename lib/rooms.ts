@@ -237,7 +237,7 @@ export async function leaveRoom(roomId: string, userId: string): Promise<void> {
     throw new Error(`Ошибка проверки комнаты: ${roomError.message}`);
   }
   
-  if (room && room.creator_id === userId) {
+  if (room && (room as { creator_id: string }).creator_id === userId) {
     throw new Error('Создатель комнаты не может её покинуть');
   }
   
@@ -313,12 +313,13 @@ export async function getUserRooms(userId: string): Promise<Room[]> {
     // Объединяем и убираем дубликаты
     const roomIds = new Set<string>();
     if (createdRooms) {
-      createdRooms.forEach(room => roomIds.add(room.id));
+      createdRooms.forEach(room => roomIds.add((room as { id: string }).id));
     }
     if (memberRooms) {
       memberRooms.forEach(member => {
-        if (member.room_id) {
-          roomIds.add(member.room_id);
+        const roomId = (member as { room_id?: string }).room_id;
+        if (roomId) {
+          roomIds.add(roomId);
         }
       });
     }
@@ -394,7 +395,7 @@ export async function updateRoomName(
     throw new Error(`Ошибка проверки комнаты: ${checkError.message}`);
   }
   
-  if (!room || room.creator_id !== userId) {
+  if (!room || (room as { creator_id: string }).creator_id !== userId) {
     throw new Error('Только создатель может изменять комнату');
   }
   
@@ -428,7 +429,7 @@ export async function deleteRoom(roomId: string, userId: string): Promise<void> 
     throw new Error(`Ошибка проверки комнаты: ${checkError.message}`);
   }
   
-  if (!room || room.creator_id !== userId) {
+  if (!room || (room as { creator_id: string }).creator_id !== userId) {
     throw new Error('Только создатель может удалить комнату');
   }
   
@@ -463,7 +464,7 @@ export async function updateRoomDesign(
     throw new Error(`Ошибка проверки комнаты: ${checkError.message}`);
   }
   
-  if (!room || room.creator_id !== userId) {
+  if (!room || (room as { creator_id: string }).creator_id !== userId) {
     throw new Error('Только создатель может изменять дизайн комнаты');
   }
   
@@ -511,7 +512,7 @@ export async function updateRoomProgram(
     throw new Error(`Ошибка проверки комнаты: ${checkError.message}`);
   }
   
-  if (!room || room.creator_id !== userId) {
+  if (!room || (room as { creator_id: string }).creator_id !== userId) {
     throw new Error('Только создатель может изменять программу мероприятия');
   }
   

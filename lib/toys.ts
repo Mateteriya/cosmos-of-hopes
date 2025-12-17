@@ -97,7 +97,7 @@ export async function createToy(userId: string, params: ToyParams): Promise<Toy>
 
   const { data, error } = await supabase
     .from('toys')
-    .insert(insertData)
+    .insert(insertData as never)
     .select()
     .single();
 
@@ -106,14 +106,20 @@ export async function createToy(userId: string, params: ToyParams): Promise<Toy>
     throw new Error(`Ошибка сохранения игрушки: ${error.message}`);
   }
 
+  if (!data) {
+    throw new Error('Не удалось создать игрушку: данные не получены');
+  }
+
+  const toy = data as Toy;
+
   console.log('✅ Игрушка успешно создана в БД:', { 
-    toyId: data.id, 
-    room_id: data.room_id, 
-    status: data.status,
-    userId: data.user_id 
+    toyId: toy.id, 
+    room_id: toy.room_id, 
+    status: toy.status,
+    userId: toy.user_id 
   });
 
-  return data as Toy;
+  return toy;
 }
 
 /**
@@ -184,6 +190,10 @@ export async function getToyById(id: string): Promise<Toy | null> {
       return null; // Не найдено
     }
     throw new Error(`Ошибка загрузки игрушки: ${error.message}`);
+  }
+
+  if (!data) {
+    return null;
   }
 
   return data as Toy;
