@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ToyConstructor from '@/components/constructor/ToyConstructor';
 import type { ToyParams } from '@/types/toy';
 import { createToy } from '@/lib/toys';
@@ -10,13 +10,18 @@ import { supabase } from '@/lib/supabase';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-function ConstructorContent() {
+export default function ConstructorPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [roomId, setRoomId] = useState<string | null>(null);
   
-  // Получаем roomId из URL параметров
-  const roomId = searchParams.get('room');
+  // Получаем roomId из URL параметров после монтирования
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setRoomId(params.get('room'));
+    }
+  }, []);
 
   const handleSave = async (params: ToyParams) => {
     try {
@@ -105,15 +110,4 @@ function ConstructorContent() {
   );
 }
 
-export default function ConstructorPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
-      <ConstructorContent />
-    </Suspense>
-  );
-}
-
-// Force dynamic rendering for pages with useSearchParams
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 

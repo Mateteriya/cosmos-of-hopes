@@ -4,8 +4,8 @@
  * Страница комнаты для совместного празднования Нового года
  */
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getRoomById, updateRoomDesign, updateRoomProgram } from '@/lib/rooms';
 import type { Room, DesignTheme, EventProgram } from '@/types/room';
 import RoomChat from '@/components/rooms/RoomChat';
@@ -27,15 +27,21 @@ const getTempUserId = (): string => {
   return newId;
 };
 
-function RoomPageContent() {
+export default function RoomPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const roomId = searchParams.get('room');
-  
+  const [roomId, setRoomId] = useState<string | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tempUserId] = useState<string>(() => getTempUserId());
+
+  // Получаем roomId из URL параметров после монтирования
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setRoomId(params.get('room'));
+    }
+  }, []);
 
   useEffect(() => {
     if (roomId) {
@@ -285,13 +291,3 @@ function RoomPageContent() {
   );
 }
 
-export default function RoomPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
-      <RoomPageContent />
-    </Suspense>
-  );
-}
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';

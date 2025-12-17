@@ -4,8 +4,8 @@
  * Главная страница - Виртуальная ёлка
  */
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import VirtualTree from '@/components/tree/VirtualTree';
 import BallDetailsModal from '@/components/tree/BallDetailsModal';
 import { getToysOnVirtualTree, getToysOnTree, hasUserLikedAnyBall, addSupport } from '@/lib/toys';
@@ -17,19 +17,16 @@ import { useLanguage } from '@/components/constructor/LanguageProvider';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-function TreePageContent() {
+export default function TreePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const [roomId, setRoomId] = useState<string | null>(null);
   const [toys, setToys] = useState<Toy[]>([]);
   const [selectedToy, setSelectedToy] = useState<Toy | null>(null);
   const [userHasLiked, setUserHasLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
-  
-  // Получаем roomId из URL параметров
-  const roomId = searchParams.get('room');
   
   // Тип ёлки и путь к модели/изображению
   const [treeType, setTreeType] = useState<'3d' | 'png'>('3d');
@@ -43,9 +40,19 @@ function TreePageContent() {
     { type: 'png' as const, name: 'tree 3.png', path: '/tree%203.png' }, // Пробел в URL кодируется как %20
   ];
 
+  // Получаем roomId из URL параметров после монтирования
   useEffect(() => {
-    loadRoom();
-    loadToys();
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setRoomId(params.get('room'));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (roomId !== null) {
+      loadRoom();
+      loadToys();
+    }
   }, [roomId]);
 
   // Отдельный эффект для проверки лайков (только для общей ёлки)
@@ -259,14 +266,4 @@ function TreePageContent() {
   );
 }
 
-export default function TreePage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
-      <TreePageContent />
-    </Suspense>
-  );
-}
-
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
