@@ -133,10 +133,16 @@ export async function createRoom(
     throw new Error(`Ошибка создания комнаты: ${error.message} (код: ${error.code})`);
   }
   
-  // Автоматически добавляем создателя как участника
-  await joinRoom(data.id, creatorId);
+  if (!data) {
+    throw new Error('Не удалось создать комнату: данные не получены');
+  }
   
-  return data as Room;
+  const room = data as Room;
+  
+  // Автоматически добавляем создателя как участника
+  await joinRoom(room.id, creatorId);
+  
+  return room;
 }
 
 /**
