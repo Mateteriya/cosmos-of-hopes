@@ -214,8 +214,8 @@ export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
       .limit(1);
 
     if (error) {
-      // Если таблица не существует (PGRST205, 42P01, 404), возвращаем false без логирования
-      if (error.code === 'PGRST205' || error.code === '42P01' || error.status === 404 || 
+      // Если таблица не существует (PGRST205, 42P01), возвращаем false без логирования
+      if (error.code === 'PGRST205' || error.code === '42P01' || 
           error.message?.includes('does not exist') || error.message?.includes('schema cache')) {
         // Таблица еще не создана - это нормально до миграции
         // Не логируем, чтобы не засорять консоль
