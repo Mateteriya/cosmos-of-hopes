@@ -41,29 +41,27 @@ export default function ConstructorPage() {
         z: (Math.random() - 0.5) * 3,
       };
 
-      const updateData: Record<string, unknown> = {
-        status: 'on_tree', // Используем существующее поле
+      const updateData = {
+        status: 'on_tree' as const, // Используем существующее поле
         is_on_tree: true,
         position: position,
         author_tg_id: TEMP_USER_ID,
+        ...(roomId && { room_id: roomId }),
+        ...(params.ball_size !== undefined && { ball_size: params.ball_size }),
+        ...(params.surface_type && { surface_type: params.surface_type }),
+        ...(params.effects && { effects: params.effects }),
+        ...(params.filters && { filters: params.filters }),
+        ...(params.second_color && { second_color: params.second_color }),
+        ...(params.user_name && { user_name: params.user_name }),
+        ...(params.selected_country && { selected_country: params.selected_country }),
+        ...(params.birth_year !== undefined && { birth_year: params.birth_year }),
       };
-
-      // Сохраняем room_id при обновлении тоже (на случай, если он не сохранился при создании)
-      if (roomId) updateData.room_id = roomId;
-      if (params.ball_size !== undefined) updateData.ball_size = params.ball_size;
-      if (params.surface_type) updateData.surface_type = params.surface_type;
-      if (params.effects) updateData.effects = params.effects;
-      if (params.filters) updateData.filters = params.filters;
-      if (params.second_color) updateData.second_color = params.second_color;
-      if (params.user_name) updateData.user_name = params.user_name;
-      if (params.selected_country) updateData.selected_country = params.selected_country;
-      if (params.birth_year) updateData.birth_year = params.birth_year;
 
       // Пытаемся обновить новые поля (если миграция применена)
       try {
         await supabase
           .from('toys')
-          .update(updateData)
+          .update(updateData as never)
           .eq('id', toy.id);
       } catch (err: unknown) {
         // Если поля не существуют (миграция не применена), просто обновляем status
@@ -71,7 +69,7 @@ export default function ConstructorPage() {
         if (error?.message?.includes('does not exist') || error?.code === '42703') {
           await supabase
             .from('toys')
-            .update({ status: 'on_tree' })
+            .update({ status: 'on_tree' } as never)
             .eq('id', toy.id);
         } else {
           throw err;
