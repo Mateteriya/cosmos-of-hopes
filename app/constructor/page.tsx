@@ -113,3 +113,5 @@ export default function ConstructorPage() {
   );
 }
 
+export const dynamic = 'force-dynamic';
+

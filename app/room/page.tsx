@@ -292,3 +292,5 @@ export default function RoomPage() {
     </Suspense>
   );
 }
+
+export const dynamic = 'force-dynamic';
