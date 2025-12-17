@@ -167,10 +167,12 @@ export async function joinRoomByInviteCode(
     throw new Error('Комната с таким кодом не найдена');
   }
   
-  // Присоединяемся к комнате
-  await joinRoom(room.id, userId);
+  const roomTyped = room as Room;
   
-  return room as Room;
+  // Присоединяемся к комнате
+  await joinRoom(roomTyped.id, userId);
+  
+  return roomTyped;
 }
 
 /**
