@@ -4,7 +4,7 @@
  * Главная страница - Виртуальная ёлка
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import VirtualTree from '@/components/tree/VirtualTree';
 import BallDetailsModal from '@/components/tree/BallDetailsModal';
@@ -17,7 +17,7 @@ import { useLanguage } from '@/components/constructor/LanguageProvider';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-export default function TreePage() {
+function TreePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
@@ -256,6 +256,14 @@ export default function TreePage() {
       {/* Модальное окно с деталями шара */}
       <BallDetailsModal toy={selectedToy} onClose={() => setSelectedToy(null)} />
     </div>
+  );
+}
+
+export default function TreePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
+      <TreePageContent />
+    </Suspense>
   );
 }
 

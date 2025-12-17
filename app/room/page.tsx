@@ -4,7 +4,7 @@
  * Страница комнаты для совместного празднования Нового года
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getRoomById, updateRoomDesign, updateRoomProgram } from '@/lib/rooms';
 import type { Room, DesignTheme, EventProgram } from '@/types/room';
@@ -27,7 +27,7 @@ const getTempUserId = (): string => {
   return newId;
 };
 
-export default function RoomPage() {
+function RoomPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roomId = searchParams.get('room');
@@ -282,5 +282,13 @@ export default function RoomPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RoomPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
+      <RoomPageContent />
+    </Suspense>
   );
 }

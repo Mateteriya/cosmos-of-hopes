@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ToyConstructor from '@/components/constructor/ToyConstructor';
 import type { ToyParams } from '@/types/toy';
@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-export default function ConstructorPage() {
+function ConstructorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -102,6 +102,14 @@ export default function ConstructorPage() {
 
       <ToyConstructor onSave={handleSave} userId={TEMP_USER_ID} />
     </div>
+  );
+}
+
+export default function ConstructorPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen">Загрузка...</div>}>
+      <ConstructorContent />
+    </Suspense>
   );
 }
 
