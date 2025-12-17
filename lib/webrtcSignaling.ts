@@ -35,7 +35,7 @@ export async function sendWebRTCSignal(
       to_user_id: toUserId,
       signal_type: signalType,
       signal_data: signalData as any,
-    });
+    } as never);
 
   if (error) {
     console.error('Ошибка отправки WebRTC сигнала:', error);
@@ -91,3 +91,4 @@ export async function cleanupOldSignals(roomId: string): Promise<void> {
     console.error('Ошибка очистки старых сигналов:', error);
   }
 }
+

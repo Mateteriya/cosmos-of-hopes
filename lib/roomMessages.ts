@@ -27,7 +27,7 @@ export async function sendRoomMessage(
       room_id: roomId,
       user_id: userId,
       message_text: messageText.trim(),
-    })
+    } as never)
     .select()
     .single();
 
