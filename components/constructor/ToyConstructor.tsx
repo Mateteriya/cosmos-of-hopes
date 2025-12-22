@@ -1089,8 +1089,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <div className="relative z-0">
       <div className="max-w-7xl mx-auto">
         {/* Заголовок */}
-        <div className="text-center mb-6">
-          <h1 className="text-5xl font-bold mb-3 drop-shadow-2xl">
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 drop-shadow-2xl">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent animate-pulse">
               ✨ {t('title')} ✨
             </span>
@@ -1098,19 +1098,20 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         </div>
 
         {/* Layout: Редактор в центре, инструменты ВОКРУГ (сверху, слева, справа) */}
-        <div className="grid grid-rows-[auto_1fr] grid-cols-[auto_1fr_auto] gap-1.5 max-w-[1400px] mx-auto">
+        {/* На мобильных: вертикальный layout, на больших экранах: grid layout */}
+        <div className="flex flex-col lg:grid lg:grid-rows-[auto_1fr] lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-1.5 max-w-[1400px] mx-auto">
           {/* Верхняя панель: Фильтры */}
-          <div className="col-span-3">
-            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-4 shadow-xl border-2 border-indigo-500/30">
-              <div className="flex items-center gap-4 flex-wrap">
+          <div className="lg:col-span-3 order-1">
+            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-xl border-2 border-indigo-500/30">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
                 <label className="text-base font-black text-white/90 flex items-center gap-2 uppercase tracking-widest">
                   <span className="text-xl">🎬</span>
                   {t('filters')}:
                 </label>
                 
                 {/* Размытие */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('blurLabel')}: {filters.blur}px</span>
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
+                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('blurLabel')}: {filters.blur}px</span>
                   <input
                     type="range"
                     min="0"
@@ -1118,13 +1119,13 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     step="0.5"
                     value={filters.blur}
                     onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })}
-                    className="w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
                   />
                 </div>
 
                 {/* Контраст */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('contrastLabel')}: {filters.contrast}%</span>
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
+                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('contrastLabel')}: {filters.contrast}%</span>
                   <input
                     type="range"
                     min="0"
@@ -1132,13 +1133,13 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     step="5"
                     value={filters.contrast}
                     onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })}
-                    className="w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
                   />
                 </div>
 
                 {/* Насыщенность */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('saturationLabel')}: {filters.saturation}%</span>
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
+                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('saturationLabel')}: {filters.saturation}%</span>
                   <input
                     type="range"
                     min="0"
@@ -1146,13 +1147,13 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     step="5"
                     value={filters.saturation}
                     onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })}
-                    className="w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
                   />
                 </div>
 
                 {/* Виньетка */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('vignetteLabel')}: {filters.vignette}%</span>
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
+                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('vignetteLabel')}: {filters.vignette}%</span>
                   <input
                     type="range"
                     min="0"
@@ -1160,13 +1161,13 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     step="5"
                     value={filters.vignette}
                     onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })}
-                    className="w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
                   />
                 </div>
 
                 {/* Зернистость */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('grainLabel')}: {filters.grain}</span>
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
+                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('grainLabel')}: {filters.grain}</span>
                   <input
                     type="range"
                     min="0"
@@ -1174,7 +1175,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     step="1"
                     value={filters.grain}
                     onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })}
-                    className="w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
                   />
                 </div>
               </div>
@@ -1182,8 +1183,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Левая панель: Персонализация, Эффекты */}
-          <div className="row-span-1 flex flex-col gap-1.5 w-[240px] h-full">
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2.5 shadow-xl border-2 border-white/20 space-y-2 flex-1 flex flex-col">
+          <div className="lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-3 lg:order-2">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] lg:max-h-none">
               {/* Персонализация шара */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-white/90 flex items-center gap-1 uppercase tracking-widest">
@@ -1367,12 +1368,12 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Центральная область: Canvas редактор */}
-          <div className="flex">
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
-              <h2 className="text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
+          <div className="flex order-2 lg:order-3">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
+              <h2 className="text-base sm:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                 🎨 {t('editor')}
               </h2>
-              <p className="text-[10px] text-white/80 mb-2 font-black text-center uppercase tracking-wider">
+              <p className="text-[9px] sm:text-[10px] text-white/80 mb-2 font-black text-center uppercase tracking-wider">
                 {t('drawWithMouse')}
               </p>
               <CanvasEditor
@@ -1399,12 +1400,12 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               />
               
               {/* Кнопки действий */}
-              <div className="mt-3 flex gap-1.5">
+              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
                 {/* Волшебная палочка */}
                 <button
                   onClick={() => setShowMagicTransformation(true)}
                   disabled={!wishText.trim()}
-                  className={`flex-1 py-3.5 px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-base uppercase tracking-widest ${
+                  className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation ${
                     !wishText.trim()
                       ? 'bg-gray-400 cursor-not-allowed opacity-50'
                       : 'bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 hover:from-purple-700 hover:via-pink-700 hover:to-yellow-700 hover:scale-105 hover:shadow-xl'
@@ -1417,7 +1418,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 <button
                   onClick={handleSave}
                   disabled={isSaving || !wishText.trim()}
-                  className={`flex-1 py-3.5 px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-base uppercase tracking-widest ${
+                  className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation ${
                     isSaving || !wishText.trim()
                       ? 'bg-gray-400 cursor-not-allowed opacity-50'
                       : 'bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700 hover:scale-105 hover:shadow-xl'
@@ -1430,8 +1431,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Правая панель: Желания, Фото */}
-          <div className="row-span-1 flex flex-col gap-1.5 w-[240px] h-full">
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col">
+          <div className="lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-4">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[500px] lg:max-h-none">
               {/* Желание */}
               <div>
                 <label className="block text-[10px] font-black text-white/90 mb-1 flex items-center gap-1 uppercase tracking-widest">
