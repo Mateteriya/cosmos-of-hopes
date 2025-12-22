@@ -1476,12 +1476,34 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 />
               </div>
               
-              {/* Кнопки действий */}
+              {/* Кнопки действий - увеличенный отступ на мобильных устройствах для разделения с UNDO/REDO */}
               <div 
-                className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5"
+                className="mt-4 sm:mt-3 flex flex-col sm:flex-row gap-3 sm:gap-1.5"
                 data-action-buttons="true"
-                onClick={(e) => { e.stopPropagation(); }}
-                onMouseDown={(e) => { e.stopPropagation(); }}
+                onClick={(e) => { 
+                  // НЕ обрабатываем клики на кнопки UNDO/REDO
+                  const target = e.target as HTMLElement;
+                  if (target.closest('[data-undo-button]') || target.closest('[data-redo-button]')) {
+                    return;
+                  }
+                  e.stopPropagation(); 
+                }}
+                onMouseDown={(e) => { 
+                  // НЕ обрабатываем клики на кнопки UNDO/REDO
+                  const target = e.target as HTMLElement;
+                  if (target.closest('[data-undo-button]') || target.closest('[data-redo-button]')) {
+                    return;
+                  }
+                  e.stopPropagation(); 
+                }}
+                onTouchStart={(e) => { 
+                  // НЕ обрабатываем клики на кнопки UNDO/REDO
+                  const target = e.target as HTMLElement;
+                  if (target.closest('[data-undo-button]') || target.closest('[data-redo-button]')) {
+                    return;
+                  }
+                  e.stopPropagation(); 
+                }}
               >
                 {/* Волшебная палочка */}
                 <div className="relative group">
@@ -1489,6 +1511,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
+                      // НЕ обрабатываем, если клик был на UNDO/REDO
+                      const target = e.target as HTMLElement;
+                      if (target.closest('[data-undo-button]') || target.closest('[data-redo-button]')) {
+                        return;
+                      }
                       if (!wishText.trim()) {
                         setMobileTab('wish');
                         return;
@@ -1523,6 +1550,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
+                      // НЕ обрабатываем, если клик был на UNDO/REDO
+                      const target = e.target as HTMLElement;
+                      if (target.closest('[data-undo-button]') || target.closest('[data-redo-button]')) {
+                        return;
+                      }
                       if (!wishText.trim()) {
                         setMobileTab('wish');
                         return;

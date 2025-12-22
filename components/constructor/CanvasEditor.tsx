@@ -975,17 +975,46 @@ export default function CanvasEditor({
       <div 
         data-canvas-tools="true"
         className="mt-2 p-1.5 sm:p-2 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg"
-        onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-        onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
-        onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); }}
+        onClick={(e) => { 
+          // Разрешаем клики на input элементы (например, color picker)
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.closest('input') || target.tagName === 'LABEL') {
+            return; // Не блокируем клики на input и label
+          }
+          e.stopPropagation();
+        }}
+        onMouseDown={(e) => { 
+          // Разрешаем клики на input элементы
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.closest('input') || target.tagName === 'LABEL') {
+            return; // Не блокируем клики на input и label
+          }
+          e.stopPropagation();
+        }}
+        onTouchStart={(e) => { 
+          // Разрешаем клики на input элементы
+          const target = e.target as HTMLElement;
+          if (target.tagName === 'INPUT' || target.closest('input') || target.tagName === 'LABEL') {
+            return; // Не блокируем клики на input и label
+          }
+          e.stopPropagation();
+        }}
       >
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           {/* Цвет кисти - компактно */}
-          <label className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-1.5 sm:px-2 py-1 rounded-lg border border-white/20 shadow-sm">
+          <label 
+            className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-1.5 sm:px-2 py-1 rounded-lg border border-white/20 shadow-sm"
+            onClick={(e) => { e.stopPropagation(); }}
+            onMouseDown={(e) => { e.stopPropagation(); }}
+            onTouchStart={(e) => { e.stopPropagation(); }}
+          >
             <input
               type="color"
               value={brushColor}
               onChange={(e) => setBrushColor(e.target.value)}
+              onClick={(e) => { e.stopPropagation(); }}
+              onMouseDown={(e) => { e.stopPropagation(); }}
+              onTouchStart={(e) => { e.stopPropagation(); }}
               className="w-6 h-6 sm:w-7 sm:h-7 rounded border border-white/30 cursor-pointer touch-manipulation"
               title={t('brushColor')}
             />
