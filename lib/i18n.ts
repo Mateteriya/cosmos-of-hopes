@@ -53,6 +53,8 @@ export const translations = {
     magicWand: '✨ ВОЛШЕБНАЯ ПАЛОЧКА ✨',
     hangOnTree: '✨ ПОВЕСИТЬ НА ЁЛКУ 🌲',
     saving: '⏳ СОХРАНЕНИЕ...',
+    addWishFirst: 'Пожалуйста, сначала добавьте ваше желание на вкладке "Желание"',
+    goToWishTab: 'Перейти к вкладке "Желание"',
     
     // Плейсхолдеры
     wishPlaceholder: 'Напишите ваше желание...',
@@ -151,6 +153,8 @@ export const translations = {
     magicWand: '✨ MAGIC WAND ✨',
     hangOnTree: '✨ HANG ON TREE 🌲',
     saving: '⏳ SAVING...',
+    addWishFirst: 'Please add your wish first on the "Wish" tab',
+    goToWishTab: 'Go to "Wish" tab',
     
     // Placeholders
     wishPlaceholder: 'Write your wish...',

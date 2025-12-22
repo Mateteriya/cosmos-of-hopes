@@ -1120,17 +1120,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
           >
-            ⚙️ Настройки
+            🎬 Дополнительные фильтры
           </button>
           <button
             onClick={() => setMobileTab('wish')}
             className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
               mobileTab === 'wish'
-                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
+                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg ring-2 ring-red-400/50'
+                : !wishText.trim()
+                ? 'bg-gradient-to-r from-red-900/60 to-pink-900/60 text-white/90 ring-1 ring-red-500/30 animate-pulse'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
           >
-            💫 Желание
+            💫 Желание {!wishText.trim() && '⚠️'}
           </button>
         </div>
 
@@ -1320,9 +1322,84 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 </div>
               </div>
             </div>
+
+            {/* Фильтры и Canvas на вкладке "Дополнительные фильтры" */}
+            {mobileTab === 'settings' && (
+              <div className="flex flex-col gap-2 mt-2">
+                {/* Фильтры СРАЗУ ПЕРЕД canvas */}
+                <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
+                      <span className="text-base sm:text-lg">🎬</span>
+                      <span className="hidden sm:inline">{t('filters')}:</span>
+                    </label>
+                    
+                    {/* Компактные фильтры */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('blurLabel')}:</span>
+                        <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('contrastLabel')}:</span>
+                        <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('saturationLabel')}:</span>
+                        <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('vignetteLabel')}:</span>
+                        <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
+                      </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('grainLabel')}:</span>
+                        <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                        <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Canvas редактор ПОД фильтрами */}
+                <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
+                  <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
+                    🎨 {t('editor')}
+                  </h2>
+                  <p className="text-[8px] sm:text-[9px] md:text-[10px] text-white/80 mb-1 sm:mb-2 font-black text-center uppercase tracking-wider">
+                    {t('drawWithMouse')}
+                  </p>
+                  <CanvasEditor
+                    shape={shape}
+                    color={color}
+                    pattern={pattern}
+                    ballSize={ballSize}
+                    surfaceType={surfaceType}
+                    effects={effects}
+                    filters={filters}
+                    secondColor={secondColor || undefined}
+                    language={language}
+                    t={t}
+                    onImageChange={(dataUrl) => {
+                      setCanvasImageData(dataUrl);
+                      fetch(dataUrl)
+                        .then(res => res.blob())
+                        .then(blob => {
+                          const file = new File([blob], 'toy.png', { type: 'image/png' });
+                          setImageFile(file);
+                        });
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Центральная область: Canvas редактор с фильтрами */}
+          {/* Центральная область: Canvas редактор с фильтрами (вкладка Редактор) */}
           <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block`}>
             {/* Фильтры ПРЯМО ПЕРЕД canvas */}
             <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
@@ -1335,27 +1412,27 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 {/* Компактные фильтры */}
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Blur:</span>
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('blurLabel')}:</span>
                     <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                     <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
                   </div>
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Contrast:</span>
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('contrastLabel')}:</span>
                     <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                     <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
                   </div>
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Sat:</span>
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('saturationLabel')}:</span>
                     <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                     <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
                   </div>
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Vign:</span>
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('vignetteLabel')}:</span>
                     <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                     <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
                   </div>
                   <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Grain:</span>
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('grainLabel')}:</span>
                     <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
                     <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
                   </div>
@@ -1397,30 +1474,56 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               {/* Кнопки действий */}
               <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
                 {/* Волшебная палочка */}
-                <button
-                  onClick={() => setShowMagicTransformation(true)}
-                  disabled={!wishText.trim()}
-                  className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation ${
-                    !wishText.trim()
-                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
-                      : 'bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 hover:from-purple-700 hover:via-pink-700 hover:to-yellow-700 hover:scale-105 hover:shadow-xl'
-                  }`}
-                >
-                  {t('magicWand')}
-                </button>
+                <div className="relative group">
+                  <button
+                    onClick={() => !wishText.trim() ? setMobileTab('wish') : setShowMagicTransformation(true)}
+                    disabled={!wishText.trim()}
+                    className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
+                      !wishText.trim()
+                        ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 hover:from-purple-700 hover:via-pink-700 hover:to-yellow-700 hover:scale-105 hover:shadow-xl'
+                    }`}
+                  >
+                    {t('magicWand')}
+                  </button>
+                  {!wishText.trim() && (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-red-600/95 backdrop-blur-md rounded-lg p-3 border-2 border-red-400 shadow-xl z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none transition-opacity">
+                      <p className="text-white text-xs font-bold mb-2">{t('addWishFirst')}</p>
+                      <button
+                        onClick={() => setMobileTab('wish')}
+                        className="w-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold py-1.5 px-3 rounded transition-colors pointer-events-auto"
+                      >
+                        {t('goToWishTab')}
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Кнопка сохранения */}
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving || !wishText.trim()}
-                  className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation ${
-                    isSaving || !wishText.trim()
-                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
-                      : 'bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700 hover:scale-105 hover:shadow-xl'
-                  }`}
-                >
-                  {isSaving ? t('saving') : t('hangOnTree')}
-                </button>
+                <div className="relative group">
+                  <button
+                    onClick={() => !wishText.trim() ? setMobileTab('wish') : handleSave()}
+                    disabled={isSaving || !wishText.trim()}
+                    className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
+                      isSaving || !wishText.trim()
+                        ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700 hover:scale-105 hover:shadow-xl'
+                    }`}
+                  >
+                    {isSaving ? t('saving') : t('hangOnTree')}
+                  </button>
+                  {!wishText.trim() && !isSaving && (
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-red-600/95 backdrop-blur-md rounded-lg p-3 border-2 border-red-400 shadow-xl z-50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none transition-opacity">
+                      <p className="text-white text-xs font-bold mb-2">{t('addWishFirst')}</p>
+                      <button
+                        onClick={() => setMobileTab('wish')}
+                        className="w-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold py-1.5 px-3 rounded transition-colors pointer-events-auto"
+                      >
+                        {t('goToWishTab')}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
