@@ -249,7 +249,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [showMagicTransformation, setShowMagicTransformation] = useState(false);
   const [mobileTab, setMobileTab] = useState<'editor' | 'settings' | 'wish'>('editor');
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isOldBrowser, setIsOldBrowser] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
   const secondColorInputRef = useRef<HTMLInputElement>(null);
@@ -429,6 +429,28 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         emoji: japaneseEmojis[i % japaneseEmojis.length],
       })),
     });
+  }, []);
+
+  // Определяем старый браузер (не поддерживает современные CSS возможности)
+  useEffect(() => {
+    const checkOldBrowser = () => {
+      // Проверяем поддержку CSS Grid, Flexbox gap, и backdrop-filter
+      if (typeof window === 'undefined' || typeof CSS === 'undefined' || !CSS.supports) {
+        // Если CSS.supports недоступен - это точно старый браузер
+        setIsOldBrowser(true);
+        return;
+      }
+      
+      const supportsGrid = CSS.supports('display', 'grid');
+      const supportsGap = CSS.supports('gap', '1rem');
+      const supportsBackdropFilter = CSS.supports('backdrop-filter', 'blur(10px)');
+      const supportsCssVars = CSS.supports('--test', 'value');
+      
+      // Старый браузер - если не поддерживает хотя бы один из этих features
+      setIsOldBrowser(!supportsGrid || !supportsGap || !supportsBackdropFilter || !supportsCssVars);
+    };
+    
+    checkOldBrowser();
   }, []);
 
   // Закрываем панели при клике вне их
@@ -705,8 +727,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <AutoTranslator />
       
       {/* Новогодний фон с анимацией */}
-      {/* Новогодние элементы - полностью скрыты на мобильных (только на экранах >= 1024px) */}
-      <div className="fixed inset-0 -z-10 pointer-events-none hidden lg:block">
+      {/* Новогодние элементы - скрыты только на старых браузерах */}
+      {!isOldBrowser && (
+      <div className="fixed inset-0 -z-10 pointer-events-none">
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.3),transparent_60%)]"></div>
@@ -1089,6 +1112,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/3"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10"></div>
       </div>
+      )}
       
       <div className="relative z-0">
       <div className="max-w-7xl mx-auto">
@@ -1481,28 +1505,30 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               <p className="text-[8px] sm:text-[9px] md:text-[10px] text-white/80 mb-1 sm:mb-2 font-black text-center uppercase tracking-wider">
                 {t('drawWithMouse')}
               </p>
-              <CanvasEditor
-                shape={shape}
-                color={color}
-                pattern={pattern}
-                ballSize={ballSize}
-                surfaceType={surfaceType}
-                effects={effects}
-                filters={filters}
-                secondColor={secondColor || undefined}
-                language={language}
-                t={t}
-                onImageChange={(dataUrl) => {
-                  setCanvasImageData(dataUrl);
-                  // Конвертируем dataUrl в File для сохранения
-                  fetch(dataUrl)
-                    .then(res => res.blob())
-                    .then(blob => {
-                      const file = new File([blob], 'toy.png', { type: 'image/png' });
-                      setImageFile(file);
-                    });
-                }}
-              />
+              <div onClick={(e) => { e.stopPropagation(); }}>
+                <CanvasEditor
+                  shape={shape}
+                  color={color}
+                  pattern={pattern}
+                  ballSize={ballSize}
+                  surfaceType={surfaceType}
+                  effects={effects}
+                  filters={filters}
+                  secondColor={secondColor || undefined}
+                  language={language}
+                  t={t}
+                  onImageChange={(dataUrl) => {
+                    setCanvasImageData(dataUrl);
+                    // Конвертируем dataUrl в File для сохранения
+                    fetch(dataUrl)
+                      .then(res => res.blob())
+                      .then(blob => {
+                        const file = new File([blob], 'toy.png', { type: 'image/png' });
+                        setImageFile(file);
+                      });
+                  }}
+                />
+              </div>
               
               {/* Кнопки действий */}
               <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
