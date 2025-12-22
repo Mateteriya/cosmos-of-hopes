@@ -289,8 +289,14 @@ function Toy3D({
     }
     
     // Если materialColor все еще пустой или неопределенный, используем яркий розовый
-    if (!materialColor || materialColor === '#000000' || materialColor === 'black') {
+    if (!materialColor || materialColor === '#000000' || materialColor === 'black' || materialColor === '#000') {
       materialColor = '#ff69b4';
+    }
+    
+    // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если есть texture, но цвет материала черный - заменяем
+    // Это предотвращает появление черного цвета, когда texture применяется неправильно
+    if (texture && (materialColor === '#000000' || materialColor === '#000' || materialColor === 'black')) {
+      materialColor = '#ffffff'; // Белый для лучшей видимости текстуры
     }
     
     const mat = new THREE.MeshStandardMaterial({
@@ -382,8 +388,13 @@ function Toy3D({
           materialColorToUse = '#ff69b4';
         }
       }
-      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === 'black') {
+      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse === 'black') {
         materialColorToUse = '#ff69b4';
+      }
+      
+      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если есть texture, но цвет материала черный - заменяем
+      if (texture && (materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse === 'black')) {
+        materialColorToUse = '#ffffff'; // Белый для лучшей видимости текстуры
       }
       
       // Обновляем цвет материала

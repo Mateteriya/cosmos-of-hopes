@@ -491,7 +491,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       if (target.closest('[data-canvas-tools]') || 
           target.closest('[data-canvas-editor]') || 
           target.closest('[data-canvas-wrapper]') ||
-          target.closest('[data-action-buttons]')) {
+          target.closest('[data-action-buttons]') ||
+          target.closest('[data-undo-button]') ||
+          target.closest('[data-redo-button]')) {
         return; // Игнорируем клики на элементы редактора
       }
       
@@ -1060,7 +1062,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             }}
           >
             <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>🎨</span>
-            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Редактор</span>
+            <span className="hidden sm:inline">Редактор</span>
           </button>
           <button
             onClick={() => setMobileTab('settings')}
@@ -1078,7 +1080,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             }}
           >
             <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>🎬</span>
-            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Фильтры</span>
+            <span className="hidden sm:inline">Фильтры</span>
           </button>
           <button
             onClick={() => setMobileTab('wish')}
@@ -1097,7 +1099,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             }}
           >
             <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>💫</span>
-            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Желание</span>
+            <span className="hidden sm:inline">Желание</span>
             {!wishText.trim() && <span style={{ fontSize: '12px', lineHeight: '1', marginLeft: '2px', display: 'inline-block' }}>⚠️</span>}
           </button>
         </div>
@@ -1426,16 +1428,28 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               <div 
                 data-canvas-wrapper="true"
                 onClick={(e) => { 
-                  e.stopPropagation(); 
-                  e.preventDefault();
+                  // НЕ блокируем клики на input элементы (например, color picker)
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'INPUT' || target.closest('input')) {
+                    return; // Разрешаем клики на input
+                  }
+                  e.stopPropagation();
                 }}
                 onMouseDown={(e) => { 
-                  e.stopPropagation(); 
-                  e.preventDefault();
+                  // НЕ блокируем клики на input элементы
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'INPUT' || target.closest('input')) {
+                    return; // Разрешаем клики на input
+                  }
+                  e.stopPropagation();
                 }}
                 onTouchStart={(e) => { 
-                  e.stopPropagation(); 
-                  e.preventDefault();
+                  // НЕ блокируем клики на input элементы
+                  const target = e.target as HTMLElement;
+                  if (target.tagName === 'INPUT' || target.closest('input')) {
+                    return; // Разрешаем клики на input
+                  }
+                  e.stopPropagation();
                 }}
               >
                 <CanvasEditor
