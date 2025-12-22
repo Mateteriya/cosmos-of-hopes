@@ -70,15 +70,15 @@ export function AutoTranslator() {
   const currentTranslations = translations[language];
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50">
       <div className="relative">
         <button
           onClick={() => setShowOptions(!showOptions)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-4 py-2 rounded-lg shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold p-2 sm:p-2.5 rounded-lg shadow-xl transition-all transform hover:scale-105 flex items-center justify-center"
+          style={{ backgroundColor: '#2563eb', background: 'linear-gradient(to right, #2563eb, #9333ea)', minWidth: '40px', minHeight: '40px' }}
           title={currentTranslations.title}
         >
-          <span className="text-xl">🌐</span>
-          <span className="text-sm">{currentTranslations.title}</span>
+          <span className="text-lg sm:text-xl">🌐</span>
         </button>
 
         {showOptions && (

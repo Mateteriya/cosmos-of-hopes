@@ -721,6 +721,11 @@ export default function CanvasEditor({
 
   // Обработчики рисования
   const startDrawing = (x: number, y: number) => {
+    // Сохраняем состояние ПЕРЕД началом рисования (если еще не рисуем)
+    if (!isDrawing) {
+      saveToHistory();
+    }
+    
     setIsDrawing(true);
     const canvas = canvasRef.current;
     const userCanvas = userDrawingLayerRef.current;

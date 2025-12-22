@@ -1172,7 +1172,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
         <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
           {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, показывается через вкладку настроек) */}
-          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 ${mobileTab === 'settings' ? 'block' : 'hidden'} lg:block`}>
+          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1`} style={{ 
+            display: isMobile ? (mobileTab === 'settings' ? 'flex' : 'none') : 'flex'
+          }}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1356,7 +1358,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             </div>
 
             {/* Фильтры и Canvas на вкладке "Дополнительные фильтры" */}
-            {mobileTab === 'settings' && (
+            {isMobile && mobileTab === 'settings' && (
               <div className="flex flex-col gap-2 mt-2">
                 {/* Фильтры СРАЗУ ПЕРЕД canvas */}
                 <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
@@ -1432,7 +1434,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Центральная область: Canvas редактор с фильтрами (вкладка Редактор) */}
-          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block lg:relative`}>
+          <div className={`flex flex-col gap-2 order-2 lg:order-2 lg:relative`} style={{ 
+            display: isMobile ? (mobileTab === 'editor' ? 'flex' : 'none') : 'flex'
+          }}>
             {/* Область прокрутки справа (только на больших экранах) */}
             <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-4 z-10 pointer-events-none" style={{ right: '-16px', width: '16px' }}></div>
             
@@ -1564,7 +1568,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Правая панель: Желания, Фото (скрыта на мобильных, показывается через вкладку желания) */}
-          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-4 lg:order-3 ${mobileTab === 'wish' ? 'block' : 'hidden'} lg:block`}>
+          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-4 lg:order-3`} style={{ 
+            display: isMobile ? (mobileTab === 'wish' ? 'flex' : 'none') : 'flex'
+          }}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Желание */}
               <div>
