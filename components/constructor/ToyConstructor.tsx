@@ -486,6 +486,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   // Закрываем панели при клике вне их
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // НЕ обрабатываем клики на кнопки UNDO/REDO и другие элементы редактора
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-canvas-tools]') || 
+          target.closest('[data-canvas-editor]') || 
+          target.closest('[data-canvas-wrapper]') ||
+          target.closest('[data-action-buttons]')) {
+        return; // Игнорируем клики на элементы редактора
+      }
+      
       if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
         setShowColorPicker(false);
       }
@@ -1401,7 +1410,13 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             </div>
 
             {/* Canvas редактор */}
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
+            <div 
+              data-canvas-editor="true"
+              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" 
+              style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}
+              onClick={(e) => { e.stopPropagation(); }}
+              onMouseDown={(e) => { e.stopPropagation(); }}
+            >
               <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                 🎨 {t('editor')}
               </h2>
@@ -1409,6 +1424,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 {t('drawWithMouse')}
               </p>
               <div 
+                data-canvas-wrapper="true"
                 onClick={(e) => { 
                   e.stopPropagation(); 
                   e.preventDefault();
@@ -1447,7 +1463,12 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
               
               {/* Кнопки действий */}
-              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
+              <div 
+                className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5"
+                data-action-buttons="true"
+                onClick={(e) => { e.stopPropagation(); }}
+                onMouseDown={(e) => { e.stopPropagation(); }}
+              >
                 {/* Волшебная палочка */}
                 <div className="relative group">
                   <button

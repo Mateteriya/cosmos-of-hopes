@@ -262,16 +262,35 @@ function Toy3D({
     // Если нет рисунка, используем выбранный цвет, но если цвет слишком темный (почти черный), используем яркий дефолтный
     let materialColor = texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color);
     
-    // Если нет текстуры и цвет слишком темный (близок к черному), заменяем на яркий цвет
-    if (!texture && !gradientTexture) {
-      const hex = materialColor.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      // Если цвет очень темный (сумма RGB < 50), заменяем на яркий розовый
-      if (r + g + b < 50) {
-        materialColor = '#ff69b4'; // Яркий розовый по умолчанию
+    // ВСЕГДА проверяем цвет и заменяем слишком темные на яркий
+    // Это важно, чтобы избежать черного цвета, даже если пользователь не выбирал цвет явно
+    if (!texture && !gradientTexture && materialColor) {
+      // Убеждаемся, что это валидный HEX цвет
+      const hexColor = materialColor.startsWith('#') ? materialColor : `#${materialColor}`;
+      const hex = hexColor.replace('#', '');
+      
+      if (hex.length === 6) {
+        try {
+          const r = parseInt(hex.substr(0, 2), 16);
+          const g = parseInt(hex.substr(2, 2), 16);
+          const b = parseInt(hex.substr(4, 2), 16);
+          // Если цвет очень темный (сумма RGB < 100), заменяем на яркий розовый
+          if (r + g + b < 100) {
+            materialColor = '#ff69b4'; // Яркий розовый по умолчанию
+          }
+        } catch (e) {
+          // Если парсинг не удался, используем яркий цвет по умолчанию
+          materialColor = '#ff69b4';
+        }
+      } else {
+        // Если формат цвета некорректный, используем яркий цвет по умолчанию
+        materialColor = '#ff69b4';
       }
+    }
+    
+    // Если materialColor все еще пустой или неопределенный, используем яркий розовый
+    if (!materialColor || materialColor === '#000000' || materialColor === 'black') {
+      materialColor = '#ff69b4';
     }
     
     const mat = new THREE.MeshStandardMaterial({
@@ -322,13 +341,53 @@ function Toy3D({
       
       // Определяем цвет для свечения: если цвет слишком темный, используем яркий розовый
       let glowColor = color;
-      const hex = color.replace('#', '');
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
-      if (r + g + b < 50) {
-        glowColor = '#ff69b4'; // Яркий розовый по умолчанию
+      if (glowColor && glowColor !== '#000000' && glowColor !== 'black') {
+        const hexColor = glowColor.startsWith('#') ? glowColor : `#${glowColor}`;
+        const hex = hexColor.replace('#', '');
+        if (hex.length === 6) {
+          try {
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            if (r + g + b < 100) {
+              glowColor = '#ff69b4'; // Яркий розовый по умолчанию
+            }
+          } catch (e) {
+            glowColor = '#ff69b4';
+          }
+        } else {
+          glowColor = '#ff69b4';
+        }
+      } else {
+        glowColor = '#ff69b4';
       }
+      
+      // Определяем цвет материала (также проверяем на черный)
+      let materialColorToUse = texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color);
+      if (!texture && !gradientTexture && materialColorToUse) {
+        const hexColor = materialColorToUse.startsWith('#') ? materialColorToUse : `#${materialColorToUse}`;
+        const hex = hexColor.replace('#', '');
+        if (hex.length === 6) {
+          try {
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            if (r + g + b < 100) {
+              materialColorToUse = '#ff69b4';
+            }
+          } catch (e) {
+            materialColorToUse = '#ff69b4';
+          }
+        } else {
+          materialColorToUse = '#ff69b4';
+        }
+      }
+      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === 'black') {
+        materialColorToUse = '#ff69b4';
+      }
+      
+      // Обновляем цвет материала
+      material.color = new THREE.Color(materialColorToUse);
       
       // Обновляем свечение
       material.emissive = effects.glow ? new THREE.Color(glowColor) : new THREE.Color('#000000');
