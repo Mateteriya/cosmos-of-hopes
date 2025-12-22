@@ -4,7 +4,7 @@
  * Конструктор игрушек для виртуальной ёлки
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ToyShape, ToyPattern, ToySticker, ToyParams } from '@/types/toy';
 import CanvasEditor from './CanvasEditor';
 import MagicTransformation from './MagicTransformation';
@@ -453,6 +453,35 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
     checkOldBrowser();
   }, []);
 
+  // Функция для получения стилей позиционирования holiday элементов
+  const getHolidayElementStyle = useCallback((leftPercent: number, topPercent: number, size: number, delay?: number, duration?: number, color?: string) => {
+    if (isOldBrowser) {
+      // Для старых браузеров используем фиксированные позиции в пикселях
+      const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+      const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+      return {
+        position: 'absolute' as const,
+        left: `${(leftPercent / 100) * screenWidth}px`,
+        top: `${(topPercent / 100) * screenHeight}px`,
+        fontSize: `${size}px`,
+        zIndex: 1,
+        ...(color ? { color } : {}),
+      };
+    } else {
+      // Для современных браузеров используем проценты и анимации
+      return {
+        position: 'absolute' as const,
+        left: `${leftPercent}%`,
+        top: `${topPercent}%`,
+        animationDelay: delay ? `${delay}s` : undefined,
+        animationDuration: duration ? `${duration}s` : undefined,
+        fontSize: `${size}px`,
+        zIndex: 1,
+        ...(color ? { color } : {}),
+      };
+    }
+  }, [isOldBrowser]);
+
   // Закрываем панели при клике вне их
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -727,8 +756,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <AutoTranslator />
       
       {/* Новогодний фон с анимацией */}
-      {/* Новогодние элементы - скрыты только на старых браузерах */}
-      {!isOldBrowser && (
+      {/* Новогодние элементы - всегда показываются, но с разным позиционированием для старых браузеров */}
       <div className="fixed inset-0 -z-10 pointer-events-none">
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
@@ -761,15 +789,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.stars.length > 0 && holidayElements.stars.map((star, i) => (
             <div
               key={`star-${i}`}
-              className="absolute text-yellow-300/70 animate-pulse pointer-events-none"
-              style={{
-                left: `${star.left}%`,
-                top: `${star.top}%`,
-                animationDelay: `${star.delay}s`,
-                animationDuration: `${star.duration}s`,
-                fontSize: `${star.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-yellow-300/70 pointer-events-none" : "absolute text-yellow-300/70 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(star.left, star.top, star.size, star.delay, star.duration)}
             >
               ⭐
             </div>
@@ -779,16 +800,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.fireworks.length > 0 && holidayElements.fireworks.map((firework, i) => (
             <div
               key={`firework-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${firework.left}%`,
-                top: `${firework.top}%`,
-                animationDelay: `${firework.delay}s`,
-                animationDuration: `${firework.duration}s`,
-                fontSize: `${firework.size}px`,
-                color: firework.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(firework.left, firework.top, firework.size, firework.delay, firework.duration, firework.color)}
             >
               ✨
             </div>
@@ -798,15 +811,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.santas.length > 0 && holidayElements.santas.map((santa, i) => (
             <div
               key={`santa-${i}`}
-              className="absolute text-red-400/60 animate-pulse pointer-events-none"
-              style={{
-                left: `${santa.left}%`,
-                top: `${santa.top}%`,
-                animationDelay: `${santa.delay}s`,
-                animationDuration: `${santa.duration}s`,
-                fontSize: `${santa.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-red-400/60 pointer-events-none" : "absolute text-red-400/60 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(santa.left, santa.top, santa.size, santa.delay, santa.duration)}
             >
               {santa.emoji}
             </div>
@@ -872,16 +878,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.dedMorozes.length > 0 && holidayElements.dedMorozes.map((ded, i) => (
             <div
               key={`ded-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${ded.left}%`,
-                top: `${ded.top}%`,
-                animationDelay: `${ded.delay}s`,
-                animationDuration: `${ded.duration}s`,
-                fontSize: `${ded.size}px`,
-                color: ded.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(ded.left, ded.top, ded.size, ded.delay, ded.duration, ded.color)}
             >
               {ded.emoji}
             </div>
@@ -891,15 +889,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.snowmen.length > 0 && holidayElements.snowmen.map((snowman, i) => (
             <div
               key={`snowman-${i}`}
-              className="absolute text-white/90 animate-pulse pointer-events-none"
-              style={{
-                left: `${snowman.left}%`,
-                top: `${snowman.top}%`,
-                animationDelay: `${snowman.delay}s`,
-                animationDuration: `${snowman.duration}s`,
-                fontSize: `${snowman.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-white/90 pointer-events-none" : "absolute text-white/90 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(snowman.left, snowman.top, snowman.size, snowman.delay, snowman.duration)}
             >
               ⛄
             </div>
@@ -909,16 +900,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.bells.length > 0 && holidayElements.bells.map((bell, i) => (
             <div
               key={`bell-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${bell.left}%`,
-                top: `${bell.top}%`,
-                animationDelay: `${bell.delay}s`,
-                animationDuration: `${bell.duration}s`,
-                fontSize: `${bell.size}px`,
-                color: bell.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(bell.left, bell.top, bell.size, bell.delay, bell.duration, bell.color)}
             >
               🔔
             </div>
@@ -928,15 +911,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.deers.length > 0 && holidayElements.deers.map((deer, i) => (
             <div
               key={`deer-${i}`}
-              className="absolute text-amber-300/50 animate-pulse pointer-events-none"
-              style={{
-                left: `${deer.left}%`,
-                top: `${deer.top}%`,
-                animationDelay: `${deer.delay}s`,
-                animationDuration: `${deer.duration}s`,
-                fontSize: `${deer.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-amber-300/50 pointer-events-none" : "absolute text-amber-300/50 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(deer.left, deer.top, deer.size, deer.delay, deer.duration)}
             >
               🦌
             </div>
@@ -946,15 +922,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.gnomes.length > 0 && holidayElements.gnomes.map((gnome, i) => (
             <div
               key={`gnome-${i}`}
-              className="absolute text-red-300/50 animate-pulse pointer-events-none"
-              style={{
-                left: `${gnome.left}%`,
-                top: `${gnome.top}%`,
-                animationDelay: `${gnome.delay}s`,
-                animationDuration: `${gnome.duration}s`,
-                fontSize: `${gnome.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-red-300/50 pointer-events-none" : "absolute text-red-300/50 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(gnome.left, gnome.top, gnome.size, gnome.delay, gnome.duration)}
             >
               🧙
             </div>
@@ -964,16 +933,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.candies.length > 0 && holidayElements.candies.map((candy, i) => (
             <div
               key={`candy-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${candy.left}%`,
-                top: `${candy.top}%`,
-                animationDelay: `${candy.delay}s`,
-                animationDuration: `${candy.duration}s`,
-                fontSize: `${candy.size}px`,
-                color: candy.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(candy.left, candy.top, candy.size, candy.delay, candy.duration, candy.color)}
             >
               🍬
             </div>
@@ -983,15 +944,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.oranges.length > 0 && holidayElements.oranges.map((orange, i) => (
             <div
               key={`orange-${i}`}
-              className="absolute text-orange-400/60 animate-pulse pointer-events-none"
-              style={{
-                left: `${orange.left}%`,
-                top: `${orange.top}%`,
-                animationDelay: `${orange.delay}s`,
-                animationDuration: `${orange.duration}s`,
-                fontSize: `${orange.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-orange-400/60 pointer-events-none" : "absolute text-orange-400/60 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(orange.left, orange.top, orange.size, orange.delay, orange.duration)}
             >
               🍊
             </div>
@@ -1001,15 +955,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.lollipops.length > 0 && holidayElements.lollipops.map((lollipop, i) => (
             <div
               key={`lollipop-${i}`}
-              className="absolute text-pink-300/60 animate-pulse pointer-events-none"
-              style={{
-                left: `${lollipop.left}%`,
-                top: `${lollipop.top}%`,
-                animationDelay: `${lollipop.delay}s`,
-                animationDuration: `${lollipop.duration}s`,
-                fontSize: `${lollipop.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-pink-300/60 pointer-events-none" : "absolute text-pink-300/60 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(lollipop.left, lollipop.top, lollipop.size, lollipop.delay, lollipop.duration)}
             >
               🍭
             </div>
@@ -1019,15 +966,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.cones.length > 0 && holidayElements.cones.map((cone, i) => (
             <div
               key={`cone-${i}`}
-              className="absolute text-amber-600/50 animate-pulse pointer-events-none"
-              style={{
-                left: `${cone.left}%`,
-                top: `${cone.top}%`,
-                animationDelay: `${cone.delay}s`,
-                animationDuration: `${cone.duration}s`,
-                fontSize: `${cone.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-amber-600/50 pointer-events-none" : "absolute text-amber-600/50 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(cone.left, cone.top, cone.size, cone.delay, cone.duration)}
             >
               🌲
             </div>
@@ -1037,16 +977,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.lanterns.length > 0 && holidayElements.lanterns.map((lantern, i) => (
             <div
               key={`lantern-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${lantern.left}%`,
-                top: `${lantern.top}%`,
-                animationDelay: `${lantern.delay}s`,
-                animationDuration: `${lantern.duration}s`,
-                fontSize: `${lantern.size}px`,
-                color: lantern.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(lantern.left, lantern.top, lantern.size, lantern.delay, lantern.duration, lantern.color)}
             >
               🏮
             </div>
@@ -1056,15 +988,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.candles.length > 0 && holidayElements.candles.map((candle, i) => (
             <div
               key={`candle-${i}`}
-              className="absolute text-yellow-200/70 animate-pulse pointer-events-none"
-              style={{
-                left: `${candle.left}%`,
-                top: `${candle.top}%`,
-                animationDelay: `${candle.delay}s`,
-                animationDuration: `${candle.duration}s`,
-                fontSize: `${candle.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-yellow-200/70 pointer-events-none" : "absolute text-yellow-200/70 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(candle.left, candle.top, candle.size, candle.delay, candle.duration)}
             >
               🕯️
             </div>
@@ -1074,16 +999,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.chinese.length > 0 && holidayElements.chinese.map((chinese, i) => (
             <div
               key={`chinese-${i}`}
-              className="absolute animate-pulse pointer-events-none"
-              style={{
-                left: `${chinese.left}%`,
-                top: `${chinese.top}%`,
-                animationDelay: `${chinese.delay}s`,
-                animationDuration: `${chinese.duration}s`,
-                fontSize: `${chinese.size}px`,
-                color: chinese.color,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "pointer-events-none" : "absolute animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(chinese.left, chinese.top, chinese.size, chinese.delay, chinese.duration, chinese.color)}
             >
               {chinese.emoji}
             </div>
@@ -1093,15 +1010,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {holidayElements.japanese.length > 0 && holidayElements.japanese.map((japanese, i) => (
             <div
               key={`japanese-${i}`}
-              className="absolute text-pink-200/60 animate-pulse pointer-events-none"
-              style={{
-                left: `${japanese.left}%`,
-                top: `${japanese.top}%`,
-                animationDelay: `${japanese.delay}s`,
-                animationDuration: `${japanese.duration}s`,
-                fontSize: `${japanese.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-pink-200/60 pointer-events-none" : "absolute text-pink-200/60 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(japanese.left, japanese.top, japanese.size, japanese.delay, japanese.duration)}
             >
               {japanese.emoji}
             </div>
@@ -1112,7 +1022,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/3"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10"></div>
       </div>
-      )}
       
       <div className="relative z-0">
       <div className="max-w-7xl mx-auto">
