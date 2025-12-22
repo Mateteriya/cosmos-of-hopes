@@ -218,7 +218,6 @@ export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
       const isTableNotFound = 
         error.code === 'PGRST205' || 
         error.code === '42P01' || 
-        error.status === 404 ||
         error.message?.includes('does not exist') || 
         error.message?.includes('schema cache') ||
         error.message?.includes('relation') && error.message?.includes('does not exist');
@@ -230,7 +229,7 @@ export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
       }
       // Другие ошибки логируем только в dev режиме
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Ошибка проверки лайков (игнорируется):', error.code || error.status);
+        console.warn('Ошибка проверки лайков (игнорируется):', error.code);
       }
       return false;
     }
@@ -273,7 +272,6 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
       // Если таблица не существует, просто игнорируем (миграция еще не применена)
       const isTableNotFound = 
         error.code === '42P01' || 
-        error.status === 404 ||
         error.message?.includes('does not exist') ||
         error.message?.includes('relation') && error.message?.includes('does not exist');
       
