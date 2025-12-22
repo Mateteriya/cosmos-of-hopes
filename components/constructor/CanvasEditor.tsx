@@ -60,11 +60,16 @@ export default function CanvasEditor({
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(10);
   const [brushColor, setBrushColor] = useState('#000000');
+  const [isEraser, setIsEraser] = useState(false); // Режим ластика
   const [isDragging, setIsDragging] = useState(false);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
   const lastDataUrlRef = useRef<string | null>(null);
   const baseImageRef = useRef<HTMLImageElement | null>(null);
   const userDrawingLayerRef = useRef<HTMLCanvasElement | null>(null);
   const baseCanvasRef = useRef<HTMLCanvasElement | null>(null); // Canvas для базового изображения
+  const historyRef = useRef<string[]>([]); // История состояний canvas
+  const historyIndexRef = useRef<number>(-1); // Индекс текущего состояния в истории
 
   // Получаем правильные координаты с учетом масштаба (для мыши)
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -754,9 +759,20 @@ export default function CanvasEditor({
     const userCtx = userCanvas.getContext('2d');
     if (!ctx || !userCtx) return;
 
+    // Настраиваем режим рисования (обычное или стирание)
+    if (isEraser) {
+      ctx.globalCompositeOperation = 'destination-out';
+      userCtx.globalCompositeOperation = 'destination-out';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      userCtx.globalCompositeOperation = 'source-over';
+    }
+
     // Рисуем на основном canvas
     ctx.lineTo(x, y);
-    ctx.strokeStyle = brushColor;
+    if (!isEraser) {
+      ctx.strokeStyle = brushColor;
+    }
     ctx.lineWidth = brushSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -766,7 +782,9 @@ export default function CanvasEditor({
 
     // Рисуем на canvas для пользовательского рисунка
     userCtx.lineTo(x, y);
-    userCtx.strokeStyle = brushColor;
+    if (!isEraser) {
+      userCtx.strokeStyle = brushColor;
+    }
     userCtx.lineWidth = brushSize;
     userCtx.lineCap = 'round';
     userCtx.lineJoin = 'round';
@@ -787,11 +805,92 @@ export default function CanvasEditor({
     draw(x, y);
   };
 
+  // Сохранение состояния в историю
+  const saveToHistory = useCallback(() => {
+    const userCanvas = userDrawingLayerRef.current;
+    if (!userCanvas) return;
+
+    const state = userCanvas.toDataURL('image/png');
+    const currentIndex = historyIndexRef.current;
+    
+    // Удаляем все состояния после текущего (если есть)
+    if (currentIndex < historyRef.current.length - 1) {
+      historyRef.current = historyRef.current.slice(0, currentIndex + 1);
+    }
+    
+    // Добавляем новое состояние
+    historyRef.current.push(state);
+    
+    // Ограничиваем историю (храним максимум 20 состояний)
+    if (historyRef.current.length > 20) {
+      historyRef.current.shift();
+    } else {
+      historyIndexRef.current = historyRef.current.length - 1;
+    }
+    
+    // Обновляем состояние кнопок
+    setCanUndo(historyIndexRef.current > 0);
+    setCanRedo(false); // После сохранения нового состояния redo недоступен
+  }, []);
+
+  // Восстановление состояния из истории
+  const restoreFromHistory = useCallback((index: number) => {
+    const userCanvas = userDrawingLayerRef.current;
+    const canvas = canvasRef.current;
+    if (!userCanvas || !canvas || index < 0 || index >= historyRef.current.length) return;
+
+    const state = historyRef.current[index];
+    const img = new Image();
+    img.onload = () => {
+      const userCtx = userCanvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
+      if (!userCtx || !ctx) return;
+
+      // Очищаем canvas пользовательского рисунка
+      userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
+      
+      // Восстанавливаем состояние
+      userCtx.drawImage(img, 0, 0);
+      
+      // Перерисовываем основной canvas
+      redrawBase();
+      
+      // Наносим пользовательский рисунок поверх
+      ctx.drawImage(userCanvas, 0, 0);
+      
+      // Уведомляем об изменении
+      const newDataUrl = canvas.toDataURL('image/png');
+      lastDataUrlRef.current = newDataUrl;
+      onImageChange(newDataUrl);
+    };
+    img.src = state;
+    historyIndexRef.current = index;
+    
+    // Обновляем состояние кнопок
+    setCanUndo(index > 0);
+    setCanRedo(index < historyRef.current.length - 1);
+  }, [redrawBase, onImageChange]);
+
+  // Шаг назад
+  const undo = useCallback(() => {
+    if (historyIndexRef.current > 0) {
+      restoreFromHistory(historyIndexRef.current - 1);
+    }
+  }, [restoreFromHistory]);
+
+  // Шаг вперед
+  const redo = useCallback(() => {
+    if (historyIndexRef.current < historyRef.current.length - 1) {
+      restoreFromHistory(historyIndexRef.current + 1);
+    }
+  }, [restoreFromHistory]);
+
   const stopDrawing = () => {
     if (!isDrawing) return;
     setIsDrawing(false);
 
-    // Пользовательский рисунок уже сохранен в userDrawingLayerRef
+    // Сохраняем состояние в историю
+    saveToHistory();
 
     // Уведомляем об изменении только после окончания рисования
     const canvas = canvasRef.current;
@@ -893,6 +992,40 @@ export default function CanvasEditor({
             <span className="text-[10px] sm:text-xs font-bold text-white/90 w-6 sm:w-8">{brushSize}px</span>
           </label>
           
+          {/* Кнопка ластика */}
+          <button
+            onClick={() => setIsEraser(!isEraser)}
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation ${
+              isEraser
+                ? 'bg-gradient-to-r from-orange-500/80 to-red-500/80 text-white active:from-orange-600 active:to-red-600'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
+            }`}
+            title={isEraser ? t('brush') : t('eraser')}
+          >
+            {isEraser ? '✏️' : '🧹'}
+          </button>
+
+          {/* Шаг назад */}
+          <button
+            onClick={undo}
+            disabled={!canUndo}
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white rounded-lg active:from-blue-600 active:to-cyan-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={t('undo')}
+          >
+            ⬅️
+          </button>
+
+          {/* Шаг вперед */}
+          <button
+            onClick={redo}
+            disabled={!canRedo}
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-500/80 to-emerald-500/80 text-white rounded-lg active:from-green-600 active:to-emerald-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={t('redo')}
+          >
+            ➡️
+          </button>
+
+          {/* Очистить */}
           <button
             onClick={() => {
               const canvas = canvasRef.current;
@@ -903,6 +1036,8 @@ export default function CanvasEditor({
                 if (userCtx) {
                   userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
                 }
+                // Сохраняем в историю
+                saveToHistory();
                 // Перерисовываем базовое изображение
                 redrawBase();
               }
