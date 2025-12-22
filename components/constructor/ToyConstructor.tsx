@@ -1408,7 +1408,20 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               <p className="text-[8px] sm:text-[9px] md:text-[10px] text-white/80 mb-1 sm:mb-2 font-black text-center uppercase tracking-wider">
                 {t('drawWithMouse')}
               </p>
-              <div onClick={(e) => { e.stopPropagation(); }}>
+              <div 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  e.preventDefault();
+                }}
+                onMouseDown={(e) => { 
+                  e.stopPropagation(); 
+                  e.preventDefault();
+                }}
+                onTouchStart={(e) => { 
+                  e.stopPropagation(); 
+                  e.preventDefault();
+                }}
+              >
                 <CanvasEditor
                   shape={shape}
                   color={color}

@@ -972,7 +972,12 @@ export default function CanvasEditor({
       </div>
       
       {/* Панель инструментов - компактная, чтобы не перекрывались */}
-      <div className="mt-2 p-1.5 sm:p-2 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg">
+      <div 
+        className="mt-2 p-1.5 sm:p-2 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg"
+        onClick={(e) => { e.stopPropagation(); }}
+        onMouseDown={(e) => { e.stopPropagation(); }}
+        onTouchStart={(e) => { e.stopPropagation(); }}
+      >
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
           {/* Цвет кисти - компактно */}
           <label className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-1.5 sm:px-2 py-1 rounded-lg border border-white/20 shadow-sm">

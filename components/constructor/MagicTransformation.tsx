@@ -258,10 +258,26 @@ function Toy3D({
       roughness = texture ? 0.2 : roughness;
     }
     
+    // Определяем цвет материала: если есть пользовательский рисунок, всегда используем белый
+    // Если нет рисунка, используем выбранный цвет, но если цвет слишком темный (почти черный), используем яркий дефолтный
+    let materialColor = texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color);
+    
+    // Если нет текстуры и цвет слишком темный (близок к черному), заменяем на яркий цвет
+    if (!texture && !gradientTexture) {
+      const hex = materialColor.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      // Если цвет очень темный (сумма RGB < 50), заменяем на яркий розовый
+      if (r + g + b < 50) {
+        materialColor = '#ff69b4'; // Яркий розовый по умолчанию
+      }
+    }
+    
     const mat = new THREE.MeshStandardMaterial({
       // ВАЖНО: Пользовательский рисунок (texture) имеет приоритет над всеми эффектами
-      color: texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color), // Если есть текстура, используем белый цвет для лучшей видимости
-      emissive: effects.glow ? color : '#000000', // Свечение только если включен эффект
+      color: materialColor,
+      emissive: effects.glow ? materialColor : '#000000', // Свечение только если включен эффект
       emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0, // Минимум 0.3 для видимости
       metalness: metalness,
       roughness: roughness,
@@ -304,8 +320,18 @@ function Toy3D({
         material.roughness = 0.2;
       }
       
+      // Определяем цвет для свечения: если цвет слишком темный, используем яркий розовый
+      let glowColor = color;
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      if (r + g + b < 50) {
+        glowColor = '#ff69b4'; // Яркий розовый по умолчанию
+      }
+      
       // Обновляем свечение
-      material.emissive = effects.glow ? new THREE.Color(color) : new THREE.Color('#000000');
+      material.emissive = effects.glow ? new THREE.Color(glowColor) : new THREE.Color('#000000');
       material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0; // Минимум 0.3 для видимости
       
       // Обновляем текстуру с правильным приоритетом
