@@ -2105,7 +2105,7 @@ export default function VirtualTree({
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   return (
-    <div className="w-full h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 relative">
+    <div className="w-full h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
       {/* Переключатель подсветки - виден только разработчику */}
       {isDevelopment && (
         <button
@@ -2116,7 +2116,7 @@ export default function VirtualTree({
           {glowEnabled ? '💡 Подсветка: ВКЛ' : '💡 Подсветка: ВЫКЛ'}
         </button>
       )}
-      <Canvas>
+      <Canvas style={{ width: '100%', height: '100%', display: 'block' }}>
         <Suspense fallback={null}>
           <TreeScene
             toys={isRoom || userHasLiked ? toys : toys.filter(t => t.user_id !== currentUserId)}

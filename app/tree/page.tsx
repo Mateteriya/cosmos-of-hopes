@@ -170,28 +170,31 @@ function TreePageContent() {
   return (
     <div className="relative w-full h-screen">
       {/* Кнопки навигации */}
-      <div className="absolute top-4 left-4 z-10 flex gap-3">
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-wrap gap-2 sm:gap-3">
         {/* Кнопка создания игрушки показывается только для общей ёлки, не для комнат */}
         {!currentRoom && (
         <button
           onClick={() => router.push('/constructor')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
         >
-          ✨ {t('magicWand')} ✨
-          </button>
+          <span>✨</span>
+          <span className="hidden sm:inline">{t('magicWand')}</span>
+        </button>
         )}
         <button
           onClick={() => router.push('/rooms')}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
         >
-          🏠 Комнаты
+          <span>🏠</span>
+          <span className="hidden sm:inline">Комнаты</span>
         </button>
         {/* Кнопка тестирования новогодней анимации (временно для разработки) */}
         <button
           onClick={() => setIsTestNewYear(!isTestNewYear)}
-          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
         >
-          🎆 {isTestNewYear ? 'Остановить' : 'Тест Новый Год'}
+          <span>🎆</span>
+          <span className="hidden sm:inline">{isTestNewYear ? 'Остановить' : 'Тест Новый Год'}</span>
         </button>
       </div>
 
