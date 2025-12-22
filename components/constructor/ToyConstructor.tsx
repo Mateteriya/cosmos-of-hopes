@@ -758,7 +758,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       
       {/* Новогодний фон с анимацией */}
       {/* Новогодние элементы - всегда показываются, но с разным позиционированием для старых браузеров */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -1 }}>
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.3),transparent_60%)]"></div>
@@ -1434,14 +1434,18 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
               
               {/* Кнопки действий */}
-              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5" onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
+              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
                 {/* Волшебная палочка */}
                 <div className="relative group">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      !wishText.trim() ? setMobileTab('wish') : setShowMagicTransformation(true);
+                      if (!wishText.trim()) {
+                        setMobileTab('wish');
+                        return;
+                      }
+                      setShowMagicTransformation(true);
                     }}
                     disabled={!wishText.trim()}
                     className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
@@ -1471,7 +1475,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      !wishText.trim() ? setMobileTab('wish') : handleSave();
+                      if (!wishText.trim()) {
+                        setMobileTab('wish');
+                        return;
+                      }
+                      handleSave();
                     }}
                     disabled={isSaving || !wishText.trim()}
                     className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
