@@ -683,14 +683,14 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   };
 
   return (
-    <div className="min-h-screen relative p-4 overflow-hidden">
+    <div className="min-h-screen relative p-2 sm:p-3 md:p-4 overflow-hidden">
       {/* Селектор языка в левом верхнем углу */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-2 left-2 sm:top-4 sm:left-4 z-50">
         <div className="relative">
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'ru' | 'en')}
-            className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg px-4 py-2 text-white font-bold text-sm cursor-pointer hover:border-white/50 transition-colors shadow-xl"
+            className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-white font-bold text-xs sm:text-sm cursor-pointer active:border-white/50 transition-colors shadow-xl touch-manipulation"
           >
             <option value="ru">🇷🇺 Русский</option>
             <option value="en">🇺🇸 English</option>
@@ -702,7 +702,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <AutoTranslator />
       
       {/* Новогодний фон с анимацией */}
-      <div className="fixed inset-0 -z-10 pointer-events-none">
+      {/* Новогодние элементы - скрываем на очень маленьких экранах для производительности */}
+      <div className="fixed inset-0 -z-10 pointer-events-none hidden sm:block">
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.3),transparent_60%)]"></div>
@@ -1102,11 +1103,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="flex flex-col lg:grid lg:grid-rows-[auto_1fr] lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-1.5 max-w-[1400px] mx-auto">
           {/* Верхняя панель: Фильтры */}
           <div className="lg:col-span-3 order-1">
-            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-xl border-2 border-indigo-500/30">
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
-                <label className="text-base font-black text-white/90 flex items-center gap-2 uppercase tracking-widest">
-                  <span className="text-xl">🎬</span>
-                  {t('filters')}:
+            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-xl border-2 border-indigo-500/30 overflow-x-auto">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-nowrap sm:flex-wrap min-w-max">
+                <label className="text-xs sm:text-sm md:text-base font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
+                  <span className="text-base sm:text-lg md:text-xl">🎬</span>
+                  <span className="hidden sm:inline">{t('filters')}:</span>
                 </label>
                 
                 {/* Размытие */}
@@ -1184,7 +1185,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
 
           {/* Левая панель: Персонализация, Эффекты */}
           <div className="lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-3 lg:order-2">
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] lg:max-h-none">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none">
               {/* Персонализация шара */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-white/90 flex items-center gap-1 uppercase tracking-widest">
@@ -1370,10 +1371,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {/* Центральная область: Canvas редактор */}
           <div className="flex order-2 lg:order-3">
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
-              <h2 className="text-base sm:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
+              <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                 🎨 {t('editor')}
               </h2>
-              <p className="text-[9px] sm:text-[10px] text-white/80 mb-2 font-black text-center uppercase tracking-wider">
+              <p className="text-[8px] sm:text-[9px] md:text-[10px] text-white/80 mb-1 sm:mb-2 font-black text-center uppercase tracking-wider">
                 {t('drawWithMouse')}
               </p>
               <CanvasEditor

@@ -66,7 +66,7 @@ export default function CanvasEditor({
   const userDrawingLayerRef = useRef<HTMLCanvasElement | null>(null);
   const baseCanvasRef = useRef<HTMLCanvasElement | null>(null); // Canvas для базового изображения
 
-  // Получаем правильные координаты с учетом масштаба
+  // Получаем правильные координаты с учетом масштаба (для мыши)
   const getCanvasCoordinates = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -78,6 +78,24 @@ export default function CanvasEditor({
     return {
       x: (e.clientX - rect.left) * scaleX,
       y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  // Получаем правильные координаты для touch-событий
+  const getCanvasCoordinatesTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const touch = e.touches[0] || e.changedTouches[0];
+    
+    if (!touch) return { x: 0, y: 0 };
+
+    return {
+      x: (touch.clientX - rect.left) * scaleX,
+      y: (touch.clientY - rect.top) * scaleY,
     };
   };
 
@@ -697,7 +715,7 @@ export default function CanvasEditor({
   }, [shape, color, pattern, ballSize, surfaceType, effects, filters, secondColor]);
 
   // Обработчики рисования
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawing = (x: number, y: number) => {
     setIsDrawing(true);
     const canvas = canvasRef.current;
     const userCanvas = userDrawingLayerRef.current;
@@ -707,15 +725,25 @@ export default function CanvasEditor({
     const userCtx = userCanvas.getContext('2d');
     if (!ctx || !userCtx) return;
 
-    const { x, y } = getCanvasCoordinates(e);
-
     ctx.beginPath();
     ctx.moveTo(x, y);
     userCtx.beginPath();
     userCtx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDrawingMouse = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const { x, y } = getCanvasCoordinates(e);
+    startDrawing(x, y);
+  };
+
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const { x, y } = getCanvasCoordinatesTouch(e);
+    startDrawing(x, y);
+  };
+
+  const draw = (x: number, y: number) => {
     if (!isDrawing) return;
 
     const canvas = canvasRef.current;
@@ -725,8 +753,6 @@ export default function CanvasEditor({
     const ctx = canvas.getContext('2d');
     const userCtx = userCanvas.getContext('2d');
     if (!ctx || !userCtx) return;
-
-    const { x, y } = getCanvasCoordinates(e);
 
     // Рисуем на основном canvas
     ctx.lineTo(x, y);
@@ -747,6 +773,18 @@ export default function CanvasEditor({
     userCtx.stroke();
     userCtx.beginPath();
     userCtx.moveTo(x, y);
+  };
+
+  const drawMouse = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const { x, y } = getCanvasCoordinates(e);
+    draw(x, y);
+  };
+
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const { x, y } = getCanvasCoordinatesTouch(e);
+    draw(x, y);
   };
 
   const stopDrawing = () => {
@@ -803,18 +841,24 @@ export default function CanvasEditor({
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
+          onMouseDown={startDrawingMouse}
+          onMouseMove={drawMouse}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
-          className="w-full h-auto bg-gradient-to-br from-blue-50 to-purple-50 block"
+          onTouchStart={startDrawingTouch}
+          onTouchMove={drawTouch}
+          onTouchEnd={stopDrawing}
+          onTouchCancel={stopDrawing}
+          className="w-full h-auto bg-gradient-to-br from-blue-50 to-purple-50 block touch-none"
           style={{ 
             touchAction: 'none', 
             maxWidth: `${CANVAS_SIZE}px`, 
             margin: '0 auto',
-            cursor: 'crosshair'
+            cursor: 'crosshair',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
           }}
-          title="Рисуйте мышью"
+          title="Рисуйте пальцем или мышью"
         />
         {isDragging && (
           <div className="absolute inset-0 flex items-center justify-center bg-blue-500/20 pointer-events-none">
@@ -824,29 +868,29 @@ export default function CanvasEditor({
       </div>
       
       {/* Панель инструментов */}
-      <div className="mt-2 p-2.5 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg">
-        <div className="flex items-center gap-4 flex-wrap">
-          <label className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/20 shadow-sm">
-            <span className="text-xs font-semibold text-white/90 whitespace-nowrap">{t('brushColor')}:</span>
+      <div className="mt-2 p-2 sm:p-2.5 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          <label className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-white/20 shadow-sm flex-1 sm:flex-initial min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-white/90 whitespace-nowrap hidden sm:inline">{t('brushColor')}:</span>
             <input
               type="color"
               value={brushColor}
               onChange={(e) => setBrushColor(e.target.value)}
-              className="w-8 h-8 rounded border border-white/30 cursor-pointer"
+              className="w-8 h-8 sm:w-8 sm:h-8 rounded border border-white/30 cursor-pointer touch-manipulation"
             />
           </label>
           
-          <label className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/20 shadow-sm">
-            <span className="text-xs font-semibold text-white/90 whitespace-nowrap">{t('brushSize')}:</span>
+          <label className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-white/20 shadow-sm flex-1 sm:flex-initial min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-white/90 whitespace-nowrap">{t('brushSize')}:</span>
             <input
               type="range"
               min="1"
               max="30"
               value={brushSize}
               onChange={(e) => setBrushSize(Number(e.target.value))}
-              className="w-24 accent-blue-400"
+              className="w-16 sm:w-24 accent-blue-400 flex-1 sm:flex-initial"
             />
-            <span className="text-xs font-bold text-white/90 w-8">{brushSize}px</span>
+            <span className="text-[10px] sm:text-xs font-bold text-white/90 w-6 sm:w-8">{brushSize}px</span>
           </label>
           
           <button
@@ -863,7 +907,7 @@ export default function CanvasEditor({
                 redrawBase();
               }
             }}
-            className="px-3 py-1.5 bg-gradient-to-r from-red-500/80 to-pink-500/80 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all text-xs font-bold shadow-md hover:shadow-lg transform hover:scale-105"
+            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-500/80 to-pink-500/80 text-white rounded-lg active:from-red-600 active:to-pink-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation"
           >
             🗑️ {t('clear')}
           </button>
