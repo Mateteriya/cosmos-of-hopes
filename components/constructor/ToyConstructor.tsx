@@ -1101,42 +1101,45 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         </div>
 
         {/* Мобильные вкладки (только на мобильных) */}
-        <div className="lg:hidden mb-3 flex gap-1 border-b-2 border-white/20">
+        <div className="lg:hidden mb-3 border-b-2 border-white/20" style={{ display: 'flex', flexDirection: 'row' }}>
           <button
             onClick={() => setMobileTab('editor')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
               mobileTab === 'editor'
                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <span className="text-base leading-none">🎨</span>
+            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>🎨</span>
             <span className="hidden sm:inline">Редактор</span>
           </button>
           <button
             onClick={() => setMobileTab('settings')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
               mobileTab === 'settings'
                 ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <span className="text-base leading-none">🎬</span>
+            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>🎬</span>
             <span className="hidden sm:inline">Фильтры</span>
           </button>
           <button
             onClick={() => setMobileTab('wish')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
               mobileTab === 'wish'
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg ring-2 ring-red-400/50'
                 : !wishText.trim()
                 ? 'bg-gradient-to-r from-red-900/60 to-pink-900/60 text-white/90 ring-1 ring-red-500/30 animate-pulse'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <span className="text-base leading-none">💫</span>
+            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>💫</span>
             <span className="hidden sm:inline">Желание</span>
-            {!wishText.trim() && <span className="text-xs leading-none">⚠️</span>}
+            {!wishText.trim() && <span className="text-xs" style={{ lineHeight: '1', marginLeft: '2px' }}>⚠️</span>}
           </button>
         </div>
 

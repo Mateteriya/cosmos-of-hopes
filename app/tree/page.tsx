@@ -168,7 +168,7 @@ function TreePageContent() {
   }
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
       {/* Кнопки навигации */}
       <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-wrap gap-2 sm:gap-3">
         {/* Кнопка создания игрушки показывается только для общей ёлки, не для комнат */}
