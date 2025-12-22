@@ -249,6 +249,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [showMagicTransformation, setShowMagicTransformation] = useState(false);
   const [mobileTab, setMobileTab] = useState<'editor' | 'settings' | 'wish'>('editor');
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
   const secondColorInputRef = useRef<HTMLInputElement>(null);
@@ -704,8 +705,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <AutoTranslator />
       
       {/* Новогодний фон с анимацией */}
-      {/* Новогодние элементы - скрываем на мобильных для производительности и совместимости со старыми устройствами */}
-      <div className="fixed inset-0 -z-10 pointer-events-none hidden md:block" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
+      {/* Новогодние элементы - полностью скрыты на мобильных */}
+      {!isMobile && (
+      <div className="fixed inset-0 -z-10 pointer-events-none" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.3),transparent_60%)]"></div>
@@ -1088,6 +1090,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/3"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10"></div>
       </div>
+      )}
       
       <div className="relative z-0">
       <div className="max-w-7xl mx-auto">
@@ -1100,46 +1103,68 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </h1>
         </div>
 
-        {/* Мобильные вкладки (только на мобильных) */}
-        <div className="lg:hidden mb-3 border-b-2 border-white/20" style={{ display: 'flex', flexDirection: 'row' }}>
+        {/* Мобильные вкладки (всегда видны, скрываются только на больших экранах через медиа-запросы) */}
+        <div className="mb-3 lg:hidden" style={{ 
+          display: 'flex', 
+          flexDirection: 'row', 
+          borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
+          width: '100%'
+        }}>
           <button
             onClick={() => setMobileTab('editor')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
-              mobileTab === 'editor'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
-            }`}
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"
+            style={{ 
+              flex: '1',
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: mobileTab === 'editor' ? '#9333ea' : 'rgba(30, 41, 59, 0.5)',
+              background: mobileTab === 'editor' ? 'linear-gradient(to right, #9333ea, #db2777)' : 'rgba(30, 41, 59, 0.5)',
+              color: mobileTab === 'editor' ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+              border: 'none',
+              cursor: 'pointer'
+            }}
           >
-            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>🎨</span>
-            <span className="hidden sm:inline">Редактор</span>
+            <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>🎨</span>
+            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Редактор</span>
           </button>
           <button
             onClick={() => setMobileTab('settings')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
-              mobileTab === 'settings'
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg'
-                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
-            }`}
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"
+            style={{ 
+              flex: '1',
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: mobileTab === 'settings' ? '#2563eb' : 'rgba(30, 41, 59, 0.5)',
+              background: mobileTab === 'settings' ? 'linear-gradient(to right, #2563eb, #06b6d4)' : 'rgba(30, 41, 59, 0.5)',
+              color: mobileTab === 'settings' ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+              border: 'none',
+              cursor: 'pointer'
+            }}
           >
-            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>🎬</span>
-            <span className="hidden sm:inline">Фильтры</span>
+            <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>🎬</span>
+            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Фильтры</span>
           </button>
           <button
             onClick={() => setMobileTab('wish')}
-            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation whitespace-nowrap ${
-              mobileTab === 'wish'
-                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg ring-2 ring-red-400/50'
-                : !wishText.trim()
-                ? 'bg-gradient-to-r from-red-900/60 to-pink-900/60 text-white/90 ring-1 ring-red-500/30 animate-pulse'
-                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
-            }`}
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"
+            style={{ 
+              flex: '1',
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              backgroundColor: mobileTab === 'wish' ? '#dc2626' : (!wishText.trim() ? 'rgba(127, 29, 29, 0.6)' : 'rgba(30, 41, 59, 0.5)'),
+              background: mobileTab === 'wish' ? 'linear-gradient(to right, #dc2626, #db2777)' : (!wishText.trim() ? 'linear-gradient(to right, rgba(127, 29, 29, 0.6), rgba(153, 27, 27, 0.6))' : 'rgba(30, 41, 59, 0.5)'),
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              opacity: mobileTab === 'wish' ? 1 : (!wishText.trim() ? 0.9 : 0.6)
+            }}
           >
-            <span className="text-base" style={{ lineHeight: '1', marginRight: '4px' }}>💫</span>
-            <span className="hidden sm:inline">Желание</span>
-            {!wishText.trim() && <span className="text-xs" style={{ lineHeight: '1', marginLeft: '2px' }}>⚠️</span>}
+            <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>💫</span>
+            <span style={{ display: (typeof window !== 'undefined' && window.innerWidth >= 640) ? 'inline' : 'none' }}>Желание</span>
+            {!wishText.trim() && <span style={{ fontSize: '12px', lineHeight: '1', marginLeft: '2px', display: 'inline-block' }}>⚠️</span>}
           </button>
         </div>
 
@@ -1539,7 +1564,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Правая панель: Желания, Фото (скрыта на мобильных, показывается через вкладку желания) */}
-          <div className={`lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-4 ${mobileTab === 'wish' ? 'block' : 'hidden'} lg:block`}>
+          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-4 lg:order-3 ${mobileTab === 'wish' ? 'block' : 'hidden'} lg:block`}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Желание */}
               <div>
