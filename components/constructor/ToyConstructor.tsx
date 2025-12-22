@@ -247,6 +247,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showSecondColorPicker, setShowSecondColorPicker] = useState(false);
   const [showMagicTransformation, setShowMagicTransformation] = useState(false);
+  const [mobileTab, setMobileTab] = useState<'editor' | 'settings' | 'wish'>('editor');
+  const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
   const secondColorInputRef = useRef<HTMLInputElement>(null);
@@ -1090,101 +1092,53 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <div className="relative z-0">
       <div className="max-w-7xl mx-auto">
         {/* Заголовок */}
-        <div className="text-center mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 drop-shadow-2xl">
+        <div className="text-center mb-3 sm:mb-4 md:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 drop-shadow-2xl">
             <span className="bg-gradient-to-r from-yellow-300 via-pink-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent animate-pulse">
               ✨ {t('title')} ✨
             </span>
           </h1>
         </div>
 
-        {/* Layout: Редактор в центре, инструменты ВОКРУГ (сверху, слева, справа) */}
-        {/* На мобильных: вертикальный layout, на больших экранах: grid layout */}
-        <div className="flex flex-col lg:grid lg:grid-rows-[auto_1fr] lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-1.5 max-w-[1400px] mx-auto">
-          {/* Верхняя панель: Фильтры */}
-          <div className="lg:col-span-3 order-1">
-            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 md:p-4 shadow-xl border-2 border-indigo-500/30 overflow-x-auto">
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-nowrap sm:flex-wrap min-w-max">
-                <label className="text-xs sm:text-sm md:text-base font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
-                  <span className="text-base sm:text-lg md:text-xl">🎬</span>
-                  <span className="hidden sm:inline">{t('filters')}:</span>
-                </label>
-                
-                {/* Размытие */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
-                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('blurLabel')}: {filters.blur}px</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.5"
-                    value={filters.blur}
-                    onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })}
-                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
-                  />
-                </div>
+        {/* Мобильные вкладки (только на мобильных) */}
+        <div className="lg:hidden mb-3 flex gap-1 border-b-2 border-white/20">
+          <button
+            onClick={() => setMobileTab('editor')}
+            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+              mobileTab === 'editor'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
+            }`}
+          >
+            🎨 Редактор
+          </button>
+          <button
+            onClick={() => setMobileTab('settings')}
+            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+              mobileTab === 'settings'
+                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg'
+                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
+            }`}
+          >
+            ⚙️ Настройки
+          </button>
+          <button
+            onClick={() => setMobileTab('wish')}
+            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+              mobileTab === 'wish'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
+                : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
+            }`}
+          >
+            💫 Желание
+          </button>
+        </div>
 
-                {/* Контраст */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
-                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('contrastLabel')}: {filters.contrast}%</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    step="5"
-                    value={filters.contrast}
-                    onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })}
-                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
-                  />
-                </div>
-
-                {/* Насыщенность */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
-                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('saturationLabel')}: {filters.saturation}%</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    step="5"
-                    value={filters.saturation}
-                    onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })}
-                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
-                  />
-                </div>
-
-                {/* Виньетка */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
-                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('vignetteLabel')}: {filters.vignette}%</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="5"
-                    value={filters.vignette}
-                    onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })}
-                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
-                  />
-                </div>
-
-                {/* Зернистость */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial min-w-0">
-                  <span className="text-xs sm:text-sm text-white/70 whitespace-nowrap font-black uppercase tracking-wider">{t('grainLabel')}: {filters.grain}</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="50"
-                    step="1"
-                    value={filters.grain}
-                    onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })}
-                    className="w-20 sm:w-32 h-2 sm:h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 flex-shrink"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Левая панель: Персонализация, Эффекты */}
-          <div className="lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-3 lg:order-2">
+        {/* Layout: Редактор в центре, инструменты рядом с ним */}
+        {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
+        <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
+          {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, показывается через вкладку настроек) */}
+          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 ${mobileTab === 'settings' ? 'block' : 'hidden'} lg:block`}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none">
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1368,8 +1322,48 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             </div>
           </div>
 
-          {/* Центральная область: Canvas редактор */}
-          <div className="flex order-2 lg:order-3">
+          {/* Центральная область: Canvas редактор с фильтрами */}
+          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block`}>
+            {/* Фильтры ПРЯМО ПЕРЕД canvas */}
+            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
+                  <span className="text-base sm:text-lg">🎬</span>
+                  <span className="hidden sm:inline">{t('filters')}:</span>
+                </label>
+                
+                {/* Компактные фильтры */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Blur:</span>
+                    <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                    <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
+                  </div>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Contrast:</span>
+                    <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                    <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
+                  </div>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Sat:</span>
+                    <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                    <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
+                  </div>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Vign:</span>
+                    <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                    <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
+                  </div>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">Grain:</span>
+                    <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                    <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Canvas редактор */}
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
               <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                 🎨 {t('editor')}
@@ -1431,9 +1425,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             </div>
           </div>
 
-          {/* Правая панель: Желания, Фото */}
-          <div className="lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-4">
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[500px] lg:max-h-none">
+          {/* Правая панель: Желания, Фото (скрыта на мобильных, показывается через вкладку желания) */}
+          <div className={`lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-4 ${mobileTab === 'wish' ? 'block' : 'hidden'} lg:block`}>
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[500px] lg:max-h-none">
               {/* Желание */}
               <div>
                 <label className="block text-[10px] font-black text-white/90 mb-1 flex items-center gap-1 uppercase tracking-widest">

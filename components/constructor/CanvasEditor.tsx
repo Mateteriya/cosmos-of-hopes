@@ -966,85 +966,83 @@ export default function CanvasEditor({
         )}
       </div>
       
-      {/* Панель инструментов */}
-      <div className="mt-2 p-2 sm:p-2.5 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg">
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <label className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-white/20 shadow-sm flex-1 sm:flex-initial min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-white/90 whitespace-nowrap hidden sm:inline">{t('brushColor')}:</span>
+      {/* Панель инструментов - компактная, чтобы не перекрывались */}
+      <div className="mt-2 p-1.5 sm:p-2 bg-gradient-to-r from-slate-800/80 via-indigo-800/80 to-purple-800/80 backdrop-blur-md rounded-xl border-2 border-white/20 shadow-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          {/* Цвет кисти - компактно */}
+          <label className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-1.5 sm:px-2 py-1 rounded-lg border border-white/20 shadow-sm">
             <input
               type="color"
               value={brushColor}
               onChange={(e) => setBrushColor(e.target.value)}
-              className="w-8 h-8 sm:w-8 sm:h-8 rounded border border-white/30 cursor-pointer touch-manipulation"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded border border-white/30 cursor-pointer touch-manipulation"
+              title={t('brushColor')}
             />
           </label>
           
-          <label className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border border-white/20 shadow-sm flex-1 sm:flex-initial min-w-0">
-            <span className="text-[10px] sm:text-xs font-semibold text-white/90 whitespace-nowrap">{t('brushSize')}:</span>
+          {/* Размер кисти - компактно */}
+          <label className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-1.5 sm:px-2 py-1 rounded-lg border border-white/20 shadow-sm">
+            <span className="text-[9px] sm:text-[10px] font-semibold text-white/90 whitespace-nowrap hidden sm:inline">{t('brushSize')}:</span>
             <input
               type="range"
               min="1"
               max="30"
               value={brushSize}
               onChange={(e) => setBrushSize(Number(e.target.value))}
-              className="w-16 sm:w-24 accent-blue-400 flex-1 sm:flex-initial"
+              className="w-12 sm:w-16 accent-blue-400"
+              title={`${brushSize}px`}
             />
-            <span className="text-[10px] sm:text-xs font-bold text-white/90 w-6 sm:w-8">{brushSize}px</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-white/90 w-5 sm:w-6">{brushSize}</span>
           </label>
           
-          {/* Кнопка ластика */}
+          {/* Кнопки инструментов - компактные, в одну строку */}
           <button
             onClick={() => setIsEraser(!isEraser)}
-            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation ${
+            className={`px-1.5 sm:px-2 py-1 rounded-lg transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation ${
               isEraser
-                ? 'bg-gradient-to-r from-orange-500/80 to-red-500/80 text-white active:from-orange-600 active:to-red-600'
-                : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
+                ? 'bg-gradient-to-r from-orange-500/80 to-red-500/80 active:from-orange-600 active:to-red-600'
+                : 'bg-white/10 hover:bg-white/20 border border-white/20'
             }`}
             title={isEraser ? t('brush') : t('eraser')}
           >
             {isEraser ? '✏️' : '🧹'}
           </button>
 
-          {/* Шаг назад */}
           <button
             onClick={undo}
             disabled={!canUndo}
-            className={`px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white rounded-lg active:from-blue-600 active:to-cyan-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="px-1.5 sm:px-2 py-1 bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white rounded-lg active:from-blue-600 active:to-cyan-600 transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
             title={t('undo')}
           >
             ⬅️
           </button>
 
-          {/* Шаг вперед */}
           <button
             onClick={redo}
             disabled={!canRedo}
-            className={`px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-green-500/80 to-emerald-500/80 text-white rounded-lg active:from-green-600 active:to-emerald-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="px-1.5 sm:px-2 py-1 bg-gradient-to-r from-green-500/80 to-emerald-500/80 text-white rounded-lg active:from-green-600 active:to-emerald-600 transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
             title={t('redo')}
           >
             ➡️
           </button>
 
-          {/* Очистить */}
           <button
             onClick={() => {
               const canvas = canvasRef.current;
               const userCanvas = userDrawingLayerRef.current;
               if (canvas && userCanvas) {
-                // Очищаем слой пользовательского рисунка
                 const userCtx = userCanvas.getContext('2d');
                 if (userCtx) {
                   userCtx.clearRect(0, 0, userCanvas.width, userCanvas.height);
                 }
-                // Сохраняем в историю
                 saveToHistory();
-                // Перерисовываем базовое изображение
                 redrawBase();
               }
             }}
-            className="px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-500/80 to-pink-500/80 text-white rounded-lg active:from-red-600 active:to-pink-600 transition-all text-[10px] sm:text-xs font-bold shadow-md active:shadow-lg transform active:scale-95 touch-manipulation"
+            className="px-1.5 sm:px-2 py-1 bg-gradient-to-r from-red-500/80 to-pink-500/80 text-white rounded-lg active:from-red-600 active:to-pink-600 transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation"
+            title={t('clear')}
           >
-            🗑️ {t('clear')}
+            🗑️
           </button>
         </div>
       </div>
