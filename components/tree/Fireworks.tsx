@@ -123,7 +123,9 @@ export function Fireworks({ count = 8, enabled = true }: FireworksProps) {
               
               // Небольшая вариация цвета для частиц
               const colorVariation = (Math.random() - 0.5) * 0.1; // ±5% оттенка
-              const particleHue = (firework.color.getHSL(new THREE.Vector3()).h + colorVariation) % 1;
+              const hsl = { h: 0, s: 0, l: 0 };
+              firework.color.getHSL(hsl);
+              const particleHue = (hsl.h + colorVariation) % 1;
               
               particles.push({
                 position: firework.explosionPosition.clone(),
