@@ -457,8 +457,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const getHolidayElementStyle = useCallback((leftPercent: number, topPercent: number, size: number, delay?: number, duration?: number, color?: string) => {
     if (isOldBrowser) {
       // Для старых браузеров используем фиксированные позиции в пикселях
-      const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-      const screenHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+      // Используем document.documentElement для более надежного определения размеров
+      const screenWidth = typeof document !== 'undefined' && document.documentElement ? document.documentElement.clientWidth : (typeof window !== 'undefined' ? window.innerWidth : 1920);
+      const screenHeight = typeof document !== 'undefined' && document.documentElement ? document.documentElement.clientHeight : (typeof window !== 'undefined' ? window.innerHeight : 1080);
       return {
         position: 'absolute' as const,
         left: `${(leftPercent / 100) * screenWidth}px`,
@@ -771,15 +772,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           {snowflakes.length > 0 && snowflakes.map((flake, i) => (
             <div
               key={`snow-${i}`}
-              className="absolute text-white/50 animate-pulse pointer-events-none"
-              style={{
-                left: `${flake.left}%`,
-                top: `${flake.top}%`,
-                animationDelay: `${flake.delay}s`,
-                animationDuration: `${flake.duration}s`,
-                fontSize: `${flake.size}px`,
-                zIndex: 1,
-              }}
+              className={isOldBrowser ? "text-white/50 pointer-events-none" : "absolute text-white/50 animate-pulse pointer-events-none"}
+              style={getHolidayElementStyle(flake.left, flake.top, flake.size, flake.delay, flake.duration)}
             >
               ❄
             </div>
@@ -1440,11 +1434,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
               
               {/* Кнопки действий */}
-              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5">
+              <div className="mt-2 sm:mt-3 flex flex-col sm:flex-row gap-2 sm:gap-1.5" onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
                 {/* Волшебная палочка */}
                 <div className="relative group">
                   <button
-                    onClick={() => !wishText.trim() ? setMobileTab('wish') : setShowMagicTransformation(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      !wishText.trim() ? setMobileTab('wish') : setShowMagicTransformation(true);
+                    }}
                     disabled={!wishText.trim()}
                     className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
                       !wishText.trim()
@@ -1470,7 +1468,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 {/* Кнопка сохранения */}
                 <div className="relative group">
                   <button
-                    onClick={() => !wishText.trim() ? setMobileTab('wish') : handleSave()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      !wishText.trim() ? setMobileTab('wish') : handleSave();
+                    }}
                     disabled={isSaving || !wishText.trim()}
                     className={`flex-1 py-2.5 sm:py-3.5 px-3 sm:px-5 rounded-lg font-black text-white transition-all transform shadow-lg text-sm sm:text-base uppercase tracking-widest touch-manipulation w-full ${
                       isSaving || !wishText.trim()
