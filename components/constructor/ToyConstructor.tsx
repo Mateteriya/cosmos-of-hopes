@@ -704,8 +704,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       <AutoTranslator />
       
       {/* Новогодний фон с анимацией */}
-      {/* Новогодние элементы - скрываем на очень маленьких экранах для производительности */}
-      <div className="fixed inset-0 -z-10 pointer-events-none hidden sm:block">
+      {/* Новогодние элементы - скрываем на мобильных для производительности и совместимости со старыми устройствами */}
+      <div className="fixed inset-0 -z-10 pointer-events-none hidden md:block" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
         {/* Темный градиентный фон */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 via-purple-950 to-pink-950"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.3),transparent_60%)]"></div>
@@ -1148,7 +1148,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
           {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, показывается через вкладку настроек) */}
           <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 ${mobileTab === 'settings' ? 'block' : 'hidden'} lg:block`}>
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-white/90 flex items-center gap-1 uppercase tracking-widest">
@@ -1373,7 +1373,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 </div>
 
                 {/* Canvas редактор ПОД фильтрами */}
-                <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
+                <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
                   <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                     🎨 {t('editor')}
                   </h2>
@@ -1407,9 +1407,12 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Центральная область: Canvas редактор с фильтрами (вкладка Редактор) */}
-          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block`}>
+          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block lg:relative`}>
+            {/* Область прокрутки справа (только на больших экранах) */}
+            <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-4 z-10 pointer-events-none" style={{ right: '-16px', width: '16px' }}></div>
+            
             {/* Фильтры ПРЯМО ПЕРЕД canvas */}
-            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
+            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
                   <span className="text-base sm:text-lg">🎬</span>
@@ -1448,7 +1451,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             </div>
 
             {/* Canvas редактор */}
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
                 🎨 {t('editor')}
               </h2>
@@ -1537,7 +1540,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
 
           {/* Правая панель: Желания, Фото (скрыта на мобильных, показывается через вкладку желания) */}
           <div className={`lg:row-span-1 flex flex-col gap-1.5 w-full lg:w-[240px] lg:h-full order-4 ${mobileTab === 'wish' ? 'block' : 'hidden'} lg:block`}>
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[500px] lg:max-h-none">
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 flex-1 flex flex-col overflow-y-auto max-h-[calc(100vh-250px)] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Желание */}
               <div>
                 <label className="block text-[10px] font-black text-white/90 mb-1 flex items-center gap-1 uppercase tracking-widest">

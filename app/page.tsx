@@ -30,7 +30,8 @@ export default function Home() {
           {/* Создать шар */}
           <button
             onClick={() => router.push('/constructor')}
-            className="group relative bg-gradient-to-br from-purple-600 to-pink-600 active:from-purple-700 active:to-pink-700 text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 hover:shadow-purple-500/50 touch-manipulation"
+            className="group relative text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 touch-manipulation"
+            style={{ backgroundColor: '#9333ea', background: 'linear-gradient(to bottom right, #9333ea, #db2777)' }}
           >
             <div className="text-4xl sm:text-5xl mb-2 sm:mb-3 md:mb-4">🎄</div>
             <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Создать шар</div>
@@ -41,7 +42,8 @@ export default function Home() {
           {/* Комнаты */}
           <button
             onClick={() => router.push('/rooms')}
-            className="group relative bg-gradient-to-br from-blue-600 to-cyan-600 active:from-blue-700 active:to-cyan-700 text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 hover:shadow-cyan-500/50 touch-manipulation"
+            className="group relative text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 touch-manipulation"
+            style={{ backgroundColor: '#2563eb', background: 'linear-gradient(to bottom right, #2563eb, #06b6d4)' }}
           >
             <div className="text-4xl sm:text-5xl mb-2 sm:mb-3 md:mb-4">🏠</div>
             <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Комнаты</div>
@@ -52,7 +54,8 @@ export default function Home() {
           {/* Общая ёлка */}
           <button
             onClick={() => router.push('/tree')}
-            className="group relative bg-gradient-to-br from-green-600 to-emerald-600 active:from-green-700 active:to-emerald-700 text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 hover:shadow-emerald-500/50 touch-manipulation"
+            className="group relative text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 touch-manipulation"
+            style={{ backgroundColor: '#16a34a', background: 'linear-gradient(to bottom right, #16a34a, #10b981)' }}
           >
             <div className="text-4xl sm:text-5xl mb-2 sm:mb-3 md:mb-4">🌟</div>
             <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Общая ёлка</div>
