@@ -1014,7 +1014,11 @@ export default function CanvasEditor({
           </button>
 
           <button
-            onClick={undo}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              undo();
+            }}
             disabled={!canUndo}
             className="px-1.5 sm:px-2 py-1 bg-gradient-to-r from-blue-500/80 to-cyan-500/80 text-white rounded-lg active:from-blue-600 active:to-cyan-600 transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
             title={t('undo')}
@@ -1023,7 +1027,11 @@ export default function CanvasEditor({
           </button>
 
           <button
-            onClick={redo}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              redo();
+            }}
             disabled={!canRedo}
             className="px-1.5 sm:px-2 py-1 bg-gradient-to-r from-green-500/80 to-emerald-500/80 text-white rounded-lg active:from-green-600 active:to-emerald-600 transition-all text-base sm:text-lg shadow-md active:shadow-lg transform active:scale-95 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
             title={t('redo')}
