@@ -61,6 +61,43 @@ export default function Home() {
           </button>
         </div>
 
+        {/* Описание приложения */}
+        <div className="bg-gradient-to-br from-slate-800/80 via-purple-900/30 to-slate-800/80 backdrop-blur-md border-2 border-purple-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 text-center bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-300 bg-clip-text text-transparent">
+            ✨ Что мы предлагаем
+          </h2>
+          <div className="space-y-3 sm:space-y-4 text-left">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl sm:text-3xl flex-shrink-0">🎨</span>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Создайте уникальный шар желаний</h3>
+                <p className="text-xs sm:text-sm text-white/80">Нарисуйте свой шар, выберите цвета, эффекты и фильтры. Каждый шар неповторим, как ваше желание.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-2xl sm:text-3xl flex-shrink-0">🌲</span>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Украсьте общую ёлку</h3>
+                <p className="text-xs sm:text-sm text-white/80">Ваш шар появится на виртуальной ёлке вместе с шарами других людей. Поддерживайте чужие мечты лайками!</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-2xl sm:text-3xl flex-shrink-0">🏠</span>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Празднуйте вместе в комнатах</h3>
+                <p className="text-xs sm:text-sm text-white/80">Создавайте комнаты для друзей и близких. Встречайте Новый год вместе, даже находясь далеко друг от друга.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-2xl sm:text-3xl flex-shrink-0">💫</span>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Загадайте желание</h3>
+                <p className="text-xs sm:text-sm text-white/80">Напишите ваше самое заветное желание. Пусть оно станет частью магии Нового года!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Дополнительная информация */}
         <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
           <p className="text-white/70 text-xs sm:text-sm mb-2">

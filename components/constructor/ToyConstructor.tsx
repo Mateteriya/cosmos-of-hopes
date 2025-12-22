@@ -1104,27 +1104,29 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="lg:hidden mb-3 flex gap-1 border-b-2 border-white/20">
           <button
             onClick={() => setMobileTab('editor')}
-            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
               mobileTab === 'editor'
                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
           >
-            🎨 Редактор
+            <span className="text-base leading-none">🎨</span>
+            <span className="hidden sm:inline">Редактор</span>
           </button>
           <button
             onClick={() => setMobileTab('settings')}
-            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
               mobileTab === 'settings'
                 ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg'
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
           >
-            🎬 Дополнительные фильтры
+            <span className="text-base leading-none">🎬</span>
+            <span className="hidden sm:inline">Фильтры</span>
           </button>
           <button
             onClick={() => setMobileTab('wish')}
-            className={`flex-1 py-2.5 px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation ${
+            className={`flex-1 py-2.5 px-1.5 sm:px-2 text-xs font-bold rounded-t-lg transition-all touch-manipulation flex items-center justify-center gap-1.5 whitespace-nowrap ${
               mobileTab === 'wish'
                 ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg ring-2 ring-red-400/50'
                 : !wishText.trim()
@@ -1132,7 +1134,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 : 'bg-slate-800/50 text-white/60 active:bg-slate-700/50'
             }`}
           >
-            💫 Желание {!wishText.trim() && '⚠️'}
+            <span className="text-base leading-none">💫</span>
+            <span className="hidden sm:inline">Желание</span>
+            {!wishText.trim() && <span className="text-xs leading-none">⚠️</span>}
           </button>
         </div>
 
