@@ -1,0 +1,198 @@
+newmtl Star11Mtl
+Material Color
+Ka 0.511398 0.334458 0.108711
+Kd 0.511398 0.334458 0.108711
+Ks 0.202554 0.132472 0.0430581 
+
+d 1
+
+Ns 0
+
+newmtl Lightbluelight7Mtl
+Material Color
+Ka 0.991393 0.899384 0.505432
+Kd 0.991393 0.899384 0.505432
+Ks 0.0894198 0.081121 0.045588 
+
+d 1
+
+Ns 0
+
+newmtl Greenlight10Mtl
+Material Color
+Ka 0.399293 0.517401 0.325037
+Kd 0.399293 0.517401 0.325037
+Ks 0.0360147 0.0466676 0.0293171 
+
+d 1
+
+Ns 0
+
+newmtl Greenlight1Mtl
+Material Color
+Ka 0.447871 0.789314 0.38891
+Kd 0.447871 0.789314 0.38891
+Ks 0.0403962 0.071193 0.0350782 
+
+d 1
+
+Ns 0
+
+newmtl Greenlight7Mtl
+Material Color
+Ka 0.612066 1 0.612066
+Kd 0.612066 1 0.612066
+Ks 0.0552059 0.0901961 0.0552059 
+
+d 1
+
+Ns 0
+
+newmtl Pinklight1Mtl
+Material Color
+Ka 1 0.592438 0.592438
+Kd 1 0.592438 0.592438
+Ks 0.0901961 0.0534356 0.0534356 
+
+d 1
+
+Ns 0
+
+newmtl Greenlight12Mtl
+Material Color
+Ka 0.363604 0.560499 0.267358
+Kd 0.363604 0.560499 0.267358
+Ks 0.0327956 0.0505548 0.0241147 
+
+d 1
+
+Ns 0
+
+newmtl Darkbluelight1Mtl
+Material Color
+Ka 0.320382 0.547994 0.715465
+Kd 0.320382 0.547994 0.715465
+Ks 0.0288972 0.0494269 0.0645322 
+
+d 1
+
+Ns 0
+
+newmtl Darkbluelight2Mtl
+Material Color
+Ka 0.579547 0.666117 0.781751
+Kd 0.579547 0.666117 0.781751
+Ks 0.0522728 0.0600811 0.0705108 
+
+d 1
+
+Ns 0
+
+newmtl Pinklight2Mtl
+Material Color
+Ka 1 0.320382 0.722672
+Kd 1 0.320382 0.722672
+Ks 0.0901961 0.0288972 0.0651822 
+
+d 1
+
+Ns 0
+
+newmtl Pinklight3Mtl
+Material Color
+Ka 0.804559 0.804559 0.84337
+Kd 0.804559 0.804559 0.84337
+Ks 0.0725681 0.0725681 0.0760686 
+
+d 1
+
+Ns 0
+
+newmtl Pinklight6Mtl
+Material Color
+Ka 0.891262 0.899384 0.899384
+Kd 0.891262 0.899384 0.899384
+Ks 0.0803883 0.081121 0.081121 
+
+d 1
+
+Ns 0
+
+newmtl Pinklight9Mtl
+Material Color
+Ka 1 0.612066 0.325037
+Kd 1 0.612066 0.325037
+Ks 0.0901961 0.0552059 0.0293171 
+
+d 1
+
+Ns 0
+
+newmtl Redlight1Mtl
+Material Color
+Ka 1 0.302126 0.302126
+Kd 1 0.302126 0.302126
+Ks 0.0901961 0.0272505 0.0272505 
+
+d 1
+
+Ns 0
+
+newmtl Yellowlight8Mtl
+Material Color
+Ka 0.940601 0.940601 0.940601
+Kd 0.940601 0.940601 0.940601
+Ks 0.0848385 0.0848385 0.0848385 
+
+d 1
+
+Ns 0
+
+newmtl Lightbluelight1Mtl
+Material Color
+Ka 1 1 0.612066
+Kd 1 1 0.612066
+Ks 0.0901961 0.0901961 0.0552059 
+
+d 1
+
+Ns 0
+
+newmtl Leaves11Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 0.901961
+
+Ns 0
+
+map_Ka Leaves11_diff.png
+map_Kd Leaves11_diff.png
+map_d Leaves11_diff.png
+
+newmtl Baseplate1Mtl
+Material Color
+Ka 0.103634 0.103634 0.103634
+Kd 0.103634 0.103634 0.103634
+Ks 0.00650253 0.00650253 0.00650253 
+
+d 1
+
+Ns 0
+
+newmtl Baseplate2Mtl
+Material Color
+Ka 0 0 0
+Kd 0 0 0
+Ks 0 0 0 
+
+d 0.2
+
+Ns 0
+
+map_Ka Baseplate2_diff.png
+map_Kd Baseplate2_diff.png
+map_d Baseplate2_diff.png
+

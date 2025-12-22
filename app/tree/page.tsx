@@ -17,10 +17,10 @@ import { useLanguage } from '@/components/constructor/LanguageProvider';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-export default function TreePage() {
+function TreePageContent() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null | undefined>(undefined);
   const [toys, setToys] = useState<Toy[]>([]);
   const [selectedToy, setSelectedToy] = useState<Toy | null>(null);
   const [userHasLiked, setUserHasLiked] = useState(false);
@@ -28,38 +28,51 @@ export default function TreePage() {
   const [error, setError] = useState<string | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   
-  // Тип ёлки и путь к модели/изображению
-  const [treeType, setTreeType] = useState<'3d' | 'png'>('3d');
-  const [treeModel, setTreeModel] = useState<string | undefined>(undefined);
-  
-  // Варианты ёлок из папки public
-  const treeOptions = [
-    { type: '3d' as const, name: '3D Модель (по умолчанию)', path: undefined },
-    { type: 'png' as const, name: '🎬 Видео 3D (dolly-zoom)', path: '/png3d_dolly-zoom-in.mp4' },
-    { type: 'png' as const, name: 'tree.png', path: '/tree.png' },
-    { type: 'png' as const, name: 'tree 3.png', path: '/tree%203.png' }, // Пробел в URL кодируется как %20
-  ];
+  // Тип ёлки и путь к модели - только OBJ модель
+  const [treeType] = useState<'3d' | 'png'>('3d');
+  const [treeModel] = useState<string>('/placewithtree.obj');
+
+  // Тестовый "Новый год" для проверки анимации (пока выключен)
+  const [isTestNewYear, setIsTestNewYear] = useState(false);
 
   // Получаем roomId из URL параметров после монтирования
   useEffect(() => {
+    console.log('[TreePage] Монтирование компонента');
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      setRoomId(params.get('room'));
+      const roomParam = params.get('room');
+      console.log('[TreePage] roomId из URL:', roomParam);
+      setRoomId(roomParam);
     }
   }, []);
 
   useEffect(() => {
-    if (roomId !== null) {
+    // Загружаем данные после того, как roomId определён (может быть null для общей ёлки)
+    // undefined означает, что мы ещё не проверили URL
+    console.log('[TreePage] roomId изменился:', roomId);
+    if (roomId !== undefined) {
+      console.log('[TreePage] Запускаем загрузку данных');
       loadRoom();
       loadToys();
     }
   }, [roomId]);
 
+  // Тестовый запуск новогодней анимации через таймер (временно отключён)
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setIsTestNewYear(true);
+  //   }, 10000);
+  //   return () => clearTimeout(timer);
+  // }, []);
+
   // Отдельный эффект для проверки лайков (только для общей ёлки)
   useEffect(() => {
+    // Ждём, пока roomId определён (может быть null для общей ёлки)
+    if (roomId === undefined) return;
+    
     // Для комнат не проверяем лайки - они не нужны
-    if (!roomId) {
-    checkUserLikes();
+    if (roomId === null) {
+      checkUserLikes();
     } else {
       // В комнатах всегда разрешаем видеть свои игрушки
       setUserHasLiked(true);
@@ -82,25 +95,26 @@ export default function TreePage() {
   const loadToys = async () => {
     try {
       setLoading(true);
-      let loadedToys: Toy[];
+      setError(null);
       
-      console.log('Загрузка игрушек:', { roomId, hasRoom: !!roomId });
+      console.log('[TreePage] Загрузка игрушек:', { roomId, hasRoom: !!roomId });
       
-      if (roomId) {
-        // Загружаем игрушки из комнаты
-        console.log('Загружаем игрушки для комнаты:', roomId);
-        loadedToys = await getToysOnTree(roomId);
-      } else {
-        // Загружаем общие игрушки (первая порция 1000 шаров)
-        console.log('Загружаем общие игрушки');
-        loadedToys = await getToysOnVirtualTree(1000, 0);
-      }
+      // Добавляем таймаут для запроса
+      const loadPromise = roomId 
+        ? getToysOnTree(roomId)
+        : getToysOnVirtualTree(1000, 0);
       
-      console.log('Загружено игрушек:', loadedToys.length);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Таймаут загрузки (30 секунд)')), 30000)
+      );
+      
+      const loadedToys = await Promise.race([loadPromise, timeoutPromise]);
+      
+      console.log('[TreePage] Загружено игрушек:', loadedToys.length);
       setToys(loadedToys);
     } catch (err) {
-      console.error('Ошибка загрузки шаров:', err);
-      setError('Не удалось загрузить шары на ёлке');
+      console.error('[TreePage] Ошибка загрузки шаров:', err);
+      setError(`Не удалось загрузить шары на ёлке: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     } finally {
       setLoading(false);
     }
@@ -172,6 +186,13 @@ export default function TreePage() {
         >
           🏠 Комнаты
         </button>
+        {/* Кнопка тестирования новогодней анимации (временно для разработки) */}
+        <button
+          onClick={() => setIsTestNewYear(!isTestNewYear)}
+          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+        >
+          🎆 {isTestNewYear ? 'Остановить' : 'Тест Новый Год'}
+        </button>
       </div>
 
       {/* Информация о комнате */}
@@ -198,56 +219,6 @@ export default function TreePage() {
         </div>
       )}
 
-      {/* Селектор вариантов ёлки */}
-      <div className={`absolute ${currentRoom ? 'top-20' : 'top-20'} right-4 z-10`}>
-        <div className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg p-3 shadow-xl">
-          <div className="text-white font-bold text-sm mb-2 uppercase tracking-wider">
-            🌲 Выбор ёлки:
-          </div>
-          <div className="space-y-1">
-            {treeOptions.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setTreeType(option.type);
-                  setTreeModel(option.path);
-                }}
-                className={`w-full text-left px-3 py-2 rounded text-xs font-semibold transition-all ${
-                  treeType === option.type && treeModel === option.path
-                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
-                    : 'bg-slate-700/50 text-white/80 hover:bg-slate-700 hover:text-white'
-                }`}
-              >
-                {option.name}
-              </button>
-            ))}
-          </div>
-          
-          {/* Загрузка своего файла */}
-          <label className="mt-2 block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-3 py-2 rounded text-xs text-center cursor-pointer transition-all">
-            📁 Загрузить свой файл
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,video/mp4,video/webm,video/mov,.glb"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = URL.createObjectURL(file);
-                  // Определяем тип по расширению файла
-                  const isVideo = file.type.startsWith('video/') || 
-                                 file.name.toLowerCase().endsWith('.mp4') ||
-                                 file.name.toLowerCase().endsWith('.webm') ||
-                                 file.name.toLowerCase().endsWith('.mov');
-                  setTreeType('png'); // Используем 'png' для всех медиа (изображения и видео)
-                  setTreeModel(url);
-                }
-              }}
-            />
-          </label>
-        </div>
-      </div>
-
       {/* Виртуальная ёлка */}
       <VirtualTree
         toys={toys}
@@ -258,12 +229,19 @@ export default function TreePage() {
         isRoom={!!currentRoom}
         treeType={treeType}
         treeModel={treeModel}
+        isNewYearAnimation={isTestNewYear}
+        onAnimationComplete={() => setIsTestNewYear(false)}
       />
 
       {/* Модальное окно с деталями шара */}
       <BallDetailsModal toy={selectedToy} onClose={() => setSelectedToy(null)} />
     </div>
   );
+}
+
+// Server component wrapper
+export default function TreePage() {
+  return <TreePageContent />;
 }
 
 

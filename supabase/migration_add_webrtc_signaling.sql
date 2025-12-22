@@ -35,3 +35,5 @@ CREATE POLICY "Anyone can send signals" ON webrtc_signaling
 
 -- Включаем Realtime для таблицы
 ALTER PUBLICATION supabase_realtime ADD TABLE webrtc_signaling;
+
+

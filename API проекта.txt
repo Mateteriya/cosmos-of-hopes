@@ -2,7 +2,10 @@ API проекта
 Ваш API защищен шлюзом API, для каждого запроса которого требуется ключ API.
 Вы можете использовать указанные ниже параметры для работы с клиентскими библиотеками Supabase.
 
+super2026.online
+
 URL проекта
+https://pjvbiblalapcbgwpojvm.supabase.co
 https://pjvbiblalapcbgwpojvm.supabase.co
 
 Копия
@@ -15,6 +18,19 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdmJpYmx
 
 Копия
 Этот ключ безопасно использовать в браузере, если у вас включена защита на уровне строк (RLS) для таблиц и настроены политики. Вы также можете использовать сервисный ключ, который можно найти здесь , чтобы обойти RLS.
+
+Название проекта
+Mateteriya's Project
+Идентификатор проекта
+pjvbiblalapcbgwpojvm
+
+Публикуемый ключ
+Этот ключ можно безопасно использовать в браузере, если вы включили безопасность на уровне строк (RLS) для своих таблиц и настроили политики.
+
+Публикуемый ключ
+sb_publishable_rbnfTQkofSYumZsNKRUklg_isgW42ZP
+
+sb_secret_DpdPMwDSyhm3aapXV984_g_XAXO6g5J
 
 JavaScript
 Дарт

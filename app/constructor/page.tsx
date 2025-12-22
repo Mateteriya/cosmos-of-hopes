@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 // Временный userId для тестирования (позже будет из Telegram)
 const TEMP_USER_ID = 'test_user_' + Date.now();
 
-export default function ConstructorPage() {
+function ConstructorContent() {
   const router = useRouter();
   const [showSuccess, setShowSuccess] = useState(false);
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -110,4 +110,7 @@ export default function ConstructorPage() {
   );
 }
 
-
+// Server component wrapper
+export default function ConstructorPage() {
+  return <ConstructorContent />;
+}

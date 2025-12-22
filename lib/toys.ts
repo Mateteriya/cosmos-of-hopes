@@ -214,16 +214,23 @@ export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
       .limit(1);
 
     if (error) {
-      // Если таблица не существует (PGRST205, 42P01), возвращаем false без логирования
-      if (error.code === 'PGRST205' || error.code === '42P01' || 
-          error.message?.includes('does not exist') || error.message?.includes('schema cache')) {
+      // Если таблица не существует (404, PGRST205, 42P01), возвращаем false без логирования
+      const isTableNotFound = 
+        error.code === 'PGRST205' || 
+        error.code === '42P01' || 
+        error.status === 404 ||
+        error.message?.includes('does not exist') || 
+        error.message?.includes('schema cache') ||
+        error.message?.includes('relation') && error.message?.includes('does not exist');
+      
+      if (isTableNotFound) {
         // Таблица еще не создана - это нормально до миграции
         // Не логируем, чтобы не засорять консоль
         return false;
       }
       // Другие ошибки логируем только в dev режиме
       if (process.env.NODE_ENV === 'development') {
-      console.warn('Ошибка проверки лайков (игнорируется):', error.code);
+        console.warn('Ошибка проверки лайков (игнорируется):', error.code || error.status);
       }
       return false;
     }
@@ -231,12 +238,19 @@ export async function hasUserLikedAnyBall(userId: string): Promise<boolean> {
     return (data?.length || 0) > 0;
   } catch (err: any) {
     // Если таблица не существует, просто возвращаем false без логирования
-    if (err?.code === 'PGRST205' || err?.status === 404 || err?.message?.includes('schema cache')) {
+    const isTableNotFound = 
+      err?.code === 'PGRST205' || 
+      err?.status === 404 || 
+      err?.statusCode === 404 ||
+      err?.message?.includes('schema cache') ||
+      err?.message?.includes('does not exist');
+    
+    if (isTableNotFound) {
       return false;
     }
     // Логируем только в dev режиме
     if (process.env.NODE_ENV === 'development') {
-    console.warn('Ошибка проверки лайков (игнорируется)');
+      console.warn('Ошибка проверки лайков (игнорируется):', err?.message || err);
     }
     return false;
   }
@@ -257,8 +271,17 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
 
     if (error) {
       // Если таблица не существует, просто игнорируем (миграция еще не применена)
-      if (error.code === '42P01' || error.message.includes('does not exist')) {
-        console.log('Таблица supports еще не создана, лайк не сохранен');
+      const isTableNotFound = 
+        error.code === '42P01' || 
+        error.status === 404 ||
+        error.message?.includes('does not exist') ||
+        error.message?.includes('relation') && error.message?.includes('does not exist');
+      
+      if (isTableNotFound) {
+        // Не логируем в продакшене, чтобы не засорять консоль
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Таблица supports еще не создана, лайк не сохранен');
+        }
         return;
       }
       // Если уже есть лайк от этого пользователя, игнорируем ошибку
@@ -269,8 +292,17 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
     }
   } catch (err: any) {
     // Если таблица не существует, просто игнорируем
-    if (err?.message?.includes('does not exist') || err?.code === '42P01') {
-      console.log('Таблица supports еще не создана, лайк не сохранен');
+    const isTableNotFound = 
+      err?.message?.includes('does not exist') || 
+      err?.code === '42P01' ||
+      err?.status === 404 ||
+      err?.statusCode === 404;
+    
+    if (isTableNotFound) {
+      // Не логируем в продакшене
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Таблица supports еще не создана, лайк не сохранен');
+      }
       return;
     }
     throw err;

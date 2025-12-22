@@ -94,3 +94,5 @@ ALTER PUBLICATION supabase_realtime ADD TABLE webrtc_signaling;
 - WebRTC - встроен в браузеры
 
 Никаких платных сервисов не требуется! 🎉
+
+
