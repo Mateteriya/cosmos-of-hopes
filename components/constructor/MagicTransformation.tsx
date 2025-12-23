@@ -139,9 +139,14 @@ function Toy3D({
     if (imageDataUrl) {
       const loader = new THREE.TextureLoader();
       const tex = loader.load(imageDataUrl);
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
+      // Используем RepeatWrapping для правильного отображения на сфере
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
       tex.flipY = false; // Не переворачивать изображение
+      // Убираем любые артефакты на краях
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
       return tex;
     }
     return null;
@@ -296,7 +301,8 @@ function Toy3D({
     const mat = new THREE.MeshStandardMaterial({
       // ВАЖНО: Пользовательский рисунок (texture) имеет приоритет над всеми эффектами
       // Цвет материала - ТОЧНО тот, который выбрал пользователь (или белый для texture)
-      color: new THREE.Color(materialColor), // Используем THREE.Color для гарантии правильного формата
+      // НО: если есть текстура, цвет должен быть белым, чтобы текстура отображалась правильно
+      color: texture ? new THREE.Color('#ffffff') : new THREE.Color(materialColor), // Используем THREE.Color для гарантии правильного формата
       // Emissive только для эффекта glow
       emissive: effects.glow ? new THREE.Color(materialColor) : new THREE.Color('#000000'),
       emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0, // Без glow - без свечения
@@ -313,12 +319,22 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
+        // Настраиваем wrap для правильного отображения на сфере
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.flipY = false; // Отключаем flip для правильного отображения
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.flipY = false;
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.flipY = false;
       } else {
         mat.map = null;
       }

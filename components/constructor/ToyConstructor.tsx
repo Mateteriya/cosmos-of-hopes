@@ -1039,8 +1039,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </h1>
         </div>
 
-        {/* Мобильные вкладки (всегда видны, скрываются только на больших экранах через медиа-запросы) */}
-        <div className="mb-3 lg:hidden" style={{ 
+        {/* Мобильные вкладки (ТОЛЬКО на мобильных и планшетах, на ПК скрыты) */}
+        <div className="mb-3 block md:hidden" style={{ 
           display: 'flex', 
           flexDirection: 'row', 
           borderBottom: '2px solid rgba(255, 255, 255, 0.2)',

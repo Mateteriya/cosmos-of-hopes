@@ -2025,7 +2025,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
             <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
               <OBJTreeWithMTL 
                 objPath={treeModel} 
-                mtlPath={treeModel.replace('.obj', '.mtl')}
+                mtlPath={treeModel.endsWith('.obj') ? treeModel.replace(/\.obj$/, '.mtl') : treeModel + '.mtl'}
                 glowEnabled={glowEnabled}
                 isNewYearAnimation={isNewYearAnimation}
                 treeOpacity={treeOpacity}
