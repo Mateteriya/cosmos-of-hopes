@@ -139,9 +139,9 @@ function Toy3D({
     if (imageDataUrl) {
       const loader = new THREE.TextureLoader();
       const tex = loader.load(imageDataUrl);
-      // Используем RepeatWrapping для правильного отображения на сфере
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
+      // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.flipY = false; // Не переворачивать изображение
       // Убираем любые артефакты на краях
       tex.generateMipmaps = true;
@@ -319,21 +319,21 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
-        // Настраиваем wrap для правильного отображения на сфере
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false; // Отключаем flip для правильного отображения
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
       } else {
         mat.map = null;
@@ -418,12 +418,22 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
+        // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        material.map.flipY = false;
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        material.map.flipY = false;
       } else if (patternTexture && patternTexture.image) {
         material.map = patternTexture;
         material.map.needsUpdate = true;
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        material.map.flipY = false;
       } else {
         material.map = null;
       }
@@ -438,7 +448,8 @@ function Toy3D({
       {/* Основная форма игрушки - всегда шар */}
       {/* ballSize применяется в useFrame, поэтому здесь не нужно */}
       <mesh ref={meshRef} material={material} castShadow receiveShadow>
-        <sphereGeometry args={[1, 64, 64]} />
+        {/* Увеличиваем количество сегментов для более плавной сферы и уменьшения швов */}
+        <sphereGeometry args={[1, 128, 128]} />
       </mesh>
       
       {/* Эффект блеска (sparkle) - улучшенный, более яркий */}

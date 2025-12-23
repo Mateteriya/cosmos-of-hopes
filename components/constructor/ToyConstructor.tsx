@@ -1040,12 +1040,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         </div>
 
         {/* Мобильные вкладки (ТОЛЬКО на мобильных и планшетах, на ПК скрыты) */}
-        <div className="mb-3 block md:hidden" style={{ 
-          display: 'flex', 
-          flexDirection: 'row', 
-          borderBottom: '2px solid rgba(255, 255, 255, 0.2)',
-          width: '100%'
-        }}>
+        <div className="mb-3 flex md:hidden flex-row border-b-2 border-white/20 w-full">
           <button
             onClick={() => setMobileTab('editor')}
             className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"

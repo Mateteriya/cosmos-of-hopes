@@ -2116,7 +2116,18 @@ export default function VirtualTree({
           {glowEnabled ? '💡 Подсветка: ВКЛ' : '💡 Подсветка: ВЫКЛ'}
         </button>
       )}
-      <Canvas style={{ width: '100%', height: '100%', display: 'block', position: 'absolute', top: 0, left: 0 }}>
+      <Canvas 
+        style={{ width: '100%', height: '100%', display: 'block', position: 'absolute', top: 0, left: 0 }}
+        gl={{ 
+          preserveDrawingBuffer: true, 
+          antialias: typeof window !== 'undefined' && window.innerWidth >= 768, // Отключаем antialiasing на мобильных для ускорения
+          powerPreference: 'high-performance',
+          stencil: false,
+          depth: true,
+          alpha: false
+        }}
+        dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? Math.min(window.devicePixelRatio, 1.5) : undefined} // Ограничиваем DPR на мобильных
+      >
         <Suspense fallback={null}>
           <TreeScene
             toys={isRoom || userHasLiked ? toys : toys.filter(t => t.user_id !== currentUserId)}
