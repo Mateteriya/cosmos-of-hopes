@@ -112,12 +112,12 @@ function Toy3D({
         const pulse = Math.sin(state.clock.elapsedTime * 2) * 0.1 + 1;
         meshRef.current.scale.setScalar(finalScale * ballSize * pulse);
         
-        // Медленное вращение
-        meshRef.current.rotation.y += 0.005;
+        // Усиленное вращение для полного оборота (примерно 3 полных оборота за 10 секунд)
+        meshRef.current.rotation.y += 0.05;
       } else {
         // После завершения анимации - полный масштаб без пульсации, но с вращением
         meshRef.current.scale.setScalar(finalScale * ballSize);
-        meshRef.current.rotation.y += 0.005; // Продолжаем вращение
+        meshRef.current.rotation.y += 0.05; // Продолжаем вращение для полного оборота (быстрее)
       }
     }
     
@@ -306,8 +306,9 @@ function Toy3D({
     const mat = new THREE.MeshStandardMaterial({
       // ВАЖНО: Пользовательский рисунок (texture) имеет приоритет над всеми эффектами
       color: materialColor,
-      emissive: effects.glow ? materialColor : '#000000', // Свечение только если включен эффект
-      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0, // Минимум 0.3 для видимости
+      // Добавляем небольшое свечение даже без эффекта glow, чтобы избежать черных теней
+      emissive: effects.glow ? materialColor : (materialColor === '#ffffff' ? '#ffffff' : materialColor),
+      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0.15, // Небольшое свечение для видимости
       metalness: metalness,
       roughness: roughness,
       transparent: false,
@@ -415,9 +416,10 @@ function Toy3D({
       // Обновляем цвет материала
       material.color = new THREE.Color(materialColorToUse);
       
-      // Обновляем свечение
-      material.emissive = effects.glow ? new THREE.Color(glowColor) : new THREE.Color('#000000');
-      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0; // Минимум 0.3 для видимости
+      // Обновляем свечение - добавляем небольшое свечение даже без glow, чтобы избежать черных теней
+      const finalEmissiveColor = effects.glow ? glowColor : (materialColorToUse === '#ffffff' ? '#ffffff' : materialColorToUse);
+      material.emissive = new THREE.Color(finalEmissiveColor);
+      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0.15; // Небольшое свечение для видимости
       
       // Обновляем текстуру с правильным приоритетом
       // ПРИОРИТЕТ: Пользовательский рисунок > Градиент > Узор
@@ -813,13 +815,16 @@ export default function MagicTransformation({
           }>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} />
             {/* Улучшенное освещение для фотореалистичности */}
-            <ambientLight intensity={0.4} />
-            <directionalLight position={[5, 5, 5]} intensity={1.5} castShadow />
-            <directionalLight position={[-5, 3, -5]} intensity={0.8} />
-            <pointLight position={[-5, -5, -5]} intensity={1.0} color={color} />
-            <pointLight position={[5, 5, 5]} intensity={1.0} color={color} />
-            <pointLight position={[0, 5, 0]} intensity={0.6} color="#ffffff" />
-            <spotLight position={[0, 8, 0]} angle={0.5} penumbra={0.5} intensity={1.2} castShadow />
+            {/* Улучшенное освещение для исключения черных теней */}
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[5, 5, 5]} intensity={2.0} castShadow />
+            <directionalLight position={[-5, 3, -5]} intensity={1.5} />
+            <directionalLight position={[0, -5, 0]} intensity={1.0} />
+            <pointLight position={[-5, -5, -5]} intensity={1.5} color={color || '#ffffff'} />
+            <pointLight position={[5, 5, 5]} intensity={1.5} color={color || '#ffffff'} />
+            <pointLight position={[0, 5, 0]} intensity={1.2} color="#ffffff" />
+            <pointLight position={[0, -5, 0]} intensity={1.0} color="#ffffff" />
+            <spotLight position={[0, 8, 0]} angle={0.8} penumbra={0.5} intensity={1.5} castShadow />
             
             <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
             
