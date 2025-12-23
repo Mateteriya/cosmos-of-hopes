@@ -258,14 +258,23 @@ function Toy3D({
       roughness = texture ? 0.2 : roughness;
     }
     
-    // Определяем цвет материала: если есть пользовательский рисунок, всегда используем белый
-    // Если нет рисунка, используем выбранный цвет, но если цвет слишком темный (почти черный), используем яркий дефолтный
-    let materialColor = texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color);
+    // Определяем цвет материала: 
+    // 1. Если есть пользовательский рисунок (texture) - ВСЕГДА белый для лучшей видимости рисунка
+    // 2. Если есть градиент - белый
+    // 3. Если нет ни того, ни другого - используем выбранный цвет пользователя (но НЕ черный!)
+    let materialColor: string;
     
-    // ВСЕГДА проверяем цвет и заменяем слишком темные на яркий
-    // Это важно, чтобы избежать черного цвета, даже если пользователь не выбирал цвет явно
-    if (!texture && !gradientTexture && materialColor) {
-      // Убеждаемся, что это валидный HEX цвет
+    if (texture) {
+      // Если есть рисунок пользователя - ВСЕГДА белый, чтобы рисунок был виден
+      materialColor = '#ffffff';
+    } else if (gradientTexture) {
+      // Если есть градиент - тоже белый
+      materialColor = '#ffffff';
+    } else {
+      // Используем выбранный цвет пользователя
+      materialColor = color || '#FF0000'; // По умолчанию красный, если цвет не выбран
+      
+      // Проверяем, что цвет не черный и не слишком темный
       const hexColor = materialColor.startsWith('#') ? materialColor : `#${materialColor}`;
       const hex = hexColor.replace('#', '');
       
@@ -274,29 +283,24 @@ function Toy3D({
           const r = parseInt(hex.substr(0, 2), 16);
           const g = parseInt(hex.substr(2, 2), 16);
           const b = parseInt(hex.substr(4, 2), 16);
-          // Если цвет очень темный (сумма RGB < 100), заменяем на яркий розовый
-          if (r + g + b < 100) {
-            materialColor = '#ff69b4'; // Яркий розовый по умолчанию
+          const sum = r + g + b;
+          
+          // Если цвет черный или очень темный (сумма RGB < 150) - заменяем на выбранный цвет или яркий
+          if (sum < 150 || materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black') {
+            // Пробуем использовать второй цвет, если он есть, иначе - яркий розовый
+            materialColor = '#ff69b4';
           }
         } catch (e) {
-          // Если парсинг не удался, используем яркий цвет по умолчанию
           materialColor = '#ff69b4';
         }
       } else {
-        // Если формат цвета некорректный, используем яркий цвет по умолчанию
         materialColor = '#ff69b4';
       }
     }
     
-    // Если materialColor все еще пустой или неопределенный, используем яркий розовый
-    if (!materialColor || materialColor === '#000000' || materialColor === 'black' || materialColor === '#000') {
-      materialColor = '#ff69b4';
-    }
-    
-    // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если есть texture, но цвет материала черный - заменяем
-    // Это предотвращает появление черного цвета, когда texture применяется неправильно
-    if (texture && (materialColor === '#000000' || materialColor === '#000' || materialColor === 'black')) {
-      materialColor = '#ffffff'; // Белый для лучшей видимости текстуры
+    // ФИНАЛЬНАЯ ПРОВЕРКА: убеждаемся, что цвет НЕ черный ни при каких обстоятельствах
+    if (!materialColor || materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black') {
+      materialColor = texture ? '#ffffff' : '#ff69b4'; // Если есть texture - белый, иначе розовый
     }
     
     const mat = new THREE.MeshStandardMaterial({
@@ -368,17 +372,31 @@ function Toy3D({
         glowColor = '#ff69b4';
       }
       
-      // Определяем цвет материала (также проверяем на черный)
-      let materialColorToUse = texture ? '#ffffff' : (gradientTexture ? '#ffffff' : color);
-      if (!texture && !gradientTexture && materialColorToUse) {
+      // Определяем цвет материала с той же логикой, что и при создании
+      let materialColorToUse: string;
+      
+      if (texture) {
+        // Если есть рисунок пользователя - ВСЕГДА белый
+        materialColorToUse = '#ffffff';
+      } else if (gradientTexture) {
+        // Если есть градиент - тоже белый
+        materialColorToUse = '#ffffff';
+      } else {
+        // Используем выбранный цвет пользователя
+        materialColorToUse = color || '#FF0000';
+        
+        // Проверяем, что цвет не черный
         const hexColor = materialColorToUse.startsWith('#') ? materialColorToUse : `#${materialColorToUse}`;
         const hex = hexColor.replace('#', '');
+        
         if (hex.length === 6) {
           try {
             const r = parseInt(hex.substr(0, 2), 16);
             const g = parseInt(hex.substr(2, 2), 16);
             const b = parseInt(hex.substr(4, 2), 16);
-            if (r + g + b < 100) {
+            const sum = r + g + b;
+            
+            if (sum < 150 || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black') {
               materialColorToUse = '#ff69b4';
             }
           } catch (e) {
@@ -388,13 +406,10 @@ function Toy3D({
           materialColorToUse = '#ff69b4';
         }
       }
-      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse === 'black') {
-        materialColorToUse = '#ff69b4';
-      }
       
-      // ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Если есть texture, но цвет материала черный - заменяем
-      if (texture && (materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse === 'black')) {
-        materialColorToUse = '#ffffff'; // Белый для лучшей видимости текстуры
+      // ФИНАЛЬНАЯ ПРОВЕРКА: убеждаемся, что цвет НЕ черный
+      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black') {
+        materialColorToUse = texture ? '#ffffff' : '#ff69b4';
       }
       
       // Обновляем цвет материала

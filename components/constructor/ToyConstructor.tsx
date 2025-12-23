@@ -1476,9 +1476,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 />
               </div>
               
-              {/* Кнопки действий - большой отступ на мобильных для безопасного расстояния от UNDO/REDO */}
+              {/* Кнопки действий - очень большой отступ на мобильных для безопасного расстояния от UNDO/REDO */}
               <div 
-                className="mt-6 sm:mt-4 flex flex-col sm:flex-row gap-4 sm:gap-2"
+                className="mt-10 sm:mt-4 flex flex-col sm:flex-row gap-6 sm:gap-2"
                 data-action-buttons="true"
                 onClick={(e) => { 
                   // НЕ обрабатываем клики на кнопки UNDO/REDO
