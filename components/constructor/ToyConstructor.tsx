@@ -1414,7 +1414,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             {/* Canvas редактор */}
             <div 
               data-canvas-editor="true"
-              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" 
+              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full max-w-[340px] sm:max-w-md lg:max-w-none mx-auto flex flex-col" 
               style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}
               onClick={(e) => { e.stopPropagation(); }}
               onMouseDown={(e) => { e.stopPropagation(); }}
@@ -1476,9 +1476,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 />
               </div>
               
-              {/* Кнопки действий - увеличенный отступ на мобильных устройствах для разделения с UNDO/REDO */}
+              {/* Кнопки действий - большой отступ на мобильных для безопасного расстояния от UNDO/REDO */}
               <div 
-                className="mt-4 sm:mt-3 flex flex-col sm:flex-row gap-3 sm:gap-1.5"
+                className="mt-6 sm:mt-4 flex flex-col sm:flex-row gap-4 sm:gap-2"
                 data-action-buttons="true"
                 onClick={(e) => { 
                   // НЕ обрабатываем клики на кнопки UNDO/REDO

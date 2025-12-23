@@ -956,11 +956,13 @@ export default function CanvasEditor({
           className="w-full h-auto bg-gradient-to-br from-blue-50 to-purple-50 block touch-none"
           style={{ 
             touchAction: 'none', 
-            maxWidth: `${CANVAS_SIZE}px`, 
             margin: '0 auto',
             cursor: 'crosshair',
             WebkitUserSelect: 'none',
-            userSelect: 'none'
+            userSelect: 'none',
+            // На мобильных добавляем небольшое сужение для безопасной прокрутки
+            width: 'calc(100% - 8px)',
+            maxWidth: 'min(calc(100vw - 40px), 350px)' // Оставляем место по бокам для прокрутки, но не больше CANVAS_SIZE
           }}
           title="Рисуйте пальцем или мышью"
         />
