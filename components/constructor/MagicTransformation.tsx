@@ -339,29 +339,29 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
-        // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
-        mat.map.wrapS = THREE.ClampToEdgeWrapping;
-        mat.map.wrapT = THREE.ClampToEdgeWrapping;
+        // Используем RepeatWrapping и смещаем текстуру, чтобы избежать черной полосы на шве сферы
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
         mat.map.flipY = false; // Отключаем flip для правильного отображения
-        // Смещаем текстуру немного, чтобы избежать шва на сфере
-        mat.map.offset.set(0.01, 0);
-        mat.map.repeat.set(0.98, 1);
+        // Смещаем текстуру на 0.5, чтобы она начиналась не со шва
+        mat.map.offset.set(0.5, 0);
+        mat.map.repeat.set(1, 1);
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.ClampToEdgeWrapping;
-        mat.map.wrapT = THREE.ClampToEdgeWrapping;
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
         mat.map.flipY = false;
-        mat.map.offset.set(0.01, 0);
-        mat.map.repeat.set(0.98, 1);
+        mat.map.offset.set(0.5, 0);
+        mat.map.repeat.set(1, 1);
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.ClampToEdgeWrapping;
-        mat.map.wrapT = THREE.ClampToEdgeWrapping;
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.RepeatWrapping;
         mat.map.flipY = false;
-        mat.map.offset.set(0.01, 0);
-        mat.map.repeat.set(0.98, 1);
+        mat.map.offset.set(0.5, 0);
+        mat.map.repeat.set(1, 1);
       } else {
         mat.map = null;
       }
@@ -445,29 +445,29 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
-        // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
-        material.map.wrapS = THREE.ClampToEdgeWrapping;
-        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        // Используем RepeatWrapping и смещаем текстуру, чтобы избежать черной полосы на шве сферы
+        material.map.wrapS = THREE.RepeatWrapping;
+        material.map.wrapT = THREE.RepeatWrapping;
         material.map.flipY = false;
-        // Смещаем текстуру немного, чтобы избежать шва на сфере
-        material.map.offset.set(0.01, 0);
-        material.map.repeat.set(0.98, 1);
+        // Смещаем текстуру на 0.5, чтобы она начиналась не со шва
+        material.map.offset.set(0.5, 0);
+        material.map.repeat.set(1, 1);
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;
-        material.map.wrapS = THREE.ClampToEdgeWrapping;
-        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        material.map.wrapS = THREE.RepeatWrapping;
+        material.map.wrapT = THREE.RepeatWrapping;
         material.map.flipY = false;
-        material.map.offset.set(0.01, 0);
-        material.map.repeat.set(0.98, 1);
+        material.map.offset.set(0.5, 0);
+        material.map.repeat.set(1, 1);
       } else if (patternTexture && patternTexture.image) {
         material.map = patternTexture;
         material.map.needsUpdate = true;
-        material.map.wrapS = THREE.ClampToEdgeWrapping;
-        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        material.map.wrapS = THREE.RepeatWrapping;
+        material.map.wrapT = THREE.RepeatWrapping;
         material.map.flipY = false;
-        material.map.offset.set(0.01, 0);
-        material.map.repeat.set(0.98, 1);
+        material.map.offset.set(0.5, 0);
+        material.map.repeat.set(1, 1);
       } else {
         material.map = null;
       }

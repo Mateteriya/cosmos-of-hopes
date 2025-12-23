@@ -247,7 +247,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showSecondColorPicker, setShowSecondColorPicker] = useState(false);
   const [showMagicTransformation, setShowMagicTransformation] = useState(false);
-  const [mobileTab, setMobileTab] = useState<'editor' | 'settings' | 'wish'>('editor');
+  const [mobileTab, setMobileTab] = useState<'editor' | 'wish'>('editor');
   const [showFiltersMobile, setShowFiltersMobile] = useState(false);
   const [isOldBrowser, setIsOldBrowser] = useState(false);
   const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -1060,24 +1060,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             <span className="hidden sm:inline">Редактор</span>
           </button>
           <button
-            onClick={() => setMobileTab('settings')}
-            className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"
-            style={{ 
-              flex: '1',
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              backgroundColor: mobileTab === 'settings' ? '#2563eb' : 'rgba(30, 41, 59, 0.5)',
-              background: mobileTab === 'settings' ? 'linear-gradient(to right, #2563eb, #06b6d4)' : 'rgba(30, 41, 59, 0.5)',
-              color: mobileTab === 'settings' ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <span style={{ fontSize: '16px', lineHeight: '1', marginRight: '4px', display: 'inline-block' }}>🎬</span>
-            <span className="hidden sm:inline">Фильтры</span>
-          </button>
-          <button
             onClick={() => setMobileTab('wish')}
             className="py-2.5 px-2 text-xs font-bold rounded-t-lg touch-manipulation whitespace-nowrap"
             style={{ 
@@ -1102,8 +1084,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         {/* Layout: Редактор в центре, инструменты рядом с ним */}
         {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
         <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
-          {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, показывается через вкладку настроек) */}
-          <div className={`flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 ${mobileTab === 'settings' ? 'block' : 'hidden'} lg:block`}>
+          {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, на ПК всегда видна) */}
+          <div className="hidden lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1">
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1286,80 +1268,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
             </div>
 
-            {/* Фильтры и Canvas на вкладке "Дополнительные фильтры" (ТОЛЬКО на мобильных, на ПК скрыто) */}
-            {mobileTab === 'settings' && (
-              <div className="flex flex-col gap-2 mt-2 lg:hidden">
-                {/* Фильтры СРАЗУ ПЕРЕД canvas */}
-                <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                    <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
-                      <span className="text-base sm:text-lg">🎬</span>
-                      <span className="hidden sm:inline">{t('filters')}:</span>
-                    </label>
-                    
-                    {/* Компактные фильтры */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('blurLabel')}:</span>
-                        <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                        <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
-                      </div>
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('contrastLabel')}:</span>
-                        <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                        <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
-                      </div>
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('saturationLabel')}:</span>
-                        <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                        <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
-                      </div>
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('vignetteLabel')}:</span>
-                        <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                        <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
-                      </div>
-                      <div className="flex items-center gap-1 min-w-0">
-                        <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('grainLabel')}:</span>
-                        <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                        <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Canvas редактор ПОД фильтрами */}
-                <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full flex flex-col" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
-                  <h2 className="text-sm sm:text-base md:text-lg font-black mb-1 bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent text-center uppercase tracking-widest">
-                    🎨 {t('editor')}
-                  </h2>
-                  <p className="text-[8px] sm:text-[9px] md:text-[10px] text-white/80 mb-1 sm:mb-2 font-black text-center uppercase tracking-wider">
-                    {t('drawWithMouse')}
-                  </p>
-                  <CanvasEditor
-                    shape={shape}
-                    color={color}
-                    pattern={pattern}
-                    ballSize={ballSize}
-                    surfaceType={surfaceType}
-                    effects={effects}
-                    filters={filters}
-                    secondColor={secondColor || undefined}
-                    language={language}
-                    t={t}
-                    onImageChange={(dataUrl) => {
-                      setCanvasImageData(dataUrl);
-                      fetch(dataUrl)
-                        .then(res => res.blob())
-                        .then(blob => {
-                          const file = new File([blob], 'toy.png', { type: 'image/png' });
-                          setImageFile(file);
-                        });
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Центральная область: Canvas редактор с фильтрами (вкладка Редактор) */}
@@ -1367,40 +1275,164 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             {/* Область прокрутки справа (только на больших экранах) */}
             <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-4 z-10 pointer-events-none" style={{ right: '-16px', width: '16px' }}></div>
             
-            {/* Фильтры ПРЯМО ПЕРЕД canvas */}
-            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
-                  <span className="text-base sm:text-lg">🎬</span>
-                  <span className="hidden sm:inline">{t('filters')}:</span>
-                </label>
+            {/* Фильтры: на ПК всегда развернуты, на мобильных - сворачивающаяся панель с миниатюрными кнопками */}
+            <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl shadow-xl border-2 border-indigo-500/30" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
+              {/* Заголовок с кнопкой сворачивания (только на мобильных) */}
+              <button
+                onClick={() => setShowFiltersMobile(!showFiltersMobile)}
+                className="md:hidden w-full p-2 flex items-center justify-between text-white/90 font-bold"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-lg">🎬</span>
+                  <span>{t('filters')}</span>
+                </span>
+                <span className="text-xl">{showFiltersMobile ? '▲' : '▼'}</span>
+              </button>
+              
+              {/* Содержимое фильтров: всегда видно на ПК, сворачивается на мобильных */}
+              <div className={`${showFiltersMobile ? 'block' : 'hidden'} md:block p-2 sm:p-3`}>
+                {/* На мобильных: миниатюрные кнопки с эмодзи и тултипами */}
+                <div className="md:hidden flex items-center gap-1.5 flex-wrap justify-center pb-2">
+                  {/* Blur */}
+                  <div className="relative group">
+                    <button
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      title={`${t('blurLabel')}: ${filters.blur}`}
+                    >
+                      🌫️
+                    </button>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="10" 
+                      step="0.5" 
+                      value={filters.blur} 
+                      onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} 
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+                      style={{ zIndex: 50 }}
+                    />
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.blur}</span>
+                  </div>
+                  
+                  {/* Contrast */}
+                  <div className="relative group">
+                    <button
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      title={`${t('contrastLabel')}: ${filters.contrast}%`}
+                    >
+                      ⚡
+                    </button>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="200" 
+                      step="5" 
+                      value={filters.contrast} 
+                      onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} 
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+                      style={{ zIndex: 50 }}
+                    />
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
+                  </div>
+                  
+                  {/* Saturation */}
+                  <div className="relative group">
+                    <button
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      title={`${t('saturationLabel')}: ${filters.saturation}%`}
+                    >
+                      🌈
+                    </button>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="200" 
+                      step="5" 
+                      value={filters.saturation} 
+                      onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} 
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+                      style={{ zIndex: 50 }}
+                    />
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
+                  </div>
+                  
+                  {/* Vignette */}
+                  <div className="relative group">
+                    <button
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      title={`${t('vignetteLabel')}: ${filters.vignette}`}
+                    >
+                      🔲
+                    </button>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      step="5" 
+                      value={filters.vignette} 
+                      onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} 
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+                      style={{ zIndex: 50 }}
+                    />
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.vignette}</span>
+                  </div>
+                  
+                  {/* Grain */}
+                  <div className="relative group">
+                    <button
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      title={`${t('grainLabel')}: ${filters.grain}`}
+                    >
+                      ✨
+                    </button>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="50" 
+                      step="1" 
+                      value={filters.grain} 
+                      onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} 
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
+                      style={{ zIndex: 50 }}
+                    />
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.grain}</span>
+                  </div>
+                </div>
                 
-                {/* Компактные фильтры */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('blurLabel')}:</span>
-                    <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                    <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
-                  </div>
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('contrastLabel')}:</span>
-                    <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                    <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
-                  </div>
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('saturationLabel')}:</span>
-                    <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                    <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
-                  </div>
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('vignetteLabel')}:</span>
-                    <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                    <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
-                  </div>
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('grainLabel')}:</span>
-                    <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
-                    <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
+                {/* На ПК: обычные фильтры с подписями */}
+                <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <label className="text-xs sm:text-sm font-black text-white/90 flex items-center gap-1 sm:gap-2 uppercase tracking-widest whitespace-nowrap">
+                    <span className="text-base sm:text-lg">🎬</span>
+                    <span className="hidden sm:inline">{t('filters')}:</span>
+                  </label>
+                  
+                  {/* Компактные фильтры */}
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap flex-1">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('blurLabel')}:</span>
+                      <input type="range" min="0" max="10" step="0.5" value={filters.blur} onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                      <span className="text-[10px] text-white/60 w-6">{filters.blur}</span>
+                    </div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('contrastLabel')}:</span>
+                      <input type="range" min="0" max="200" step="5" value={filters.contrast} onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                      <span className="text-[10px] text-white/60 w-8">{filters.contrast}%</span>
+                    </div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('saturationLabel')}:</span>
+                      <input type="range" min="0" max="200" step="5" value={filters.saturation} onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                      <span className="text-[10px] text-white/60 w-8">{filters.saturation}%</span>
+                    </div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('vignetteLabel')}:</span>
+                      <input type="range" min="0" max="100" step="5" value={filters.vignette} onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                      <span className="text-[10px] text-white/60 w-6">{filters.vignette}</span>
+                    </div>
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] sm:text-xs text-white/70 whitespace-nowrap font-bold">{t('grainLabel')}:</span>
+                      <input type="range" min="0" max="50" step="1" value={filters.grain} onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} className="w-16 sm:w-20 h-1.5 sm:h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" />
+                      <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
+                    </div>
                   </div>
                 </div>
               </div>
