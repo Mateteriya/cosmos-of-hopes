@@ -191,6 +191,12 @@ function Toy3D({
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 512, 512);
         const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.flipY = false;
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
         tex.needsUpdate = true;
         return tex;
       }
@@ -216,7 +222,14 @@ function Toy3D({
           ctx.lineTo(256, i * 25.6);
           ctx.stroke();
         }
-        return new THREE.CanvasTexture(canvas);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.flipY = false;
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        return tex;
       }
     } else if (pattern === 'dots' && !texture && !gradientTexture) {
       const canvas = document.createElement('canvas');
@@ -234,7 +247,14 @@ function Toy3D({
             ctx.fill();
           }
         }
-        return new THREE.CanvasTexture(canvas);
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.flipY = false;
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        return tex;
       }
     }
     return null;
@@ -323,18 +343,25 @@ function Toy3D({
         mat.map.wrapS = THREE.ClampToEdgeWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false; // Отключаем flip для правильного отображения
+        // Смещаем текстуру немного, чтобы избежать шва на сфере
+        mat.map.offset.set(0.01, 0);
+        mat.map.repeat.set(0.98, 1);
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
         mat.map.wrapS = THREE.ClampToEdgeWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
+        mat.map.offset.set(0.01, 0);
+        mat.map.repeat.set(0.98, 1);
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
         mat.map.wrapS = THREE.ClampToEdgeWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
+        mat.map.offset.set(0.01, 0);
+        mat.map.repeat.set(0.98, 1);
       } else {
         mat.map = null;
       }
@@ -422,18 +449,25 @@ function Toy3D({
         material.map.wrapS = THREE.ClampToEdgeWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        // Смещаем текстуру немного, чтобы избежать шва на сфере
+        material.map.offset.set(0.01, 0);
+        material.map.repeat.set(0.98, 1);
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;
         material.map.wrapS = THREE.ClampToEdgeWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        material.map.offset.set(0.01, 0);
+        material.map.repeat.set(0.98, 1);
       } else if (patternTexture && patternTexture.image) {
         material.map = patternTexture;
         material.map.needsUpdate = true;
         material.map.wrapS = THREE.ClampToEdgeWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        material.map.offset.set(0.01, 0);
+        material.map.repeat.set(0.98, 1);
       } else {
         material.map = null;
       }

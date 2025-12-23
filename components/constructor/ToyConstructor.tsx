@@ -1286,9 +1286,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
             </div>
 
-            {/* Фильтры и Canvas на вкладке "Дополнительные фильтры" */}
+            {/* Фильтры и Canvas на вкладке "Дополнительные фильтры" (ТОЛЬКО на мобильных, на ПК скрыто) */}
             {mobileTab === 'settings' && (
-              <div className="flex flex-col gap-2 mt-2">
+              <div className="flex flex-col gap-2 mt-2 lg:hidden">
                 {/* Фильтры СРАЗУ ПЕРЕД canvas */}
                 <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-xl border-2 border-indigo-500/30">
                   <div className="flex items-center gap-2 sm:gap-3 flex-wrap">

@@ -2018,10 +2018,13 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       <pointLight position={[6, 4, -6]} intensity={0.5} color="#4ecdc4" />
       <pointLight position={[0, -2, 0]} intensity={0.3} color="#228B22" />
 
-      {/* Ёлка - разные варианты */}
+      {/* Ёлка - разные варианты (на мобильных используем без MTL для ускорения) */}
       {treeType === '3d' && treeModel && treeModel.endsWith('.obj') && (
         <Suspense fallback={null} key={`obj-${treeModel}`}>
-          {treeModel.startsWith('/') ? (
+          {/* На мобильных устройствах загружаем без MTL для ускорения */}
+          {typeof window !== 'undefined' && window.innerWidth < 768 ? (
+            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
+          ) : treeModel.startsWith('/') ? (
             <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
               <OBJTreeWithMTL 
                 objPath={treeModel} 
