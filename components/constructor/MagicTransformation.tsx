@@ -261,7 +261,7 @@ function Toy3D({
     // Определяем цвет материала: 
     // 1. Если есть пользовательский рисунок (texture) - ВСЕГДА белый для лучшей видимости рисунка
     // 2. Если есть градиент - белый
-    // 3. Если нет ни того, ни другого - используем выбранный цвет пользователя (но НЕ черный!)
+    // 3. Если нет ни того, ни другого - используем ТОЧНО тот цвет, который выбрал пользователь
     let materialColor: string;
     
     if (texture) {
@@ -271,44 +271,35 @@ function Toy3D({
       // Если есть градиент - тоже белый
       materialColor = '#ffffff';
     } else {
-      // Используем выбранный цвет пользователя
-      materialColor = color || '#FF0000'; // По умолчанию красный, если цвет не выбран
+      // ИСПОЛЬЗУЕМ ТОЧНО ТОТ ЦВЕТ, КОТОРЫЙ ВЫБРАЛ ПОЛЬЗОВАТЕЛЬ!
+      // ТОЛЬКО если он черный (#000000 или #000) - заменяем на красный
+      materialColor = color || '#FF0000'; // По умолчанию красный, если цвет не задан
       
-      // Проверяем, что цвет не черный и не слишком темный
-      const hexColor = materialColor.startsWith('#') ? materialColor : `#${materialColor}`;
-      const hex = hexColor.replace('#', '');
-      
-      if (hex.length === 6) {
-        try {
-          const r = parseInt(hex.substr(0, 2), 16);
-          const g = parseInt(hex.substr(2, 2), 16);
-          const b = parseInt(hex.substr(4, 2), 16);
-          const sum = r + g + b;
-          
-          // Если цвет черный или очень темный (сумма RGB < 150) - заменяем на выбранный цвет или яркий
-          if (sum < 150 || materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black') {
-            // Пробуем использовать второй цвет, если он есть, иначе - яркий розовый
-            materialColor = '#ff69b4';
-          }
-        } catch (e) {
-          materialColor = '#ff69b4';
-        }
-      } else {
-        materialColor = '#ff69b4';
+      // СТРОГАЯ ПРОВЕРКА: ТОЛЬКО черный цвет заменяем
+      if (materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black') {
+        materialColor = '#FF0000'; // Красный вместо черного
       }
+      // ВСЕ ОСТАЛЬНЫЕ ЦВЕТА ИСПОЛЬЗУЕМ КАК ЕСТЬ - БЕЗ ИЗМЕНЕНИЙ!
     }
     
-    // ФИНАЛЬНАЯ ПРОВЕРКА: убеждаемся, что цвет НЕ черный ни при каких обстоятельствах
+    // ФИНАЛЬНАЯ ГАРАНТИЯ: если по какой-то причине цвет стал черным - заменяем
+    if (materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black' || !materialColor) {
+      materialColor = texture ? '#ffffff' : (color && color !== '#000000' && color !== '#000' && color.toLowerCase() !== 'black' ? color : '#FF0000');
+    }
+    
+    // ГАРАНТИЯ: материал НИКОГДА не будет черным
+    // Если materialColor все еще черный по какой-то причине - принудительно заменяем
     if (!materialColor || materialColor === '#000000' || materialColor === '#000' || materialColor.toLowerCase() === 'black') {
-      materialColor = texture ? '#ffffff' : '#ff69b4'; // Если есть texture - белый, иначе розовый
+      materialColor = texture ? '#ffffff' : (color && color !== '#000000' && color !== '#000' ? color : '#FF0000');
     }
     
     const mat = new THREE.MeshStandardMaterial({
       // ВАЖНО: Пользовательский рисунок (texture) имеет приоритет над всеми эффектами
-      color: materialColor,
-      // Добавляем небольшое свечение даже без эффекта glow, чтобы избежать черных теней
-      emissive: effects.glow ? materialColor : (materialColor === '#ffffff' ? '#ffffff' : materialColor),
-      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0.15, // Небольшое свечение для видимости
+      // Цвет материала - ТОЧНО тот, который выбрал пользователь (или белый для texture)
+      color: new THREE.Color(materialColor), // Используем THREE.Color для гарантии правильного формата
+      // Emissive только для эффекта glow
+      emissive: effects.glow ? new THREE.Color(materialColor) : new THREE.Color('#000000'),
+      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0, // Без glow - без свечения
       metalness: metalness,
       roughness: roughness,
       transparent: false,
@@ -383,43 +374,27 @@ function Toy3D({
         // Если есть градиент - тоже белый
         materialColorToUse = '#ffffff';
       } else {
-        // Используем выбранный цвет пользователя
+        // ИСПОЛЬЗУЕМ ТОЧНО ТОТ ЦВЕТ, КОТОРЫЙ ВЫБРАЛ ПОЛЬЗОВАТЕЛЬ!
         materialColorToUse = color || '#FF0000';
         
-        // Проверяем, что цвет не черный
-        const hexColor = materialColorToUse.startsWith('#') ? materialColorToUse : `#${materialColorToUse}`;
-        const hex = hexColor.replace('#', '');
-        
-        if (hex.length === 6) {
-          try {
-            const r = parseInt(hex.substr(0, 2), 16);
-            const g = parseInt(hex.substr(2, 2), 16);
-            const b = parseInt(hex.substr(4, 2), 16);
-            const sum = r + g + b;
-            
-            if (sum < 150 || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black') {
-              materialColorToUse = '#ff69b4';
-            }
-          } catch (e) {
-            materialColorToUse = '#ff69b4';
-          }
-        } else {
-          materialColorToUse = '#ff69b4';
+        // СТРОГАЯ ПРОВЕРКА: ТОЛЬКО черный цвет заменяем
+        if (materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black') {
+          materialColorToUse = '#FF0000'; // Красный вместо черного
         }
+        // ВСЕ ОСТАЛЬНЫЕ ЦВЕТА ИСПОЛЬЗУЕМ КАК ЕСТЬ - БЕЗ ИЗМЕНЕНИЙ!
       }
       
-      // ФИНАЛЬНАЯ ПРОВЕРКА: убеждаемся, что цвет НЕ черный
-      if (!materialColorToUse || materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black') {
-        materialColorToUse = texture ? '#ffffff' : '#ff69b4';
+      // ФИНАЛЬНАЯ ГАРАНТИЯ: если по какой-то причине цвет стал черным - заменяем
+      if (materialColorToUse === '#000000' || materialColorToUse === '#000' || materialColorToUse.toLowerCase() === 'black' || !materialColorToUse) {
+        materialColorToUse = texture ? '#ffffff' : (color && color !== '#000000' && color !== '#000' && color.toLowerCase() !== 'black' ? color : '#FF0000');
       }
       
-      // Обновляем цвет материала
+      // Обновляем цвет материала - ТОЧНО таким, как выбран пользователем
       material.color = new THREE.Color(materialColorToUse);
       
-      // Обновляем свечение - добавляем небольшое свечение даже без glow, чтобы избежать черных теней
-      const finalEmissiveColor = effects.glow ? glowColor : (materialColorToUse === '#ffffff' ? '#ffffff' : materialColorToUse);
-      material.emissive = new THREE.Color(finalEmissiveColor);
-      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0.15; // Небольшое свечение для видимости
+      // Emissive только для эффекта glow
+      material.emissive = effects.glow ? new THREE.Color(glowColor) : new THREE.Color('#000000');
+      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0; // Без glow - без свечения
       
       // Обновляем текстуру с правильным приоритетом
       // ПРИОРИТЕТ: Пользовательский рисунок > Градиент > Узор
@@ -814,17 +789,16 @@ export default function MagicTransformation({
             </div>
           }>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-            {/* Улучшенное освещение для фотореалистичности */}
-            {/* Улучшенное освещение для исключения черных теней */}
-            <ambientLight intensity={0.8} />
-            <directionalLight position={[5, 5, 5]} intensity={2.0} castShadow />
-            <directionalLight position={[-5, 3, -5]} intensity={1.5} />
-            <directionalLight position={[0, -5, 0]} intensity={1.0} />
-            <pointLight position={[-5, -5, -5]} intensity={1.5} color={color || '#ffffff'} />
-            <pointLight position={[5, 5, 5]} intensity={1.5} color={color || '#ffffff'} />
-            <pointLight position={[0, 5, 0]} intensity={1.2} color="#ffffff" />
-            <pointLight position={[0, -5, 0]} intensity={1.0} color="#ffffff" />
-            <spotLight position={[0, 8, 0]} angle={0.8} penumbra={0.5} intensity={1.5} castShadow />
+            {/* Нормальное освещение без избыточности */}
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[5, 5, 5]} intensity={1.2} castShadow />
+            <directionalLight position={[-5, 3, -5]} intensity={0.7} />
+            <directionalLight position={[0, -5, 0]} intensity={0.6} />
+            <pointLight position={[-5, -5, -5]} intensity={0.8} color={color || '#ffffff'} />
+            <pointLight position={[5, 5, 5]} intensity={0.8} color={color || '#ffffff'} />
+            <pointLight position={[0, 5, 0]} intensity={0.7} color="#ffffff" />
+            <pointLight position={[0, -5, 0]} intensity={0.5} color="#ffffff" />
+            <spotLight position={[0, 8, 0]} angle={0.6} penumbra={0.5} intensity={1.0} castShadow />
             
             <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
             
