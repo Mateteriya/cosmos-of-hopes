@@ -316,7 +316,8 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
       }
       
       // Используем высоту для масштабирования
-      const scaleByHeight = height > 0 ? targetHeight / height : 1;
+      // УМЕНЬШАЕМ масштаб на 15% для лучшего центрирования
+      const scaleByHeight = height > 0 ? (targetHeight / height) * 0.85 : 0.85;
       
       // Используем масштаб по высоте, но ограничиваем максимальный размер
       let finalScale = scaleByHeight;
@@ -2106,7 +2107,7 @@ export default function VirtualTree({
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   return (
-    <div className="w-full bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 relative" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="w-full bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 relative" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden', backgroundColor: '#1e1b4b' }}>
       {/* Переключатель подсветки - виден только разработчику */}
       {isDevelopment && (
         <button

@@ -142,11 +142,14 @@ function Toy3D({
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        // Создаем текстуру напрямую из изображения с правильными настройками для устранения швов
+        // Для сферы используем RepeatWrapping с offset для правильного оборачивания текстуры
+        // Это устраняет черную полосу на шве
         const tex = new THREE.Texture(img);
-        tex.wrapS = THREE.ClampToEdgeWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
         tex.flipY = false;
+        // Смещаем текстуру на половину, чтобы шов был сзади
+        tex.offset.set(0.5, 0);
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
@@ -447,8 +450,10 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
-        // Текстура уже создана как seamless, используем ее настройки
-        // wrapS и wrapT уже установлены в RepeatWrapping при создании
+        // Для сферы используем RepeatWrapping с offset для устранения шва
+        material.map.wrapS = THREE.RepeatWrapping;
+        material.map.wrapT = THREE.RepeatWrapping;
+        material.map.offset.set(0.5, 0);
         material.map.flipY = false;
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;

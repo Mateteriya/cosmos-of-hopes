@@ -51,6 +51,8 @@ export default function RoomsPage() {
 
   const handleRoomCreated = (room: Room) => {
     setRooms(prev => [...prev, room]);
+    // Сразу переходим на страницу комнаты после создания
+    router.push(`/room?room=${room.id}`);
   };
 
   const handleRoomJoined = (room: Room) => {

@@ -41,7 +41,17 @@ export default function RoomPage() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      setRoomId(params.get('room'));
+      const roomIdParam = params.get('room');
+      console.log('🔍 Загрузка roomId из URL:', { roomIdParam, fullUrl: window.location.href, search: window.location.search });
+      if (roomIdParam) {
+        setRoomId(roomIdParam);
+      } else {
+        // Если roomId не найден в параметрах, проверяем hash или другие варианты
+        const hashMatch = window.location.hash.match(/room=([^&]+)/);
+        if (hashMatch) {
+          setRoomId(hashMatch[1]);
+        }
+      }
     }
   }, []);
 
