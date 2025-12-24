@@ -13,6 +13,7 @@ interface InviteLinkProps {
 
 export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Формируем полную ссылку
   // ВАЖНО: Для работы ссылок нужно установить NEXT_PUBLIC_APP_URL в .env.local
