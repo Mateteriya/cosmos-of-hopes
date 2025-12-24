@@ -40,10 +40,10 @@ export default function RoomsPage() {
     try {
       setLoading(true);
       setError(null);
-      // Используем более короткий таймаут
-      const timeout = 15000; // 15 секунд для всех устройств
+      // Увеличиваем таймаут для мобильных устройств
+      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 30000 : 10000;
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Загрузка занимает больше времени, чем ожидалось. Пожалуйста, обновите страницу.')), timeout)
+        setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), timeout)
       );
       const userRooms = await Promise.race([
         getUserRooms(tempUserId),
@@ -52,12 +52,7 @@ export default function RoomsPage() {
       setRooms(userRooms || []);
     } catch (err: any) {
       console.error('Ошибка загрузки комнат:', err);
-      // Показываем более дружелюбное сообщение об ошибке
-      if (err.message?.includes('Загрузка занимает')) {
-        setError(err.message);
-      } else {
-        setError('Не удалось загрузить комнаты. Попробуйте обновить страницу.');
-      }
+      setError(err.message || 'Не удалось загрузить комнаты');
     } finally {
       setLoading(false);
     }

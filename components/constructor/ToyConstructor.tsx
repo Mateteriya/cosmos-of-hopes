@@ -1082,16 +1082,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         </div>
 
         {/* Layout: Редактор в центре, инструменты рядом с ним */}
-        {/* На мобильных: редактор по центру с инструментами слева, на больших экранах: grid layout */}
-        <div className="flex flex-row flex-nowrap lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative justify-center items-start overflow-x-auto">
-          {/* Левая панель: Персонализация, Эффекты (на мобильных показывается слева от редактора, на ПК всегда видна) */}
-          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-[180px] sm:w-[200px] lg:w-[240px] flex-shrink-0 order-1 lg:order-1 relative`}>
-            {/* Индикатор прокрутки вниз (только на мобильных, сверху) */}
-            {mobileTab === 'editor' && (
-              <div className="lg:hidden absolute top-0 left-0 right-0 z-10 flex flex-col items-center mb-1 -translate-y-full">
-                <div className="text-white/60 text-[10px] mb-1 text-center">↓ Прокрутите инструменты вниз ↓</div>
-              </div>
-            )}
+        {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
+        <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative">
+          {/* Левая панель: Персонализация, Эффекты (на мобильных показывается на вкладке редактора, на ПК всегда видна) */}
+          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 relative`}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1278,7 +1272,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
           </div>
 
           {/* Центральная область: Canvas редактор с фильтрами (вкладка Редактор) */}
-          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:block lg:relative flex-shrink-0 min-w-0`}>
+          <div className={`flex flex-col gap-2 order-2 lg:order-2 ${mobileTab === 'editor' ? 'block' : 'hidden'} lg:block lg:relative`}>
             {/* Область прокрутки справа (только на больших экранах) */}
             <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-4 z-10 pointer-events-none" style={{ right: '-16px', width: '16px' }}></div>
             
@@ -1339,14 +1333,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="0.5" 
                       value={filters.blur} 
                       onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'manipulation', WebkitAppearance: 'slider-horizontal' }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.blur}</span>
                   </div>
@@ -1371,14 +1360,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.contrast} 
                       onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'manipulation', WebkitAppearance: 'slider-horizontal' }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
                   </div>
@@ -1403,14 +1387,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.saturation} 
                       onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'manipulation', WebkitAppearance: 'slider-horizontal' }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
                   </div>
@@ -1435,14 +1414,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.vignette} 
                       onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'manipulation', WebkitAppearance: 'slider-horizontal' }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.vignette}</span>
                   </div>
@@ -1467,14 +1441,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="1" 
                       value={filters.grain} 
                       onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-32 h-3 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'manipulation', WebkitAppearance: 'slider-horizontal' }}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onTouchMove={(e) => {
-                        e.stopPropagation();
-                      }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.grain}</span>
                   </div>
