@@ -134,23 +134,65 @@ function Toy3D({
     }
   });
 
-  // Создаем текстуру из изображения, если есть
-  const texture = useMemo(() => {
+  // Создаем текстуру из изображения, если есть (с seamless расширением для устранения швов)
+  const [seamlessTexture, setSeamlessTexture] = useState<THREE.Texture | null>(null);
+  
+  useEffect(() => {
     if (imageDataUrl) {
-      const loader = new THREE.TextureLoader();
-      const tex = loader.load(imageDataUrl);
-      // Для сферы используем ClampToEdgeWrapping чтобы избежать швов и черных полос
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.flipY = false; // Не переворачивать изображение
-      // Убираем любые артефакты на краях
-      tex.generateMipmaps = true;
-      tex.minFilter = THREE.LinearMipmapLinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      return tex;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        // Создаем canvas для seamless текстуры (копируем края для устранения швов)
+        const canvas = document.createElement('canvas');
+        const padding = 4; // Несколько пикселей для бесшовного соединения
+        canvas.width = img.width + padding * 2;
+        canvas.height = img.height + padding * 2;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          setSeamlessTexture(null);
+          return;
+        }
+        
+        // Копируем центральную часть
+        ctx.drawImage(img, padding, padding);
+        
+        // Копируем левый край на правую сторону
+        ctx.drawImage(img, 0, 0, padding, img.height, img.width + padding, padding, padding, img.height);
+        // Копируем правый край на левую сторону
+        ctx.drawImage(img, img.width - padding, 0, padding, img.height, 0, padding, padding, img.height);
+        
+        // Копируем верхний край на нижнюю сторону
+        ctx.drawImage(img, 0, 0, img.width, padding, padding, img.height + padding, img.width, padding);
+        // Копируем нижний край на верхнюю сторону
+        ctx.drawImage(img, 0, img.height - padding, img.width, padding, padding, 0, img.width, padding);
+        
+        // Углы
+        ctx.drawImage(img, 0, 0, padding, padding, img.width + padding, img.height + padding, padding, padding);
+        ctx.drawImage(img, img.width - padding, 0, padding, padding, 0, img.height + padding, padding, padding);
+        ctx.drawImage(img, 0, img.height - padding, padding, padding, img.width + padding, 0, padding, padding);
+        ctx.drawImage(img, img.width - padding, img.height - padding, padding, padding, 0, 0, padding, padding);
+        
+        const tex = new THREE.CanvasTexture(canvas);
+        // Используем RepeatWrapping для seamless текстуры
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.flipY = false;
+        // Используем offset чтобы использовать центральную часть текстуры (пропускаем padding)
+        tex.offset.set(-padding / canvas.width, -padding / canvas.height);
+        tex.repeat.set(img.width / canvas.width, img.height / canvas.height);
+        tex.generateMipmaps = true;
+        tex.minFilter = THREE.LinearMipmapLinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        setSeamlessTexture(tex);
+      };
+      img.onerror = () => setSeamlessTexture(null);
+      img.src = imageDataUrl;
+    } else {
+      setSeamlessTexture(null);
     }
-    return null;
   }, [imageDataUrl]);
+  
+  const texture = seamlessTexture;
 
   // Создаем градиентную текстуру (улучшенная, более реалистичная)
   // ВАЖНО: градиент применяется только если нет пользовательского рисунка
@@ -339,11 +381,9 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
-        // Используем ClampToEdgeWrapping чтобы избежать черной полосы на шве сферы
-        mat.map.wrapS = THREE.ClampToEdgeWrapping;
-        mat.map.wrapT = THREE.ClampToEdgeWrapping;
+        // Текстура уже создана как seamless, используем ее настройки
+        // wrapS и wrapT уже установлены в RepeatWrapping при создании
         mat.map.flipY = false; // Отключаем flip для правильного отображения
-        // Не используем offset/repeat, чтобы избежать видимых швов
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
@@ -439,11 +479,9 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
-        // Используем ClampToEdgeWrapping чтобы избежать черной полосы на шве сферы
-        material.map.wrapS = THREE.ClampToEdgeWrapping;
-        material.map.wrapT = THREE.ClampToEdgeWrapping;
+        // Текстура уже создана как seamless, используем ее настройки
+        // wrapS и wrapT уже установлены в RepeatWrapping при создании
         material.map.flipY = false;
-        // Не используем offset/repeat, чтобы избежать видимых швов
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;

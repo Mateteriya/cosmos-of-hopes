@@ -1275,6 +1275,22 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             {/* Область прокрутки справа (только на больших экранах) */}
             <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-4 z-10 pointer-events-none" style={{ right: '-16px', width: '16px' }}></div>
             
+            {/* Инструкция над фильтрами */}
+            <div className="mb-2 bg-gradient-to-r from-purple-800/40 via-indigo-800/30 to-pink-800/40 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-white/20">
+              <div className="text-white/90 text-[10px] sm:text-xs space-y-1">
+                <div className="font-bold text-[11px] sm:text-sm mb-2 text-center">✨ {t('howToCreate') || 'Как создать свой шар:'}</div>
+                <div className="space-y-1 text-left">
+                  <div>1️⃣ {t('step1') || 'Укрась свой шар как нравится'}</div>
+                  <div>2️⃣ {t('step2') || 'Добавь своё желание или мечту на 2026 год'}</div>
+                  <div>3️⃣ {t('step3') || 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик'}</div>
+                  <div>4️⃣ {t('step4') || 'Повесь его на мировую ёлку'}</div>
+                </div>
+                <div className="text-[9px] text-white/70 mt-2 italic text-center border-t border-white/20 pt-2">
+                  {t('optionalHint') || '(можно добавить своё фото, имя или никнейм, а также дополнительное пожелание для кого угодно или сразу для всех)'}
+                </div>
+              </div>
+            </div>
+
             {/* Фильтры: на ПК всегда развернуты, на мобильных - сворачивающаяся панель с миниатюрными кнопками */}
             <div className="bg-gradient-to-r from-slate-800/90 via-indigo-800/30 to-slate-800/90 backdrop-blur-md rounded-xl shadow-xl border-2 border-indigo-500/30" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Заголовок с кнопкой сворачивания (только на мобильных) */}
@@ -1434,22 +1450,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       <span className="text-[10px] text-white/60 w-6">{filters.grain}</span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Инструкция над окном просмотра шара (только на главной вкладке) */}
-            <div className="mb-2 bg-gradient-to-r from-purple-800/40 via-indigo-800/30 to-pink-800/40 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-white/20">
-              <div className="text-white/90 text-[10px] sm:text-xs space-y-1">
-                <div className="font-bold text-[11px] sm:text-sm mb-2 text-center">✨ {t('howToCreate') || 'Как создать свой шар:'}</div>
-                <div className="space-y-1 text-left">
-                  <div>1️⃣ {t('step1') || 'Укрась свой шар как нравится'}</div>
-                  <div>2️⃣ {t('step2') || 'Добавь своё желание или мечту на 2026 год'}</div>
-                  <div>3️⃣ {t('step3') || 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик'}</div>
-                  <div>4️⃣ {t('step4') || 'Повесь его на мировую ёлку'}</div>
-                </div>
-                <div className="text-[9px] text-white/70 mt-2 italic text-center border-t border-white/20 pt-2">
-                  {t('optionalHint') || '(можно добавить своё фото, имя или никнейм, а также дополнительное пожелание для кого угодно или сразу для всех)'}
                 </div>
               </div>
             </div>

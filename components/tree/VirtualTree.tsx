@@ -1884,6 +1884,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
 
   useEffect(() => {
     // Камера дальше, чтобы видеть увеличенную ёлку
+    // На мобильных - четко по центру, на ПК - тоже по центру
     camera.position.set(0, 2, 18);
     camera.lookAt(0, 0, 0);
   }, [camera]);
@@ -2075,7 +2076,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
       )}
 
-      {/* Управление камерой - расширенные пределы для большой ёлки */}
+      {/* Управление камерой - расширенные пределы для большой ёлки, четко по центру */}
       <OrbitControls
         enablePan={false}
         minDistance={10}
@@ -2084,6 +2085,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
         maxPolarAngle={Math.PI / 2.2}
         enableDamping={true}
         dampingFactor={0.05}
+        target={[0, 0, 0]} // Четко центр для всех устройств
       />
     </>
   );
