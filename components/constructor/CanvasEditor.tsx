@@ -59,7 +59,7 @@ export default function CanvasEditor({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(10);
-  const [brushColor, setBrushColor] = useState('#000000');
+  const [brushColor, setBrushColor] = useState('#FFFF00'); // Желтый по умолчанию
   const [isEraser, setIsEraser] = useState(false); // Режим ластика
   const [isDragging, setIsDragging] = useState(false);
   const [canUndo, setCanUndo] = useState(false);

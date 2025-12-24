@@ -15,6 +15,7 @@ import EventProgramSelector from '@/components/rooms/EventProgramSelector';
 import RoomParticipants from '@/components/rooms/RoomParticipants';
 import InviteLink from '@/components/rooms/InviteLink';
 import VoiceChat from '@/components/rooms/VoiceChat';
+import VideoRoom from '@/components/rooms/VideoRoom';
 
 // Временный userId для тестирования (позже будет из Telegram)
 // Используем localStorage для сохранения ID между перезагрузками
@@ -34,6 +35,7 @@ export default function RoomPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tempUserId] = useState<string>(() => getTempUserId());
+  const [videoChatEnabled, setVideoChatEnabled] = useState(false);
 
   // Получаем roomId из URL параметров после монтирования
   useEffect(() => {
@@ -194,8 +196,39 @@ export default function RoomPage() {
             {/* Участники комнаты */}
             <RoomParticipants roomId={room.id} currentUserId={tempUserId} />
             
-            {/* Голосовой чат */}
-            <VoiceChat roomId={room.id} currentUserId={tempUserId} />
+            {/* Переключатель видео/голоса */}
+            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3">
+              <div className="text-white font-bold text-xs sm:text-sm mb-2">🎥 Коммуникация</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setVideoChatEnabled(false)}
+                  className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs transition-colors ${
+                    !videoChatEnabled
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-slate-700 hover:bg-slate-600 text-white/70'
+                  }`}
+                >
+                  🎤 Голос
+                </button>
+                <button
+                  onClick={() => setVideoChatEnabled(true)}
+                  className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs transition-colors ${
+                    videoChatEnabled
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'bg-slate-700 hover:bg-slate-600 text-white/70'
+                  }`}
+                >
+                  📹 Видео
+                </button>
+              </div>
+            </div>
+
+            {/* Голосовой чат или видеокомната */}
+            {videoChatEnabled ? (
+              <VideoRoom roomId={room.id} currentUserId={tempUserId} />
+            ) : (
+              <VoiceChat roomId={room.id} currentUserId={tempUserId} />
+            )}
             
             {/* Селекторы дизайна и программы (только для создателя) */}
             {isCreator && (

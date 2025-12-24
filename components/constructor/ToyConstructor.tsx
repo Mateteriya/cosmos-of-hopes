@@ -195,7 +195,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   
   // Форма всегда шар
   const shape: ToyShape = 'ball';
-  const [color, setColor] = useState('#FF0000');
+  const [color, setColor] = useState('#FFFF00'); // Желтый по умолчанию
   const [pattern, setPattern] = useState<ToyPattern>(null);
   const [wishText, setWishText] = useState('');
   const [wishForOthers, setWishForOthers] = useState('');
@@ -227,7 +227,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
     vignette: 0,
     grain: 0,
   });
-  const [secondColor, setSecondColor] = useState<string | null>(null);
+  const [secondColor, setSecondColor] = useState<string | null>('#FFFF00'); // Желтый по умолчанию
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [userPhotoFile, setUserPhotoFile] = useState<File | null>(null);
   // Статистические данные (необязательные)
@@ -1224,7 +1224,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                         <input
                           ref={secondColorInputRef}
                           type="color"
-                          value={secondColor || '#888888'}
+                          value={secondColor || '#FFFF00'}
                           onChange={(e) => setSecondColor(e.target.value)}
                           className="w-5 h-5 rounded border-2 border-white/40 cursor-pointer"
                           title={t('secondColor')}
