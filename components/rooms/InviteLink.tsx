@@ -80,8 +80,30 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
               {inviteCode}
             </div>
             <button
-              onClick={handleCopy}
-              className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inviteCode);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                } catch {
+                  // Fallback для старых браузеров
+                  const textArea = document.createElement('textarea');
+                  textArea.value = inviteCode;
+                  textArea.style.position = 'fixed';
+                  textArea.style.opacity = '0';
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  try {
+                    document.execCommand('copy');
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  } catch (e) {
+                    console.error('Не удалось скопировать код', e);
+                  }
+                  document.body.removeChild(textArea);
+                }
+              }}
+              className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all whitespace-nowrap touch-manipulation ${
                 copied
                   ? 'bg-green-600 text-white'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -100,15 +122,41 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
               type="text"
               value={inviteUrl}
               readOnly
-              className="w-full bg-slate-700/50 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-white/20 focus:outline-none break-all overflow-hidden"
+              className="w-full bg-slate-700/50 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-white/20 focus:outline-none break-all overflow-hidden touch-manipulation"
               onClick={(e) => (e.target as HTMLInputElement).select()}
             />
             <button
-              onClick={handleCopy}
-              className="w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all whitespace-nowrap"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inviteUrl);
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                } catch {
+                  // Fallback
+                  const textArea = document.createElement('textarea');
+                  textArea.value = inviteUrl;
+                  textArea.style.position = 'fixed';
+                  textArea.style.opacity = '0';
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  try {
+                    document.execCommand('copy');
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  } catch (e) {
+                    console.error('Не удалось скопировать ссылку', e);
+                  }
+                  document.body.removeChild(textArea);
+                }
+              }}
+              className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all whitespace-nowrap touch-manipulation ${
+                copiedLink
+                  ? 'bg-green-600 text-white'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
               title="Скопировать ссылку"
             >
-              📋 Копировать ссылку
+              {copiedLink ? '✓ Скопировано!' : '📋 Копировать ссылку'}
             </button>
           </div>
         </div>
@@ -126,7 +174,10 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
         )}
         
         <div className="text-white/50 text-[10px] sm:text-xs text-center pt-1.5 sm:pt-2 border-t border-white/20">
-          Поделитесь кодом или ссылкой с друзьями, чтобы они присоединились к комнате
+          <div className="mb-1">Поделитесь кодом или ссылкой с друзьями, чтобы они присоединились к комнате</div>
+          <div className="text-[9px] sm:text-[10px] text-white/60 mt-1">
+            💡 Вы можете пригласить целых 40 человек! Комната действует до 15 января 2026 года
+          </div>
         </div>
       </div>
     </div>

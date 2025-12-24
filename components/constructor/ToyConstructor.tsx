@@ -1083,10 +1083,17 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
 
         {/* Layout: Редактор в центре, инструменты рядом с ним */}
         {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
+        <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative">
           {/* Левая панель: Персонализация, Эффекты (на мобильных показывается на вкладке редактора, на ПК всегда видна) */}
-          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1`}>
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
+          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 relative`}>
+            {/* Индикатор прокрутки вниз (только на мобильных) */}
+            {mobileTab === 'editor' && (
+              <div className="lg:hidden absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full z-10 flex flex-col items-center mb-1">
+                <div className="text-white/60 text-xs mb-1">↓ Дополнительные инструменты ↓</div>
+                <div className="text-2xl animate-bounce">⬇️</div>
+              </div>
+            )}
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-white/90 flex items-center gap-1 uppercase tracking-widest">
@@ -1137,7 +1144,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     </button>
                     <button
                       onClick={() => setSurfaceType('metal')}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         surfaceType === 'metal'
                           ? 'border-amber-400 bg-gradient-to-br from-amber-500/40 via-yellow-500/30 to-orange-500/40 shadow-md scale-105'
                           : 'border-amber-500/30 hover:border-amber-400/60 bg-gradient-to-br from-slate-700/40 via-amber-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-amber-900/30 hover:to-slate-700/50'
@@ -1166,7 +1173,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, gradient: !effects.gradient })}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         effects.gradient
                           ? 'border-pink-400 bg-gradient-to-br from-pink-500/40 via-rose-500/30 to-fuchsia-500/40 shadow-md scale-105'
                           : 'border-pink-500/30 hover:border-pink-400/60 bg-gradient-to-br from-slate-700/40 via-pink-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-pink-900/30 hover:to-slate-700/50'
@@ -1177,7 +1184,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, glow: !effects.glow })}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         effects.glow
                           ? 'border-emerald-400 bg-gradient-to-br from-emerald-500/40 via-teal-500/30 to-cyan-500/40 shadow-md scale-105'
                           : 'border-emerald-500/30 hover:border-emerald-400/60 bg-gradient-to-br from-slate-700/40 via-emerald-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-emerald-900/30 hover:to-slate-700/50'
@@ -1188,7 +1195,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, stars: !effects.stars })}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         effects.stars
                           ? 'border-violet-400 bg-gradient-to-br from-violet-500/40 via-indigo-500/30 to-purple-500/40 shadow-md scale-105'
                           : 'border-violet-500/30 hover:border-violet-400/60 bg-gradient-to-br from-slate-700/40 via-violet-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-violet-900/30 hover:to-slate-700/50'
@@ -1337,14 +1344,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       style={{ zIndex: 50, touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.blur}</span>
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.blur}</span>
                   </div>
                   
                   {/* Contrast */}
-                  <div className="relative group">
+                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
                     <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
                       title={`${t('contrastLabel')}: ${filters.contrast}%`}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                        if (slider) slider.style.opacity = '1';
+                      }}
                     >
                       ⚡
                     </button>
@@ -1359,14 +1371,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       style={{ zIndex: 50, touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
                   </div>
                   
                   {/* Saturation */}
-                  <div className="relative group">
+                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
                     <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
                       title={`${t('saturationLabel')}: ${filters.saturation}%`}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                        if (slider) slider.style.opacity = '1';
+                      }}
                     >
                       🌈
                     </button>
@@ -1381,14 +1398,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       style={{ zIndex: 50, touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
                   </div>
                   
                   {/* Vignette */}
-                  <div className="relative group">
+                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
                     <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
                       title={`${t('vignetteLabel')}: ${filters.vignette}`}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                        if (slider) slider.style.opacity = '1';
+                      }}
                     >
                       🔲
                     </button>
@@ -1403,14 +1425,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       style={{ zIndex: 50, touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.vignette}</span>
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.vignette}</span>
                   </div>
                   
                   {/* Grain */}
-                  <div className="relative group">
+                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
                     <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
                       title={`${t('grainLabel')}: ${filters.grain}`}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                        if (slider) slider.style.opacity = '1';
+                      }}
                     >
                       ✨
                     </button>
@@ -1425,7 +1452,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       style={{ zIndex: 50, touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.grain}</span>
+                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.grain}</span>
                   </div>
                 </div>
                 
@@ -1471,7 +1498,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             {/* Canvas редактор */}
             <div 
               data-canvas-editor="true"
-              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full max-w-[340px] sm:max-w-md lg:max-w-none mx-auto flex flex-col" 
+              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full max-w-[280px] sm:max-w-[340px] md:max-w-md lg:max-w-none mx-auto flex flex-col" 
               style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}
               onClick={(e) => { e.stopPropagation(); }}
               onMouseDown={(e) => { e.stopPropagation(); }}

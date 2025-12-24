@@ -295,7 +295,7 @@ export default function RoomPage() {
               <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 h-full flex items-center justify-center">
                 <div className="text-center text-white/70">
                   <div className="text-4xl mb-4">💬</div>
-                  <div className="text-lg">Общайтесь в чате справа!</div>
+                  <div className="text-lg">Общайтесь в чате <span className="hidden md:inline">справа</span><span className="md:hidden">внизу</span>!</div>
                 </div>
               </div>
             )}
