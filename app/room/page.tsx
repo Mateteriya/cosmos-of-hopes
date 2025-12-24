@@ -207,7 +207,7 @@ export default function RoomPage() {
         </div>
 
         {/* Основной контент - сетка */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-hidden min-h-0">
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-hidden min-h-0">
           {/* Левая колонка: Таймер, настройки, участники и приглашение */}
           <div className="space-y-2 sm:space-y-3 lg:space-y-4 overflow-y-auto max-h-full min-h-0 w-full">
             <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />

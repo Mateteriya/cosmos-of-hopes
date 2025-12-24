@@ -1082,10 +1082,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         </div>
 
         {/* Layout: Редактор в центре, инструменты рядом с ним */}
-        {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative">
-          {/* Левая панель: Персонализация, Эффекты (на мобильных показывается на вкладке редактора, на ПК всегда видна) */}
-          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1 relative`}>
+        {/* На мобильных: горизонтальный layout с редактором слева и панелью справа, на больших экранах: grid layout */}
+        <div className="flex flex-row lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative">
+          {/* Правая панель: Персонализация, Эффекты (на мобильных показывается справа от редактора, на ПК слева) */}
+          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-[140px] sm:w-[160px] lg:w-[240px] flex-shrink-0 order-3 lg:order-1 relative`}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1308,24 +1308,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               
               {/* Содержимое фильтров: всегда видно на ПК, сворачивается на мобильных */}
               <div className={`${showFiltersMobile ? 'block' : 'hidden'} md:block p-2 sm:p-3`}>
-                {/* На мобильных: миниатюрные кнопки с эмодзи и тултипами */}
-                <div className="md:hidden flex items-center gap-1.5 flex-wrap justify-center pb-2">
+                {/* На мобильных: фильтры с ползунками (как на ПК) */}
+                <div className="md:hidden space-y-2 pb-2">
                   {/* Blur */}
-                    <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
-                    <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
-                      title={`${t('blurLabel')}: ${filters.blur}`}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                        if (slider) {
-                          slider.style.opacity = '1';
-                          setTimeout(() => slider.style.opacity = '', 2000);
-                        }
-                      }}
-                    >
-                      🌫️
-                    </button>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-white/70 whitespace-nowrap font-bold w-16">{t('blurLabel')}:</span>
                     <input 
                       type="range" 
                       min="0" 
@@ -1333,26 +1320,16 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="0.5" 
                       value={filters.blur} 
                       onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'none' }}
+                      className="flex-1 h-2.5 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.blur}</span>
+                    <span className="text-[10px] text-white/60 w-8 text-right">{filters.blur}</span>
                   </div>
                   
                   {/* Contrast */}
-                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
-                    <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
-                      title={`${t('contrastLabel')}: ${filters.contrast}%`}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                        if (slider) slider.style.opacity = '1';
-                      }}
-                    >
-                      ⚡
-                    </button>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-white/70 whitespace-nowrap font-bold w-16">{t('contrastLabel')}:</span>
                     <input 
                       type="range" 
                       min="0" 
@@ -1360,11 +1337,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.contrast} 
                       onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'none' }}
+                      className="flex-1 h-2.5 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
+                    <span className="text-[10px] text-white/60 w-10 text-right">{filters.contrast}%</span>
                   </div>
                   
                   {/* Saturation */}
@@ -1491,7 +1468,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
             {/* Canvas редактор */}
             <div 
               data-canvas-editor="true"
-              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full max-w-[280px] sm:max-w-[340px] md:max-w-md lg:max-w-none mx-auto flex flex-col" 
+              className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-3 shadow-2xl border-2 border-white/20 ring-2 ring-white/10 w-full max-w-[280px] sm:max-w-[340px] md:max-w-md lg:max-w-none ml-0 mr-auto flex flex-col" 
               style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}
               onClick={(e) => { e.stopPropagation(); }}
               onMouseDown={(e) => { e.stopPropagation(); }}
