@@ -40,9 +40,10 @@ export default function RoomsPage() {
     try {
       setLoading(true);
       setError(null);
-      // Таймаут для оптимизации - если загрузка занимает больше 10 секунд, показываем ошибку
+      // Увеличиваем таймаут для мобильных устройств до 30 секунд
+      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 30000 : 10000;
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), 10000)
+        setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), timeout)
       );
       const userRooms = await Promise.race([
         getUserRooms(tempUserId),
@@ -57,8 +58,10 @@ export default function RoomsPage() {
     }
   };
 
-  const handleRoomCreated = (room: Room) => {
+  const handleRoomCreated = async (room: Room) => {
     setRooms(prev => [...prev, room]);
+    // Небольшая задержка перед переходом, чтобы комната успела сохраниться в БД
+    await new Promise(resolve => setTimeout(resolve, 500));
     // Сразу переходим на страницу комнаты после создания
     router.push(`/room?room=${room.id}`);
   };

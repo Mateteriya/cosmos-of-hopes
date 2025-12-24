@@ -78,19 +78,31 @@ export default function RoomPage() {
     }
   }, [room, tempUserId]);
 
-  const loadRoom = async () => {
+  const loadRoom = async (retryCount = 0) => {
     if (!roomId) return;
     
     try {
       setLoading(true);
+      setError(null);
       const roomData = await getRoomById(roomId);
       if (!roomData) {
+        // Если комната не найдена и это первая попытка, пробуем еще раз через 1 секунду
+        if (retryCount < 3) {
+          console.log(`Повторная попытка загрузки комнаты (${retryCount + 1}/3)...`);
+          setTimeout(() => loadRoom(retryCount + 1), 1000);
+          return;
+        }
         setError('Комната не найдена');
         return;
       }
       setRoom(roomData);
     } catch (err) {
       console.error('Ошибка загрузки комнаты:', err);
+      // Если ошибка и это первая попытка, пробуем еще раз
+      if (retryCount < 3) {
+        setTimeout(() => loadRoom(retryCount + 1), 1000);
+        return;
+      }
       setError('Не удалось загрузить комнату');
     } finally {
       setLoading(false);

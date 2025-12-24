@@ -1084,8 +1084,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         {/* Layout: Редактор в центре, инструменты рядом с ним */}
         {/* На мобильных: вертикальный layout с вкладками, на больших экранах: grid layout */}
         <div className="flex flex-col lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto">
-          {/* Левая панель: Персонализация, Эффекты (скрыта на мобильных, на ПК всегда видна) */}
-          <div className="hidden lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1">
+          {/* Левая панель: Персонализация, Эффекты (на мобильных показывается на вкладке редактора, на ПК всегда видна) */}
+          <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-full lg:w-[240px] order-3 lg:order-1`}>
             <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[300px] sm:max-h-[400px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
@@ -1097,15 +1097,16 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 {/* Размер шара */}
                 <div>
                   <div className="text-[9px] text-white/70 mb-0.5 font-black uppercase tracking-wider">{t('ballSize')}</div>
-                  <input
-                    type="range"
-                    min="0.8"
-                    max="1.5"
-                    step="0.1"
-                    value={ballSize}
-                    onChange={(e) => setBallSize(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-gradient-to-r from-slate-700 via-purple-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                  />
+                    <input
+                      type="range"
+                      min="0.8"
+                      max="1.5"
+                      step="0.1"
+                      value={ballSize}
+                      onChange={(e) => setBallSize(parseFloat(e.target.value))}
+                      className="w-full h-1.5 bg-gradient-to-r from-slate-700 via-purple-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
+                    />
                 </div>
 
                 {/* Тип поверхности */}
@@ -1114,7 +1115,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                   <div className="grid grid-cols-3 gap-1">
                     <button
                       onClick={() => setSurfaceType('glossy')}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         surfaceType === 'glossy'
                           ? 'border-cyan-400 bg-gradient-to-br from-cyan-500/40 via-blue-500/30 to-indigo-500/40 shadow-md scale-105'
                           : 'border-cyan-500/30 hover:border-cyan-400/60 bg-gradient-to-br from-slate-700/40 via-cyan-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-cyan-900/30 hover:to-slate-700/50'
@@ -1154,7 +1155,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                   <div className="grid grid-cols-2 gap-1">
                     <button
                       onClick={() => setEffects({ ...effects, sparkle: !effects.sparkle })}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         effects.sparkle
                           ? 'border-yellow-400 bg-gradient-to-br from-yellow-500/40 via-amber-500/30 to-orange-500/40 shadow-md scale-105'
                           : 'border-yellow-500/30 hover:border-yellow-400/60 bg-gradient-to-br from-slate-700/40 via-yellow-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-yellow-900/30 hover:to-slate-700/50'
@@ -1211,7 +1212,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           type="color"
                           value={color}
                           onChange={(e) => setColor(e.target.value)}
-                          className="w-5 h-5 rounded border-2 border-white/40 cursor-pointer"
+                          className="w-5 h-5 rounded border-2 border-white/40 cursor-pointer touch-manipulation"
                           title={t('selectColor')}
                         />
                         <span className="text-[9px] font-black uppercase tracking-wider">{t('color1')}</span>
@@ -1226,7 +1227,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           type="color"
                           value={secondColor || '#FFFF00'}
                           onChange={(e) => setSecondColor(e.target.value)}
-                          className="w-5 h-5 rounded border-2 border-white/40 cursor-pointer"
+                          className="w-5 h-5 rounded border-2 border-white/40 cursor-pointer touch-manipulation"
                           title={t('secondColor')}
                         />
                         <span className="text-[9px] font-black uppercase tracking-wider">{t('color2')}</span>
@@ -1253,7 +1254,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       <select
                         value={pattern || ''}
                         onChange={(e) => setPattern(e.target.value as ToyPattern || null)}
-                        className="w-full h-[50px] p-2 border-2 border-indigo-500/40 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-gradient-to-br from-slate-700/60 via-indigo-900/20 to-slate-700/60 text-white/90 font-medium text-[10px] flex flex-col items-center justify-center"
+                        className="w-full h-[50px] p-2 border-2 border-indigo-500/40 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-gradient-to-br from-slate-700/60 via-indigo-900/20 to-slate-700/60 text-white/90 font-medium text-[10px] flex flex-col items-center justify-center touch-manipulation"
                         title={t('pattern')}
                       >
                         {PATTERNS.map((p) => (
