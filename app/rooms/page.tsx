@@ -39,7 +39,15 @@ export default function RoomsPage() {
   const loadRooms = async () => {
     try {
       setLoading(true);
-      const userRooms = await getUserRooms(tempUserId);
+      setError(null);
+      // Таймаут для оптимизации - если загрузка занимает больше 10 секунд, показываем ошибку
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), 10000)
+      );
+      const userRooms = await Promise.race([
+        getUserRooms(tempUserId),
+        timeoutPromise
+      ]) as any;
       setRooms(userRooms);
     } catch (err: any) {
       console.error('Ошибка загрузки комнат:', err);

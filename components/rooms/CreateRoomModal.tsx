@@ -53,12 +53,20 @@ export default function CreateRoomModal({
     setError(null);
 
     try {
-      const room = await createRoom(currentUserId, name.trim(), timezone);
+      // Таймаут для создания комнаты - если больше 15 секунд, показываем ошибку
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Превышено время ожидания создания комнаты. Попробуйте еще раз.')), 15000)
+      );
+      const room = await Promise.race([
+        createRoom(currentUserId, name.trim(), timezone),
+        timeoutPromise
+      ]) as any;
       onCreate(room);
       setName('');
       setTimezone('Europe/Moscow');
       onClose();
     } catch (err: any) {
+      console.error('Ошибка создания комнаты:', err);
       setError(err.message || 'Ошибка создания комнаты');
     } finally {
       setIsLoading(false);

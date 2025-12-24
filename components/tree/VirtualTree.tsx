@@ -316,8 +316,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
       }
       
       // Используем высоту для масштабирования
-      // УМЕНЬШАЕМ масштаб на 15% для лучшего центрирования
-      const scaleByHeight = height > 0 ? (targetHeight / height) * 0.85 : 0.85;
+      const scaleByHeight = height > 0 ? targetHeight / height : 1;
       
       // Используем масштаб по высоте, но ограничиваем максимальный размер
       let finalScale = scaleByHeight;
@@ -1343,9 +1342,10 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
   // Используем пересчитанный центр только для вертикального позиционирования
   const actualCenter = recalculatedCenter || center;
   
-  // ВСЕГДА центрируем по X и Z (строго по центру для любого устройства)
-  const positionX = 0;
-  const positionZ = 0;
+      // Центрируем елку: компенсируем смещение центра модели
+      // Используем пересчитанный центр для точного позиционирования
+      const positionX = -actualCenter.x * scale;
+      const positionZ = -actualCenter.z * scale;
   
   // Центрируем по Y, затем смещаем вниз на фиксированное значение
   // Камера на Y=2, смотрит на Y=0, поэтому для нижней трети экрана нужно сместить вниз

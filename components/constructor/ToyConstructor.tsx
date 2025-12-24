@@ -1310,10 +1310,18 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 {/* На мобильных: миниатюрные кнопки с эмодзи и тултипами */}
                 <div className="md:hidden flex items-center gap-1.5 flex-wrap justify-center pb-2">
                   {/* Blur */}
-                  <div className="relative group">
+                    <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
                     <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors"
+                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
                       title={`${t('blurLabel')}: ${filters.blur}`}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                        if (slider) {
+                          slider.style.opacity = '1';
+                          setTimeout(() => slider.style.opacity = '', 2000);
+                        }
+                      }}
                     >
                       🌫️
                     </button>
@@ -1324,8 +1332,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="0.5" 
                       value={filters.blur} 
                       onChange={(e) => setFilters({ ...filters, blur: parseFloat(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
-                      style={{ zIndex: 50 }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.blur}</span>
                   </div>
@@ -1345,8 +1354,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.contrast} 
                       onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
-                      style={{ zIndex: 50 }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.contrast}%</span>
                   </div>
@@ -1366,8 +1376,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.saturation} 
                       onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
-                      style={{ zIndex: 50 }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
                   </div>
@@ -1387,8 +1398,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.vignette} 
                       onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
-                      style={{ zIndex: 50 }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.vignette}</span>
                   </div>
@@ -1408,8 +1420,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="1" 
                       value={filters.grain} 
                       onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity"
-                      style={{ zIndex: 50 }}
+                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      style={{ zIndex: 50, touchAction: 'none' }}
+                      onTouchStart={(e) => e.stopPropagation()}
                     />
                     <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-0 group-hover:opacity-100 group-active:opacity-100 whitespace-nowrap">{filters.grain}</span>
                   </div>
