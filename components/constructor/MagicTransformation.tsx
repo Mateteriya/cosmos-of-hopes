@@ -339,29 +339,23 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
-        // Используем RepeatWrapping и смещаем текстуру, чтобы избежать черной полосы на шве сферы
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        // Используем ClampToEdgeWrapping чтобы избежать черной полосы на шве сферы
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false; // Отключаем flip для правильного отображения
-        // Смещаем текстуру на 0.5, чтобы она начиналась не со шва
-        mat.map.offset.set(0.5, 0);
-        mat.map.repeat.set(1, 1);
+        // Не используем offset/repeat, чтобы избежать видимых швов
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
-        mat.map.offset.set(0.5, 0);
-        mat.map.repeat.set(1, 1);
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
-        mat.map.wrapS = THREE.RepeatWrapping;
-        mat.map.wrapT = THREE.RepeatWrapping;
+        mat.map.wrapS = THREE.ClampToEdgeWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
-        mat.map.offset.set(0.5, 0);
-        mat.map.repeat.set(1, 1);
       } else {
         mat.map = null;
       }
@@ -445,13 +439,11 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
-        // Используем RepeatWrapping и смещаем текстуру, чтобы избежать черной полосы на шве сферы
-        material.map.wrapS = THREE.RepeatWrapping;
-        material.map.wrapT = THREE.RepeatWrapping;
+        // Используем ClampToEdgeWrapping чтобы избежать черной полосы на шве сферы
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
-        // Смещаем текстуру на 0.5, чтобы она начиналась не со шва
-        material.map.offset.set(0.5, 0);
-        material.map.repeat.set(1, 1);
+        // Не используем offset/repeat, чтобы избежать видимых швов
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;

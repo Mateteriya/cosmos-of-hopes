@@ -751,7 +751,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   return (
     <div className="min-h-screen relative p-2 sm:p-3 md:p-4 overflow-hidden">
       {/* Селектор языка в левом верхнем углу */}
-      <div className="fixed top-2 left-2 sm:top-4 sm:left-4 z-50">
+      <div className="fixed top-12 left-2 sm:top-4 sm:left-4 z-50">
         <div className="relative">
           <select
             value={language}
@@ -1438,6 +1438,22 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
               </div>
             </div>
 
+            {/* Инструкция над окном просмотра шара (только на главной вкладке) */}
+            <div className="mb-2 bg-gradient-to-r from-purple-800/40 via-indigo-800/30 to-pink-800/40 backdrop-blur-sm rounded-lg p-2 sm:p-3 border border-white/20">
+              <div className="text-white/90 text-[10px] sm:text-xs space-y-1">
+                <div className="font-bold text-[11px] sm:text-sm mb-2 text-center">✨ {t('howToCreate') || 'Как создать свой шар:'}</div>
+                <div className="space-y-1 text-left">
+                  <div>1️⃣ {t('step1') || 'Укрась свой шар как нравится'}</div>
+                  <div>2️⃣ {t('step2') || 'Добавь своё желание или мечту на 2026 год'}</div>
+                  <div>3️⃣ {t('step3') || 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик'}</div>
+                  <div>4️⃣ {t('step4') || 'Повесь его на мировую ёлку'}</div>
+                </div>
+                <div className="text-[9px] text-white/70 mt-2 italic text-center border-t border-white/20 pt-2">
+                  {t('optionalHint') || '(можно добавить своё фото, имя или никнейм, а также дополнительное пожелание для кого угодно или сразу для всех)'}
+                </div>
+              </div>
+            </div>
+
             {/* Canvas редактор */}
             <div 
               data-canvas-editor="true"
@@ -1719,6 +1735,49 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Кнопки действий на вкладке Желание (только на мобильных) */}
+              <div className="lg:hidden pt-3 border-t border-white/20 space-y-2 mb-3">
+                {/* Волшебная палочка */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (!wishText.trim()) {
+                      return;
+                    }
+                    setShowMagicTransformation(true);
+                  }}
+                  disabled={!wishText.trim()}
+                  className={`w-full py-3 px-4 rounded-lg font-black text-white transition-all transform shadow-lg text-sm uppercase tracking-widest touch-manipulation ${
+                    !wishText.trim()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600 hover:from-purple-700 hover:via-pink-700 hover:to-yellow-700 active:scale-95 hover:shadow-xl'
+                  }`}
+                >
+                  {t('magicWand')}
+                </button>
+
+                {/* Повесить на ёлку */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (!wishText.trim()) {
+                      return;
+                    }
+                    handleSave();
+                  }}
+                  disabled={isSaving || !wishText.trim()}
+                  className={`w-full py-3 px-4 rounded-lg font-black text-white transition-all transform shadow-lg text-sm uppercase tracking-widest touch-manipulation ${
+                    isSaving || !wishText.trim()
+                      ? 'bg-gray-400 cursor-not-allowed opacity-50'
+                      : 'bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700 active:scale-95 hover:shadow-xl'
+                  }`}
+                >
+                  {isSaving ? t('saving') : t('hangOnTree')}
+                </button>
               </div>
 
               {/* Статистические данные */}

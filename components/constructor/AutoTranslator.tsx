@@ -70,7 +70,7 @@ export function AutoTranslator() {
   const currentTranslations = translations[language];
 
   return (
-    <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50">
+    <div className="fixed top-12 right-2 sm:top-4 sm:right-4 z-50">
       <div className="relative">
         <button
           onClick={() => setShowOptions(!showOptions)}

@@ -100,6 +100,12 @@ export const translations = {
         years: 'лет',
         likeToSeeYourBall: 'Лайкните чужой шар, чтобы увидеть свой на ёлке!',
         yourBallOnTree: 'Ваш шар на ёлке!',
+        howToCreate: 'Как создать свой шар:',
+        step1: 'Укрась свой шар как нравится',
+        step2: 'Добавь своё желание или мечту на 2026 год',
+        step3: 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик',
+        step4: 'Повесь его на мировую ёлку',
+        optionalHint: '(можно добавить своё фото, имя или никнейм, а также дополнительное пожелание для кого угодно или сразу для всех)',
       },
   en: {
     // General
@@ -200,6 +206,12 @@ export const translations = {
         years: 'years',
         likeToSeeYourBall: 'Like someone\'s ball to see yours on the tree!',
         yourBallOnTree: 'Your ball is on the tree!',
+        howToCreate: 'How to create your ball:',
+        step1: 'Decorate your ball as you like',
+        step2: 'Add your wish or dream for 2026',
+        step3: 'Press the "magic wand" to turn it into a real Christmas ball',
+        step4: 'Hang it on the world tree',
+        optionalHint: '(you can add your photo, name or nickname, as well as an additional wish for anyone or for everyone)',
       },
 } as const;
 
