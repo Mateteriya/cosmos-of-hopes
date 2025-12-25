@@ -40,8 +40,8 @@ export default function RoomsPage() {
     try {
       setLoading(true);
       setError(null);
-      // Увеличиваем таймаут для мобильных устройств
-      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 30000 : 10000;
+      // Увеличиваем таймаут для мобильных устройств до 45 секунд
+      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 45000 : 15000;
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), timeout)
       );

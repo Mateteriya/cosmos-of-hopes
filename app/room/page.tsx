@@ -184,14 +184,14 @@ export default function RoomPage() {
 
   return (
     <div 
-      className={`w-full h-screen relative overflow-hidden ${getBackgroundClassName()}`}
+      className={`w-full h-screen relative overflow-y-auto overflow-x-hidden ${getBackgroundClassName()}`}
       style={getBackgroundStyle()}
     >
       {/* Overlay для читаемости */}
       <div className="absolute inset-0 bg-black/30" />
       
       {/* Контент */}
-      <div className="relative z-10 w-full h-full flex flex-col p-2 sm:p-3 lg:p-4 gap-2 sm:gap-3 lg:gap-4">
+      <div className="relative z-10 w-full min-min-h-full flex flex-col p-2 sm:p-3 lg:p-4 gap-2 sm:gap-3 lg:gap-4 pb-20 pb-20">
         {/* Заголовок */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
           <div className="min-w-0 flex-1">
@@ -207,9 +207,9 @@ export default function RoomPage() {
         </div>
 
         {/* Основной контент - сетка */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-hidden min-h-0">
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-y-auto overflow-x-hidden min-h-0">
           {/* Левая колонка: Таймер, настройки, участники и приглашение */}
-          <div className="space-y-2 sm:space-y-3 lg:space-y-4 w-full">
+          <div className="space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0">
             <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
             
             {/* Ссылка приглашения */}
@@ -223,7 +223,7 @@ export default function RoomPage() {
               <div className="text-white font-bold text-xs sm:text-sm mb-2">🎥 Коммуникация</div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setVideoChatEnabled(false)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('🎤 Голос', videoChatEnabled); setVideoChatEnabled(false); }}
                   className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation ${
                     !videoChatEnabled
                       ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
@@ -233,7 +233,7 @@ export default function RoomPage() {
                   🎤 Голос
                 </button>
                 <button
-                  onClick={() => setVideoChatEnabled(true)}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('📹 Видео', videoChatEnabled); setVideoChatEnabled(true); }}
                   className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation ${
                     videoChatEnabled
                       ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
@@ -246,11 +246,13 @@ export default function RoomPage() {
             </div>
 
             {/* Голосовой чат или видеокомната */}
-            {videoChatEnabled ? (
-              <VideoRoom roomId={room.id} currentUserId={tempUserId} />
-            ) : (
-              <VoiceChat roomId={room.id} currentUserId={tempUserId} />
-            )}
+            <div className="min-h-[200px] sm:min-h-[300px]">
+              {videoChatEnabled ? (
+                <VideoRoom roomId={room.id} currentUserId={tempUserId} />
+              ) : (
+                <VoiceChat roomId={room.id} currentUserId={tempUserId} />
+              )}
+            </div>
             
             {/* Селекторы дизайна и программы (только для создателя) */}
             {isCreator && (
