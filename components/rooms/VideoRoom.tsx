@@ -70,20 +70,25 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
         </div>
       )}
 
-      <div className={`relative bg-black rounded-lg overflow-hidden ${isLoading ? 'hidden' : ''}`} style={{ minHeight: '400px' }}>
-        <iframe
-          ref={iframeRef}
-          src={jitsiUrl}
-          allow="camera; microphone; fullscreen; speaker; display-capture"
-          className="w-full h-full min-h-[400px] border-0"
-          style={{ minHeight: '400px' }}
-          onLoad={() => setIsLoading(false)}
-          onError={() => {
-            setError('Не удалось загрузить видеокомнату. Проверьте подключение к интернету.');
-            setIsLoading(false);
-          }}
-        />
-      </div>
+      {!isLoading && (
+        <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', height: '400px' }}>
+          <iframe
+            ref={iframeRef}
+            src={jitsiUrl}
+            allow="camera; microphone; fullscreen; speaker; display-capture"
+            className="w-full h-full border-0"
+            style={{ minHeight: '400px', height: '400px' }}
+            onLoad={() => {
+              setIsLoading(false);
+              console.log('Jitsi iframe загружен');
+            }}
+            onError={() => {
+              setError('Не удалось загрузить видеокомнату. Проверьте подключение к интернету.');
+              setIsLoading(false);
+            }}
+          />
+        </div>
+      )}
 
       <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center">
         Видеокомната Jitsi Meet

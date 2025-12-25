@@ -231,6 +231,11 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
   // Запуск голосового чата
   const startVoiceChat = async () => {
     try {
+      // Проверяем доступность mediaDevices
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Ваш браузер не поддерживает доступ к микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge) и разрешите доступ к микрофону.');
+      }
+      
       // Запрашиваем доступ к микрофону
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {

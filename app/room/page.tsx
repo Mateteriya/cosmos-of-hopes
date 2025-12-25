@@ -207,9 +207,14 @@ export default function RoomPage() {
         </div>
 
         {/* Основной контент - сетка */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-y-auto overflow-x-hidden min-h-0">
-          {/* Левая колонка: Таймер, настройки, участники и приглашение */}
-          <div className="space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 overflow-y-auto overflow-x-hidden min-h-0">
+          {/* Левая колонка: Чат (на ПК) или все (на мобильном) */}
+          <div className={`${'md:col-span-1 lg:col-span-2'} h-full min-h-[300px] sm:min-h-[400px] md:min-h-0 max-h-full flex flex-col order-2 md:order-1`}>
+            <RoomChat roomId={room.id} currentUserId={tempUserId} />
+          </div>
+
+          {/* Правая колонка: Таймер, настройки, участники и приглашение (на ПК) */}
+          <div className={`${'md:col-span-1 lg:col-span-1'} space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0 order-1 md:order-2`}>
             <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
             
             {/* Ссылка приглашения */}
@@ -290,12 +295,6 @@ export default function RoomPage() {
               </>
             )}
           </div>
-
-          {/* Центральная колонка: Чат комнаты */}
-          <div className="md:col-span-2 lg:col-span-2 h-full min-h-[300px] sm:min-h-[400px] md:min-h-0 max-h-full flex flex-col">
-            <RoomChat roomId={room.id} currentUserId={tempUserId} />
-          </div>
-
         </div>
       </div>
     </div>

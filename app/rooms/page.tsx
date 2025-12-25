@@ -40,15 +40,8 @@ export default function RoomsPage() {
     try {
       setLoading(true);
       setError(null);
-      // Увеличиваем таймаут для мобильных устройств до 45 секунд
-      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 45000 : 15000;
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Превышено время ожидания загрузки')), timeout)
-      );
-      const userRooms = await Promise.race([
-        getUserRooms(tempUserId),
-        timeoutPromise
-      ]) as any;
+      // Убираем таймаут - пусть загружается сколько нужно
+      const userRooms = await getUserRooms(tempUserId);
       setRooms(userRooms || []);
     } catch (err: any) {
       console.error('Ошибка загрузки комнат:', err);
