@@ -208,21 +208,24 @@ export default function RoomPage() {
 
         {/* Основной контент - сетка */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 overflow-y-auto overflow-x-hidden min-h-0">
-          {/* Левая колонка: Чат (на ПК) или все (на мобильном) */}
-          <div className={`${'md:col-span-1 lg:col-span-2'} h-full min-h-[300px] sm:min-h-[400px] md:min-h-0 max-h-full flex flex-col order-2 md:order-1`}>
-            <RoomChat roomId={room.id} currentUserId={tempUserId} />
-          </div>
-
-          {/* Правая колонка: Таймер, настройки, участники и приглашение (на ПК) */}
-          <div className={`${'md:col-span-1 lg:col-span-1'} space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0 order-1 md:order-2`}>
-            <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
+          {/* Левая колонка: Таймер, приглашение, участники и ЧАТ */}
+          <div className="md:col-span-1 lg:col-span-2 space-y-2 sm:space-y-3 lg:space-y-4">
+            {/* Верхние панельки */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+              <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
+              <InviteLink inviteCode={room.invite_code} roomId={room.id} />
+            </div>
             
-            {/* Ссылка приглашения */}
-            <InviteLink inviteCode={room.invite_code} roomId={room.id} />
-            
-            {/* Участники комнаты */}
             <RoomParticipants roomId={room.id} currentUserId={tempUserId} />
             
+            {/* Чат */}
+            <div className="h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] max-h-full flex flex-col">
+              <RoomChat roomId={room.id} currentUserId={tempUserId} />
+            </div>
+          </div>
+
+          {/* Правая колонка: Коммуникация, дизайн, программа */}
+          <div className="md:col-span-1 lg:col-span-1 space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0">
             {/* Переключатель видео/голоса */}
             <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3">
               <div className="text-white font-bold text-xs sm:text-sm mb-2">🎥 Коммуникация</div>

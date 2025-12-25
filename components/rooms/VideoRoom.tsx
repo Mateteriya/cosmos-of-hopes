@@ -70,25 +70,32 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
         </div>
       )}
 
-      {!isLoading && (
-        <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', height: '400px' }}>
-          <iframe
-            ref={iframeRef}
-            src={jitsiUrl}
-            allow="camera; microphone; fullscreen; speaker; display-capture"
-            className="w-full h-full border-0"
-            style={{ minHeight: '400px', height: '400px' }}
-            onLoad={() => {
-              setIsLoading(false);
-              console.log('Jitsi iframe загружен');
-            }}
-            onError={() => {
-              setError('Не удалось загрузить видеокомнату. Проверьте подключение к интернету.');
-              setIsLoading(false);
-            }}
-          />
-        </div>
-      )}
+      <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', height: '400px', width: '100%' }}>
+        {isLoading && (
+          <div className="absolute inset-0 bg-slate-700/50 rounded-lg p-8 flex items-center justify-center z-10">
+            <div className="text-center text-white/70">
+              <div className="text-4xl mb-4 animate-pulse">📹</div>
+              <div className="text-sm">Загрузка видеокомнаты...</div>
+            </div>
+          </div>
+        )}
+        <iframe
+          ref={iframeRef}
+          src={jitsiUrl}
+          allow="camera; microphone; fullscreen; speaker; display-capture"
+          className="w-full h-full border-0"
+          style={{ minHeight: '400px', height: '400px', width: '100%', display: isLoading ? 'none' : 'block' }}
+          onLoad={() => {
+            console.log('Jitsi iframe загружен');
+            setIsLoading(false);
+          }}
+          onError={(e) => {
+            console.error('Ошибка загрузки iframe:', e);
+            setError('Не удалось загрузить видеокомнату. Проверьте подключение к интернету.');
+            setIsLoading(false);
+          }}
+        />
+      </div>
 
       <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center">
         Видеокомната Jitsi Meet

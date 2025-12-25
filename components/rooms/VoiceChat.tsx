@@ -232,11 +232,37 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
   const startVoiceChat = async () => {
     try {
       // Проверяем доступность mediaDevices
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Ваш браузер не поддерживает доступ к микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge) и разрешите доступ к микрофону.');
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        // Пробуем старый API для старых браузеров
+        const getMedia = (navigator as any).getUserMedia || 
+                        (navigator as any).webkitGetUserMedia || 
+                        (navigator as any).mozGetUserMedia;
+        if (!getMedia) {
+          throw new Error('Ваш браузер не поддерживает доступ к микрофону. Пожалуйста, используйте современный браузер (Chrome, Firefox, Safari, Edge) и разрешите доступ к микрофону.');
+        }
+        // Используем старый API
+        const stream: MediaStream = await new Promise((resolve, reject) => {
+          getMedia.call(navigator, { audio: true }, resolve, reject);
+        });
+        localStreamRef.current = stream;
+        setIsConnected(true);
+        setConnectionStatus('🔄 Подключение к участникам...');
+        // Подключаемся к другим участникам
+        await connectToParticipants();
+        // Периодически очищаем старые сигналы и переподключаемся к новым участникам
+        cleanupIntervalRef.current = setInterval(async () => {
+          try {
+            await cleanupOldSignals(roomId);
+            await connectToParticipants();
+          } catch (err) {
+            console.error('Ошибка в периодической очистке:', err);
+          }
+        }, 15000);
+        setConnectionStatus('🔄 Подключение к участникам...');
+        return;
       }
       
-      // Запрашиваем доступ к микрофону
+      // Запрашиваем доступ к микрофону через современный API
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,

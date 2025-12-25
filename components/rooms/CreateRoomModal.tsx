@@ -53,15 +53,8 @@ export default function CreateRoomModal({
     setError(null);
 
     try {
-      // Увеличиваем таймаут для мобильных устройств до 60 секунд
-      const timeout = typeof window !== 'undefined' && window.innerWidth < 768 ? 60000 : 20000;
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Превышено время ожидания создания комнаты. Попробуйте еще раз.')), timeout)
-      );
-      const room = await Promise.race([
-        createRoom(currentUserId, name.trim(), timezone),
-        timeoutPromise
-      ]) as any;
+      // Убираем таймаут полностью - пусть создается сколько нужно
+      const room = await createRoom(currentUserId, name.trim(), timezone);
       onCreate(room);
       setName('');
       setTimezone('Europe/Moscow');
