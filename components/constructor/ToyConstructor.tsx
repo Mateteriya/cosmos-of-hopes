@@ -1086,7 +1086,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
         <div className="flex flex-row lg:grid lg:grid-cols-[auto_1fr_auto] gap-2 lg:gap-3 max-w-[1600px] mx-auto relative">
           {/* Правая панель: Персонализация, Эффекты (на мобильных показывается справа от редактора, на ПК слева) */}
           <div className={`${mobileTab === 'editor' ? 'flex' : 'hidden'} lg:flex flex-col gap-1.5 w-[140px] sm:w-[160px] lg:w-[240px] flex-shrink-0 order-3 lg:order-1 relative`}>
-            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col overflow-y-auto max-h-[400px] sm:max-h-[500px] lg:max-h-none" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
+            <div className="bg-slate-800/90 backdrop-blur-md rounded-xl p-2 sm:p-2.5 shadow-xl border-2 border-white/20 space-y-1.5 sm:space-y-2 flex-1 flex flex-col" style={{ backgroundColor: 'rgba(30, 41, 59, 0.9)' }}>
               {/* Персонализация шара */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-black text-white/90 flex items-center gap-1 uppercase tracking-widest">
@@ -1122,18 +1122,19 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       }`}
                     >
                       <span className="text-lg">✨</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('glossy').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('glossy').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setSurfaceType('matte')}
-                      className={`p-2.5 rounded-lg border-2 transition-all ${
+                      className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         surfaceType === 'matte'
                           ? 'border-purple-400 bg-gradient-to-br from-purple-500/40 via-pink-500/30 to-rose-500/40 shadow-md scale-105'
                           : 'border-purple-500/30 hover:border-purple-400/60 bg-gradient-to-br from-slate-700/40 via-purple-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-purple-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('matte')}
                     >
                       <span className="text-lg">🔳</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('matte').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('matte').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setSurfaceType('metal')}
@@ -1142,9 +1143,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-amber-400 bg-gradient-to-br from-amber-500/40 via-yellow-500/30 to-orange-500/40 shadow-md scale-105'
                           : 'border-amber-500/30 hover:border-amber-400/60 bg-gradient-to-br from-slate-700/40 via-amber-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-amber-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('metal')}
                     >
                       <span className="text-lg">⚡</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('metal').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('metal').toUpperCase()}</div>
                     </button>
                   </div>
                 </div>
@@ -1160,9 +1162,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-yellow-400 bg-gradient-to-br from-yellow-500/40 via-amber-500/30 to-orange-500/40 shadow-md scale-105'
                           : 'border-yellow-500/30 hover:border-yellow-400/60 bg-gradient-to-br from-slate-700/40 via-yellow-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-yellow-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('sparkle')}
                     >
                       <span className="text-lg">💫</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('sparkle').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('sparkle').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, gradient: !effects.gradient })}
@@ -1171,9 +1174,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-pink-400 bg-gradient-to-br from-pink-500/40 via-rose-500/30 to-fuchsia-500/40 shadow-md scale-105'
                           : 'border-pink-500/30 hover:border-pink-400/60 bg-gradient-to-br from-slate-700/40 via-pink-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-pink-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('gradient')}
                     >
                       <span className="text-lg">🌈</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('gradient').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('gradient').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, glow: !effects.glow })}
@@ -1182,9 +1186,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-emerald-400 bg-gradient-to-br from-emerald-500/40 via-teal-500/30 to-cyan-500/40 shadow-md scale-105'
                           : 'border-emerald-500/30 hover:border-emerald-400/60 bg-gradient-to-br from-slate-700/40 via-emerald-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-emerald-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('glow')}
                     >
                       <span className="text-lg">✨</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('glow').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('glow').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setEffects({ ...effects, stars: !effects.stars })}
@@ -1193,9 +1198,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-violet-400 bg-gradient-to-br from-violet-500/40 via-indigo-500/30 to-purple-500/40 shadow-md scale-105'
                           : 'border-violet-500/30 hover:border-violet-400/60 bg-gradient-to-br from-slate-700/40 via-violet-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-violet-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('stars')}
                     >
                       <span className="text-lg">🌟</span>
-                      <div className="text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('stars').toUpperCase()}</div>
+                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('stars').toUpperCase()}</div>
                     </button>
                   </div>
                 </div>
@@ -1345,18 +1351,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                   </div>
                   
                   {/* Saturation */}
-                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
-                    <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
-                      title={`${t('saturationLabel')}: ${filters.saturation}%`}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                        if (slider) slider.style.opacity = '1';
-                      }}
-                    >
-                      🌈
-                    </button>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg" title={t('saturationLabel')}>🌈</span>
                     <input 
                       type="range" 
                       min="0" 
@@ -1364,26 +1360,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.saturation} 
                       onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'none' }}
+                      className="flex-1 h-2.5 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.saturation}%</span>
                   </div>
                   
                   {/* Vignette */}
-                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
-                    <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
-                      title={`${t('vignetteLabel')}: ${filters.vignette}`}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                        if (slider) slider.style.opacity = '1';
-                      }}
-                    >
-                      🔲
-                    </button>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg" title={t('vignetteLabel')}>🔲</span>
                     <input 
                       type="range" 
                       min="0" 
@@ -1391,26 +1376,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="5" 
                       value={filters.vignette} 
                       onChange={(e) => setFilters({ ...filters, vignette: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'none' }}
+                      className="flex-1 h-2.5 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.vignette}</span>
                   </div>
                   
                   {/* Grain */}
-                  <div className="relative group" onTouchStart={(e) => e.stopPropagation()}>
-                    <button
-                      className="w-10 h-10 rounded-lg bg-indigo-600/50 hover:bg-indigo-600 active:bg-indigo-700 flex items-center justify-center text-white text-lg border border-indigo-400/50 transition-colors touch-manipulation"
-                      title={`${t('grainLabel')}: ${filters.grain}`}
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                        if (slider) slider.style.opacity = '1';
-                      }}
-                    >
-                      ✨
-                    </button>
+                  <div className="flex items-center gap-1">
+                    <span className="text-lg" title={t('grainLabel')}>✨</span>
                     <input 
                       type="range" 
                       min="0" 
@@ -1418,11 +1392,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       step="1" 
                       value={filters.grain} 
                       onChange={(e) => setFilters({ ...filters, grain: parseInt(e.target.value) })} 
-                      className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-2 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-manipulation"
-                      style={{ zIndex: 50, touchAction: 'none' }}
+                      className="flex-1 h-2.5 bg-gradient-to-r from-slate-700 via-blue-700/50 to-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 touch-manipulation"
+                      style={{ touchAction: 'none' }}
                       onTouchStart={(e) => e.stopPropagation()}
                     />
-                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-[10px] text-white/70 opacity-100 md:opacity-0 md:group-hover:opacity-100 whitespace-nowrap">{filters.grain}</span>
                   </div>
                 </div>
                 

@@ -209,7 +209,7 @@ export default function RoomPage() {
         {/* Основной контент - сетка */}
         <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 overflow-hidden min-h-0">
           {/* Левая колонка: Таймер, настройки, участники и приглашение */}
-          <div className="space-y-2 sm:space-y-3 lg:space-y-4 overflow-y-auto max-h-full min-h-0 w-full">
+          <div className="space-y-2 sm:space-y-3 lg:space-y-4 w-full">
             <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
             
             {/* Ссылка приглашения */}
@@ -289,57 +289,11 @@ export default function RoomPage() {
             )}
           </div>
 
-          {/* Центральная колонка: Основной контент (программа мероприятия) */}
-          <div className="md:col-span-2 lg:col-span-2 overflow-y-auto max-h-full min-h-0">
-            {room.event_program === 'chat' && (
-              <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 h-full flex items-center justify-center">
-                <div className="text-center text-white/70">
-                  <div className="text-4xl mb-4">💬</div>
-                  <div className="text-lg">Общайтесь в чате <span className="hidden md:inline">справа</span><span className="md:hidden">внизу</span>!</div>
-                </div>
-              </div>
-            )}
-            
-            {room.event_program === 'video_watch' && (
-              <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 h-full">
-                <div className="text-white font-bold text-sm mb-4">🎬 Совместный просмотр</div>
-                {isCreator ? (
-                  <div className="space-y-4">
-                    <div className="text-white/70 text-sm">
-                      Загрузите видео для совместного просмотра
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="YouTube URL или ссылка на видео"
-                      className="w-full bg-slate-700/50 text-white px-4 py-2 rounded-lg border border-white/20"
-                    />
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg">
-                      Загрузить видео
-                    </button>
-                  </div>
-                ) : (
-                  <div className="text-white/70 text-sm text-center">
-                    Ожидаем, пока создатель загрузит видео...
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {(room.event_program === 'quiz' || room.event_program === 'music_guess' || room.event_program === 'truth_or_dare') && (
-              <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-4 h-full flex items-center justify-center">
-                <div className="text-center text-white/70">
-                  <div className="text-4xl mb-4">🚧</div>
-                  <div className="text-lg">Эта программа скоро появится!</div>
-                  <div className="text-sm mt-2">Пока общайтесь в чате 💬</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Правая колонка: Чат */}
-          <div className="md:col-span-1 lg:col-span-1 h-full min-h-[300px] sm:min-h-[400px] md:min-h-0 max-h-full flex flex-col">
+          {/* Центральная колонка: Чат комнаты */}
+          <div className="md:col-span-2 lg:col-span-2 h-full min-h-[300px] sm:min-h-[400px] md:min-h-0 max-h-full flex flex-col">
             <RoomChat roomId={room.id} currentUserId={tempUserId} />
           </div>
+
         </div>
       </div>
     </div>
