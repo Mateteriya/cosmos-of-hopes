@@ -1879,11 +1879,18 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
   const { camera } = useThree();
   const [visibleToys, setVisibleToys] = useState<Toy[]>([]);
   const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки для новогодней анимации
+  const controlsRef = useRef<any>(null);
 
   useEffect(() => {
     // Камера четко по центру для любого устройства
     camera.position.set(0, 2, 18);
     camera.lookAt(0, 0, 0);
+    
+    // Принудительно устанавливаем target для OrbitControls
+    if (controlsRef.current) {
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
   }, [camera]);
 
   // Виртуализация: отображаем только видимые шары (в пределах frustum)
@@ -2075,6 +2082,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
 
       {/* Управление камерой - расширенные пределы для большой ёлки, четко по центру */}
       <OrbitControls
+        ref={controlsRef}
         enablePan={false}
         minDistance={10}
         maxDistance={30}

@@ -4,22 +4,21 @@
  * Главная страница - Виртуальная ёлка
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import VirtualTree from '@/components/tree/VirtualTree';
 import BallDetailsModal from '@/components/tree/BallDetailsModal';
-import { getToysOnVirtualTree, getToysOnTree, hasUserLikedAnyBall, addSupport } from '@/lib/toys';
+import { getToysOnVirtualTree, getToysOnTree, hasUserLikedAnyBall, addSupport, getToyLikesCount } from '@/lib/toys';
 import { getRoomById } from '@/lib/rooms';
 import type { Toy } from '@/types/toy';
 import type { Room } from '@/types/room';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
-
-// Временный userId для тестирования (позже будет из Telegram)
-const TEMP_USER_ID = 'test_user_' + Date.now();
+import { getOrCreateUserId } from '@/lib/userId';
 
 function TreePageContent() {
   const router = useRouter();
   const { t } = useLanguage();
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [roomId, setRoomId] = useState<string | null | undefined>(undefined);
   const [toys, setToys] = useState<Toy[]>([]);
   const [selectedToy, setSelectedToy] = useState<Toy | null>(null);
@@ -34,6 +33,13 @@ function TreePageContent() {
 
   // Тестовый "Новый год" для проверки анимации (пока выключен)
   const [isTestNewYear, setIsTestNewYear] = useState(false);
+
+  // Инициализация userId
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentUserId(getOrCreateUserId());
+    }
+  }, []);
 
   // Получаем roomId из URL параметров после монтирования
   useEffect(() => {
@@ -67,8 +73,8 @@ function TreePageContent() {
 
   // Отдельный эффект для проверки лайков (только для общей ёлки)
   useEffect(() => {
-    // Ждём, пока roomId определён (может быть null для общей ёлки)
-    if (roomId === undefined) return;
+    // Ждём, пока roomId определён (может быть null для общей ёлки) и userId установлен
+    if (roomId === undefined || !currentUserId) return;
     
     // Для комнат не проверяем лайки - они не нужны
     if (roomId === null) {
@@ -77,7 +83,18 @@ function TreePageContent() {
       // В комнатах всегда разрешаем видеть свои игрушки
       setUserHasLiked(true);
     }
-  }, [roomId]);
+  }, [roomId, currentUserId]);
+
+  // Перезагружаем шары когда userHasLiked меняется с false на true
+  const prevUserHasLikedRef = useRef(false);
+  useEffect(() => {
+    // Если userHasLiked изменился с false на true, перезагружаем шары
+    if (userHasLiked && !prevUserHasLikedRef.current && !currentRoom && currentUserId) {
+      console.log('[TreePage] userHasLiked изменился на true, перезагружаем шары для показа своего шара');
+      loadToys();
+    }
+    prevUserHasLikedRef.current = userHasLiked;
+  }, [userHasLiked, currentRoom, currentUserId]);
 
   const loadRoom = async () => {
     if (roomId) {
@@ -121,8 +138,10 @@ function TreePageContent() {
   };
 
   const checkUserLikes = async () => {
+    if (!currentUserId) return;
     try {
-      const hasLiked = await hasUserLikedAnyBall(TEMP_USER_ID);
+      const hasLiked = await hasUserLikedAnyBall(currentUserId);
+      console.log('[TreePage] Проверка лайков:', { hasLiked, currentUserId });
       setUserHasLiked(hasLiked);
     } catch (err) {
       console.error('Ошибка проверки лайков:', err);
@@ -134,13 +153,15 @@ function TreePageContent() {
   };
 
   const handleBallLike = async (toyId: string) => {
+    if (!currentUserId) return;
     try {
-      await addSupport(toyId, TEMP_USER_ID);
+      await addSupport(toyId, currentUserId);
       // Обновляем счётчик поддержек локально
+      const newLikesCount = await getToyLikesCount(toyId);
       setToys(prevToys =>
         prevToys.map(toy =>
           toy.id === toyId
-            ? { ...toy, support_count: (toy.support_count || 0) + 1 }
+            ? { ...toy, support_count: newLikesCount }
             : toy
         )
       );
@@ -149,6 +170,17 @@ function TreePageContent() {
     } catch (err) {
       console.error('Ошибка добавления поддержки:', err);
     }
+  };
+
+  const handleLikeChange = (toyId: string, newLikesCount: number) => {
+    // Обновляем локальное состояние после изменения лайка в модальном окне
+    setToys(prevToys =>
+      prevToys.map(toy =>
+        toy.id === toyId
+          ? { ...toy, support_count: newLikesCount }
+          : toy
+      )
+    );
   };
 
   if (loading) {
@@ -171,10 +203,16 @@ function TreePageContent() {
     <div className="relative w-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
       {/* Кнопки навигации */}
       <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-wrap gap-2 sm:gap-3">
+        <button
+          onClick={() => router.push('/')}
+          className="bg-slate-700/90 hover:bg-slate-600 text-white font-bold px-3 sm:px-4 py-2 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-sm"
+        >
+          🏠 Главная
+        </button>
         {/* Кнопка создания игрушки показывается только для общей ёлки, не для комнат */}
         {!currentRoom && (
         <button
-          onClick={() => router.push('/constructor')}
+          onClick={() => router.push('/create')}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
         >
           <span>✨</span>
@@ -200,44 +238,53 @@ function TreePageContent() {
 
       {/* Информация о комнате */}
       {currentRoom && (
-        <div className="absolute top-4 right-4 z-10 bg-blue-600/90 backdrop-blur-md text-white px-6 py-3 rounded-lg shadow-xl border-2 border-blue-400">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm">🏠 {currentRoom.name}</span>
+        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-blue-600/90 backdrop-blur-md text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl border-2 border-blue-400 max-w-[calc(100vw-5rem)] sm:max-w-none">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-bold text-xs sm:text-sm truncate">🏠 {currentRoom.name}</span>
             <button
               onClick={() => router.push('/tree')}
-              className="text-blue-200 hover:text-white transition-colors text-xs"
+              className="text-blue-200 hover:text-white transition-colors text-xs sm:text-sm touch-manipulation flex-shrink-0"
               title="Вернуться к общей ёлке"
             >
               ✕
             </button>
           </div>
-          <p className="text-xs text-blue-200 mt-1">Код: {currentRoom.invite_code}</p>
+          <p className="text-[10px] sm:text-xs text-blue-200 mt-1">Код: {currentRoom.invite_code}</p>
         </div>
       )}
 
       {/* Подсказка, если пользователь не лайкнул никого (только для общей ёлки) */}
       {!userHasLiked && !currentRoom && (
-        <div className="absolute top-20 right-4 z-10 bg-yellow-500/90 backdrop-blur-md text-white px-6 py-3 rounded-lg shadow-xl border-2 border-yellow-400">
-          <p className="font-bold text-sm">{t('likeToSeeYourBall')}</p>
+        <div className="absolute top-16 right-2 sm:top-20 sm:right-4 z-10 bg-yellow-500/90 backdrop-blur-md text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl border-2 border-yellow-400 max-w-[calc(100vw-5rem)] sm:max-w-none">
+          <p className="font-bold text-xs sm:text-sm">{t('likeToSeeYourBall')}</p>
         </div>
       )}
 
       {/* Виртуальная ёлка */}
-      <VirtualTree
-        toys={toys}
-        currentUserId={TEMP_USER_ID}
-        onBallClick={handleBallClick}
-        onBallLike={handleBallLike}
-        userHasLiked={userHasLiked}
-        isRoom={!!currentRoom}
-        treeType={treeType}
-        treeModel={treeModel}
-        isNewYearAnimation={isTestNewYear}
-        onAnimationComplete={() => setIsTestNewYear(false)}
-      />
+      {currentUserId && (
+        <VirtualTree
+          toys={toys}
+          currentUserId={currentUserId}
+          onBallClick={handleBallClick}
+          onBallLike={handleBallLike}
+          userHasLiked={userHasLiked}
+          isRoom={!!currentRoom}
+          treeType={treeType}
+          treeModel={treeModel}
+          isNewYearAnimation={isTestNewYear}
+          onAnimationComplete={() => setIsTestNewYear(false)}
+        />
+      )}
 
       {/* Модальное окно с деталями шара */}
-      <BallDetailsModal toy={selectedToy} onClose={() => setSelectedToy(null)} />
+      {currentUserId && (
+        <BallDetailsModal 
+          toy={selectedToy} 
+          onClose={() => setSelectedToy(null)}
+          currentUserId={currentUserId}
+          onLikeChange={handleLikeChange}
+        />
+      )}
     </div>
   );
 }
