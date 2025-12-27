@@ -75,6 +75,7 @@ function BallOnTree({
   distance: number; // Расстояние от камеры для LOD
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const glowMeshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(false);
   
@@ -104,14 +105,26 @@ function BallOnTree({
     return 32; // Близко - полная детализация
   }, [distance]);
 
-  // Анимация вращения и пульсации (только для видимых/близких шаров)
+  // Анимация вращения и пульсации
   useFrame((state) => {
-    if (meshRef.current && distance < 15) {
+    if (meshRef.current) {
+      // Всегда вращаем шар (даже если далеко)
       meshRef.current.rotation.y += 0.01;
+      
       if (isUserBall) {
-        // Пульсация для своего шара
-        const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
+        // Для своего шара - пульсация всегда видна, независимо от расстояния
+        const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
         meshRef.current.scale.setScalar(scale);
+        // Пульсация свечения
+        if (glowMeshRef.current) {
+          const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2.5) * 0.2;
+          glowMeshRef.current.scale.setScalar(glowScale);
+          // Пульсация яркости свечения
+          const material = glowMeshRef.current.material as THREE.MeshStandardMaterial;
+          if (material) {
+            material.emissiveIntensity = 1.2 + Math.sin(state.clock.elapsedTime * 3) * 0.3;
+          }
+        }
       }
     }
   });
@@ -170,21 +183,22 @@ function BallOnTree({
             metalness={toy.surface_type === 'metal' ? 0.8 : 0.1}
             roughness={toy.surface_type === 'matte' ? 0.9 : toy.surface_type === 'glossy' ? 0.2 : 0.5}
             emissive={isUserBall ? '#ffff00' : '#000000'}
-            emissiveIntensity={isUserBall ? 0.3 : 0}
+            emissiveIntensity={isUserBall ? 0.5 : 0}
             side={THREE.DoubleSide} // Показываем обе стороны для лучшей видимости кастомного дизайна
           />
         </mesh>
       
-      {/* Визуальное выделение своего шара */}
+      {/* Визуальное выделение своего шара - яркое желтое свечение */}
       {isUserBall && (
-        <mesh>
-          <sphereGeometry args={[0.35 * (toy.ball_size || 1), 32, 32]} />
+        <mesh ref={glowMeshRef}>
+          <sphereGeometry args={[0.48 * (toy.ball_size || 1), 32, 32]} />
           <meshStandardMaterial
             color="#ffff00"
             transparent
-            opacity={0.3}
+            opacity={0.5}
             emissive="#ffff00"
-            emissiveIntensity={0.5}
+            emissiveIntensity={1.2}
+            side={THREE.DoubleSide}
           />
         </mesh>
       )}
@@ -1911,25 +1925,45 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     frustum.setFromProjectionMatrix(matrix);
 
     // Фильтруем шары, которые находятся в видимой области
+    // ВАЖНО: Всегда включаем шарик пользователя, даже если он не в видимой области
     const visible: Array<{ toy: Toy; index: number; distance: number }> = [];
+    let userBall: { toy: Toy; index: number; distance: number } | null = null;
     
-    for (let i = 0; i < toys.length && visible.length < 500; i++) {
+    for (let i = 0; i < toys.length; i++) {
       const toy = toys[i];
+      const isUserBall = currentUserId && toy.user_id === currentUserId;
       const pos = getBallPosition(toy.id);
       const point = new THREE.Vector3(...pos);
+      const distance = camera.position.distanceTo(point);
       
-      if (frustum.containsPoint(point)) {
-        const distance = camera.position.distanceTo(point);
+      // Сохраняем шарик пользователя отдельно
+      if (isUserBall) {
+        userBall = { toy, index: i, distance };
+      }
+      
+      // Добавляем видимые шары (или шарик пользователя - всегда)
+      if (frustum.containsPoint(point) || isUserBall) {
         visible.push({ toy, index: i, distance });
       }
     }
 
-    // Сортируем по расстоянию (ближайшие первыми)
-    visible.sort((a, b) => a.distance - b.distance);
+    // Сортируем: шарик пользователя всегда первый, остальные по расстоянию
+    visible.sort((a, b) => {
+      const aIsUser = currentUserId && a.toy.user_id === currentUserId;
+      const bIsUser = currentUserId && b.toy.user_id === currentUserId;
+      if (aIsUser && !bIsUser) return -1;
+      if (!aIsUser && bIsUser) return 1;
+      return a.distance - b.distance;
+    });
     
     // Ограничиваем количество одновременно отображаемых шаров (для производительности)
     const maxVisible = 500; // Максимум 500 шаров одновременно
-    setVisibleToys(visible.slice(0, maxVisible).map(v => v.toy));
+    // Но всегда включаем шарик пользователя
+    const result = visible.slice(0, maxVisible);
+    if (userBall && !result.find(v => v.toy.id === userBall!.toy.id)) {
+      result.unshift(userBall); // Добавляем шарик пользователя в начало
+    }
+    setVisibleToys(result.map(v => v.toy));
   });
 
   // Генерация позиций для шаров на ёлке - детерминированное распределение по всей ёлке
