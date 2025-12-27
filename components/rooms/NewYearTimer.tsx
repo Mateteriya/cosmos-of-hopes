@@ -1,7 +1,8 @@
 'use client';
 
 /**
- * Компонент таймера до Нового года
+ * Компонент таймера до Нового года с гибридной синхронизацией
+ * Использует API для точного времени + локальный fallback
  */
 
 import { useState, useEffect } from 'react';
@@ -18,10 +19,38 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
     minutes: number;
     seconds: number;
   } | null>(null);
+  const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Синхронизация с сервером каждые 5 минут
+  useEffect(() => {
+    const syncWithServer = async () => {
+      try {
+        setIsSyncing(true);
+        const response = await fetch('/api/time');
+        if (response.ok) {
+          const data = await response.json();
+          const serverTime = new Date(data.timestamp).getTime();
+          const localTime = Date.now();
+          setServerTimeOffset(serverTime - localTime);
+        }
+      } catch (error) {
+        console.warn('Не удалось синхронизировать время с сервером:', error);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    syncWithServer();
+    const syncInterval = setInterval(syncWithServer, 5 * 60 * 1000); // Каждые 5 минут
+
+    return () => clearInterval(syncInterval);
+  }, []);
 
   useEffect(() => {
     const updateTimer = () => {
-      const now = new Date();
+      // Используем серверное время с offset или локальное как fallback
+      const now = new Date(Date.now() + serverTimeOffset);
       const midnight = new Date(midnightUTC);
       const diff = midnight.getTime() - now.getTime();
 
@@ -42,12 +71,15 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [midnightUTC]);
+  }, [midnightUTC, serverTimeOffset]);
 
   if (!timeLeft) {
     return (
       <div className="text-white text-center">
-        <div className="text-2xl font-bold">Загрузка...</div>
+        <div className="text-sm font-bold flex items-center justify-center gap-2">
+          <div className="animate-spin w-3 h-3 border border-white/30 border-t-white rounded-full"></div>
+          Загрузка...
+        </div>
       </div>
     );
   }
@@ -55,38 +87,41 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
   const isNewYear = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
 
   return (
-    <div className="bg-gradient-to-br from-purple-600/30 to-pink-600/30 backdrop-blur-md border-2 border-white/30 rounded-xl p-2 sm:p-4 lg:p-6 text-center">
+    <div className="bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-purple-600/40 backdrop-blur-md border border-white/30 rounded-lg p-2 text-center shadow-lg relative">
+      {isSyncing && (
+        <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Синхронизация времени"></div>
+      )}
       {isNewYear ? (
-        <div className="space-y-1 sm:space-y-2">
-          <div className="text-4xl sm:text-5xl lg:text-6xl mb-2 sm:mb-4">🎉</div>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">С НОВЫМ ГОДОМ!</div>
-          <div className="text-sm sm:text-base lg:text-lg text-white/80">Пусть все мечты сбудутся! ✨</div>
+        <div className="space-y-1">
+          <div className="text-2xl sm:text-3xl">🎉</div>
+          <div className="text-sm sm:text-base font-bold text-white">С НОВЫМ ГОДОМ!</div>
+          <div className="text-xs text-white/80">✨</div>
         </div>
       ) : (
-        <div className="space-y-2 sm:space-y-3 lg:space-y-4">
-          <div className="text-white/80 text-xs sm:text-sm uppercase tracking-wider">
-            До Нового года осталось
+        <div className="space-y-1">
+          <div className="text-white/90 text-[10px] sm:text-xs uppercase tracking-wider font-medium">
+            До Нового года
           </div>
-          <div className="grid grid-cols-4 gap-0.5 sm:gap-1 lg:gap-2">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 sm:p-1.5 lg:p-2 xl:p-4 border border-white/20 min-w-0">
-              <div className="text-sm sm:text-base lg:text-lg xl:text-2xl font-bold text-white leading-tight break-all">{timeLeft.days}</div>
-              <div className="text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-white/70 uppercase mt-0.5 leading-tight">Дней</div>
+          <div className="grid grid-cols-4 gap-1">
+            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.days}</div>
+              <div className="text-[8px] text-white/70 uppercase">Дней</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 sm:p-1.5 lg:p-2 xl:p-4 border border-white/20 min-w-0">
-              <div className="text-sm sm:text-base lg:text-lg xl:text-2xl font-bold text-white leading-tight break-all">{timeLeft.hours}</div>
-              <div className="text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-white/70 uppercase mt-0.5 leading-tight">Часов</div>
+            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.hours}</div>
+              <div className="text-[8px] text-white/70 uppercase">Часов</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 sm:p-1.5 lg:p-2 xl:p-4 border border-white/20 min-w-0">
-              <div className="text-sm sm:text-base lg:text-lg xl:text-2xl font-bold text-white leading-tight break-all">{timeLeft.minutes}</div>
-              <div className="text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-white/70 uppercase mt-0.5 leading-tight">Минут</div>
+            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.minutes}</div>
+              <div className="text-[8px] text-white/70 uppercase">Минут</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-1 sm:p-1.5 lg:p-2 xl:p-4 border border-white/20 min-w-0">
-              <div className="text-sm sm:text-base lg:text-lg xl:text-2xl font-bold text-white leading-tight break-all">{timeLeft.seconds}</div>
-              <div className="text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-white/70 uppercase mt-0.5 leading-tight">Секунд</div>
+            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
+              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.seconds}</div>
+              <div className="text-[8px] text-white/70 uppercase">Секунд</div>
             </div>
           </div>
-          <div className="text-white/60 text-[10px] sm:text-xs">
-            По времени: {timezone}
+          <div className="text-white/60 text-[9px]">
+            {timezone}
           </div>
         </div>
       )}

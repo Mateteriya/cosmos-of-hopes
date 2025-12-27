@@ -183,69 +183,63 @@ export default function RoomPage() {
   };
 
   return (
-    <div 
-      className={`w-full h-screen relative overflow-y-auto overflow-x-hidden ${getBackgroundClassName()}`}
+    <div
+      className={`w-full min-h-screen relative overflow-hidden ${getBackgroundClassName()}`}
       style={getBackgroundStyle()}
     >
       {/* Overlay для читаемости */}
-      <div className="absolute inset-0 bg-black/30" />
-      
+      <div className="absolute inset-0 bg-black/40" />
+
       {/* Контент */}
-      <div className="relative z-10 w-full min-min-h-full flex flex-col p-2 sm:p-3 lg:p-4 gap-2 sm:gap-3 lg:gap-4 pb-20 pb-20">
-        {/* Заголовок */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-white text-xl sm:text-2xl lg:text-3xl font-bold truncate">🏠 {room.name}</h1>
-            <p className="text-white/70 text-xs sm:text-sm">Код приглашения: {room.invite_code}</p>
+      <div className="relative z-10 w-full h-screen flex flex-col">
+        {/* Заголовок + Таймер вверху */}
+        <div className="flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            {/* Левая часть: заголовок и кнопка назад */}
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <button
+                onClick={() => router.push('/rooms')}
+                className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg transition-all text-sm whitespace-nowrap flex-shrink-0"
+              >
+                ←
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-white text-lg sm:text-xl lg:text-2xl font-bold truncate">🏠 {room.name}</h1>
+                <p className="text-white/70 text-xs">Код: {room.invite_code}</p>
+              </div>
+            </div>
+
+            {/* Центральная часть: таймер */}
+            <div className="flex-shrink-0">
+              <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
+            </div>
           </div>
-          <button
-            onClick={() => router.push('/rooms')}
-            className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition-all text-sm sm:text-base whitespace-nowrap"
-          >
-            ← Назад к комнатам
-          </button>
         </div>
 
-        {/* Основной контент - сетка */}
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 overflow-y-auto overflow-x-hidden min-h-0">
-          {/* Левая колонка: Таймер, приглашение, участники и ЧАТ */}
-          <div className="md:col-span-1 lg:col-span-2 space-y-2 sm:space-y-3 lg:space-y-4">
-            {/* Верхние панельки */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
-              <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
-              <InviteLink inviteCode={room.invite_code} roomId={room.id} />
-            </div>
-            
-            <RoomParticipants roomId={room.id} currentUserId={tempUserId} />
-            
-            {/* Чат */}
-            <div className="h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] max-h-full flex flex-col">
-              <RoomChat roomId={room.id} currentUserId={tempUserId} />
-            </div>
-          </div>
-
-          {/* Правая колонка: Коммуникация, дизайн, программа */}
-          <div className="md:col-span-1 lg:col-span-1 space-y-2 sm:space-y-3 lg:space-y-4 w-full min-h-0">
+        {/* Основной контент - две колонки */}
+        <div className="flex-1 flex gap-3 sm:gap-4 p-3 sm:p-4 pb-20 overflow-y-auto overflow-x-hidden">
+          {/* Левая колонка (2/3): Видеочат + селекторы */}
+          <div className="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0">
             {/* Переключатель видео/голоса */}
-            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3">
-              <div className="text-white font-bold text-xs sm:text-sm mb-2">🎥 Коммуникация</div>
-              <div className="flex gap-2">
+            <div className="bg-slate-800/60 backdrop-blur-md border border-white/20 rounded-lg p-3 flex-shrink-0">
+              <div className="text-white font-bold text-sm mb-3">🎥 Коммуникация</div>
+              <div className="flex gap-3">
                 <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('🎤 Голос', videoChatEnabled); setVideoChatEnabled(false); }}
-                  className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation ${
+                  onClick={() => setVideoChatEnabled(false)}
+                  className={`flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-all touch-manipulation ${
                     !videoChatEnabled
-                      ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
-                      : 'bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white/70'
+                      ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg'
+                      : 'bg-slate-700/80 hover:bg-slate-600 active:bg-slate-500 text-white/70'
                   }`}
                 >
                   🎤 Голос
                 </button>
                 <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('📹 Видео', videoChatEnabled); setVideoChatEnabled(true); }}
-                  className={`flex-1 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors touch-manipulation ${
+                  onClick={() => setVideoChatEnabled(true)}
+                  className={`flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-all touch-manipulation ${
                     videoChatEnabled
-                      ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
-                      : 'bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white/70'
+                      ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg'
+                      : 'bg-slate-700/80 hover:bg-slate-600 active:bg-slate-500 text-white/70'
                   }`}
                 >
                   📹 Видео
@@ -253,49 +247,70 @@ export default function RoomPage() {
               </div>
             </div>
 
-            {/* Голосовой чат или видеокомната */}
-            <div className="min-h-[200px] sm:min-h-[300px]">
+            {/* Видеочат (увеличенный) */}
+            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[400px] sm:min-h-[500px]">
               {videoChatEnabled ? (
                 <VideoRoom roomId={room.id} currentUserId={tempUserId} />
               ) : (
                 <VoiceChat roomId={room.id} currentUserId={tempUserId} />
               )}
             </div>
-            
-            {/* Селекторы дизайна и программы (только для создателя) */}
+
+            {/* Селекторы (только для создателя) */}
             {isCreator && (
-              <>
+              <div className="flex-shrink-0 space-y-3">
                 <RoomDesignSelector
                   currentTheme={room.design_theme || 'classic'}
                   currentCustomUrl={room.custom_background_url}
                   onThemeChange={handleDesignChange}
-                  isCreator={isCreator}
+                  isCreator={true}
                 />
-                
                 <EventProgramSelector
                   currentProgram={room.event_program || 'chat'}
                   onProgramChange={handleProgramChange}
-                  isCreator={isCreator}
+                  isCreator={true}
                 />
-              </>
+              </div>
             )}
-            
-            {/* Только просмотр для не-создателей */}
+          </div>
+
+          {/* Правая колонка (1/3): Компактный чат + панельки */}
+          <div className="w-80 sm:w-96 flex flex-col gap-3 sm:gap-4 min-w-0">
+            {/* Приглашение */}
+            <div className="flex-shrink-0">
+              <InviteLink inviteCode={room.invite_code} roomId={room.id} />
+            </div>
+
+            {/* Участники */}
+            <div className="flex-shrink-0">
+              <RoomParticipants roomId={room.id} currentUserId={tempUserId} />
+            </div>
+
+            {/* Компактный чат */}
+            <div className="flex-1 bg-slate-800/60 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[300px]">
+              <div className="p-3 border-b border-white/10">
+                <h3 className="text-white font-bold text-sm">💬 Чат</h3>
+              </div>
+              <div className="h-full max-h-[400px] overflow-hidden">
+                <RoomChat roomId={room.id} currentUserId={tempUserId} />
+              </div>
+            </div>
+
+            {/* Селекторы для просмотра (не создатели) */}
             {!isCreator && (
-              <>
+              <div className="flex-shrink-0 space-y-3">
                 <RoomDesignSelector
                   currentTheme={room.design_theme || 'classic'}
                   currentCustomUrl={room.custom_background_url}
-                  onThemeChange={handleDesignChange}
+                  onThemeChange={() => {}}
                   isCreator={false}
                 />
-                
                 <EventProgramSelector
                   currentProgram={room.event_program || 'chat'}
-                  onProgramChange={handleProgramChange}
+                  onProgramChange={() => {}}
                   isCreator={false}
                 />
-              </>
+              </div>
             )}
           </div>
         </div>

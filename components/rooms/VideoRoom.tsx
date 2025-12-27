@@ -58,22 +58,63 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
     );
   }
 
-  return (
-    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4">
-      <div className="text-white font-bold text-xs sm:text-sm mb-2 sm:mb-3">📹 Видеокомната</div>
-      
-      {isLoading && (
-        <div className="bg-slate-700/50 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
-          <div className="text-center text-white/70">
-            <div className="text-4xl mb-4 animate-pulse">📹</div>
-            <div className="text-sm">Загрузка видеокомнаты...</div>
-          </div>
-        </div>
-      )}
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-      <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: '400px', height: '400px', width: '100%' }}>
+  const toggleFullscreen = () => {
+    const container = document.querySelector('[data-videoroom-container]');
+    if (!container) return;
+
+    if (!isFullscreen) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  // Слушаем изменения полноэкранного режима
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Заголовок с кнопкой fullscreen */}
+      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+        <div className="text-white font-bold text-xs sm:text-sm">📹 Видеокомната</div>
+        <button
+          onClick={toggleFullscreen}
+          className="bg-slate-700/80 hover:bg-slate-600 text-white p-1.5 rounded transition-colors touch-manipulation"
+          title={isFullscreen ? "Выйти из полноэкранного режима" : "Во весь экран"}
+        >
+          {isFullscreen ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9V4.5M9 9H4.5M9 9L3.5 3.5M15 9h4.5M15 9V4.5M15 9l5.5-5.5M9 15v4.5M9 15H4.5M9 15l-5.5 5.5M15 15h4.5M15 15v4.5m0-4.5l5.5 5.5" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 3l-6 6m0 0V4m0 5h5M3 21l6-6m0 0v5m0-5H4" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* Контейнер видеочата */}
+      <div
+        data-videoroom-container
+        className="flex-1 bg-black rounded-lg overflow-hidden relative"
+        style={{ minHeight: '300px' }}
+      >
         {isLoading && (
-          <div className="absolute inset-0 bg-slate-700/50 rounded-lg p-8 flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-slate-700/50 rounded-lg flex items-center justify-center z-10">
             <div className="text-center text-white/70">
               <div className="text-4xl mb-4 animate-pulse">📹</div>
               <div className="text-sm">Загрузка видеокомнаты...</div>
@@ -85,7 +126,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
           src={jitsiUrl}
           allow="camera; microphone; fullscreen; speaker; display-capture"
           className="w-full h-full border-0"
-          style={{ minHeight: '400px', height: '400px', width: '100%', display: isLoading ? 'none' : 'block' }}
+          style={{ display: isLoading ? 'none' : 'block' }}
           onLoad={() => {
             console.log('Jitsi iframe загружен');
             setIsLoading(false);
@@ -98,7 +139,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
         />
       </div>
 
-      <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center">
+      <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center flex-shrink-0">
         Видеокомната Jitsi Meet
       </div>
     </div>

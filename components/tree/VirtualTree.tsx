@@ -18,6 +18,7 @@ import { Fireworks } from './Fireworks';
 import { Confetti } from './Confetti';
 import { NewYearSigns } from './NewYearSigns';
 import { WishSigns } from './WishSigns';
+import { UserBallParticles } from './UserBallParticles';
 
 // Простой ErrorBoundary для обработки ошибок загрузки MTL
 class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
@@ -75,7 +76,9 @@ function BallOnTree({
   distance: number; // Расстояние от камеры для LOD
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const glowMeshRef = useRef<THREE.Mesh>(null);
+  const glowMeshRef = useRef<THREE.PointLight>(null);
+  const glowMeshSecondLightRef = useRef<THREE.PointLight>(null);
+  const glowMeshLayerRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(false);
   
@@ -115,14 +118,50 @@ function BallOnTree({
         // Для своего шара - пульсация всегда видна, независимо от расстояния
         const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
         meshRef.current.scale.setScalar(scale);
-        // Пульсация свечения
+        // Пульсация свечения (для PointLight)
         if (glowMeshRef.current) {
-          const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2.5) * 0.2;
-          glowMeshRef.current.scale.setScalar(glowScale);
-          // Пульсация яркости свечения
-          const material = glowMeshRef.current.material as THREE.MeshStandardMaterial;
+          const light = glowMeshRef.current as THREE.PointLight;
+          if (light && light.isPointLight) {
+            // Пульсация интенсивности неонового света - ЯРЧЕ!
+            const baseIntensity = 10;
+            const pulseIntensity = baseIntensity + Math.sin(state.clock.elapsedTime * 3) * 4;
+            light.intensity = pulseIntensity;
+            
+            // Переливание всеми цветами радуги (HSL: hue от 0 до 1) - ЯРКОЕ и БЫСТРОЕ!
+            const hue = (state.clock.elapsedTime * 0.5) % 1; // Более быстрое переливание
+            const saturation = 1.0; // Максимальная насыщенность
+            const lightness = 0.7; // Более яркий цвет (0.7 вместо 0.6)
+            
+            const rainbowColor = new THREE.Color().setHSL(hue, saturation, lightness);
+            light.color.copy(rainbowColor);
+          }
+          
+          // Переливающийся второй свет
+          if (glowMeshSecondLightRef.current) {
+            const secondLight = glowMeshSecondLightRef.current;
+            const baseIntensity2 = 8;
+            const pulseIntensity2 = baseIntensity2 + Math.sin(state.clock.elapsedTime * 3 + Math.PI) * 3.5;
+            secondLight.intensity = pulseIntensity2;
+            
+            // Противоположный цвет радуги для эффекта переливания - ЯРКИЙ!
+            const hue2 = ((state.clock.elapsedTime * 0.5) + 0.5) % 1; // Сдвиг на 180 градусов, быстрее
+            const rainbowColor2 = new THREE.Color().setHSL(hue2, 1.0, 0.7); // Более яркий
+            secondLight.color.copy(rainbowColor2);
+          }
+        }
+        
+        // Пульсация слоя свечения с переливанием
+        if (glowMeshLayerRef.current) {
+          const glowScale = 1 + Math.sin(state.clock.elapsedTime * 2.5) * 0.1;
+          glowMeshLayerRef.current.scale.setScalar(glowScale);
+          const material = glowMeshLayerRef.current.material as THREE.MeshStandardMaterial;
           if (material) {
-            material.emissiveIntensity = 1.2 + Math.sin(state.clock.elapsedTime * 3) * 0.3;
+            // Переливание цветом радуги - ЯРКОЕ!
+            const hue = (state.clock.elapsedTime * 0.5) % 1; // Быстрее
+            const rainbowColor = new THREE.Color().setHSL(hue, 1.0, 0.7); // Более яркий
+            material.emissive.copy(rainbowColor);
+            material.color.copy(rainbowColor);
+            material.emissiveIntensity = 3.0 + Math.sin(state.clock.elapsedTime * 4) * 0.8; // Ярче!
           }
         }
       }
@@ -179,28 +218,58 @@ function BallOnTree({
           <sphereGeometry args={[0.4 * (toy.ball_size || 1), segments, segments]} />
           <meshStandardMaterial
             map={texture || null}
-            color={toy.color}
+            color={toy.color} // ОРИГИНАЛЬНЫЙ цвет шара пользователя - всегда!
             metalness={toy.surface_type === 'metal' ? 0.8 : 0.1}
             roughness={toy.surface_type === 'matte' ? 0.9 : toy.surface_type === 'glossy' ? 0.2 : 0.5}
-            emissive={isUserBall ? '#ffff00' : '#000000'}
-            emissiveIntensity={isUserBall ? 0.5 : 0}
+            emissive="#000000" // Без emissive, чтобы не заливать цветом
+            emissiveIntensity={0} // Нет emissive свечения на самом шаре
             side={THREE.DoubleSide} // Показываем обе стороны для лучшей видимости кастомного дизайна
           />
         </mesh>
       
-      {/* Визуальное выделение своего шара - яркое желтое свечение */}
+      {/* 3D подсветка для своего шара - PointLight для реального объемного освещения ВОКРУГ, но НЕ на сам шар */}
       {isUserBall && (
-        <mesh ref={glowMeshRef}>
-          <sphereGeometry args={[0.48 * (toy.ball_size || 1), 32, 32]} />
-          <meshStandardMaterial
-            color="#ffff00"
-            transparent
-            opacity={0.5}
-            emissive="#ffff00"
-            emissiveIntensity={1.2}
-            side={THREE.DoubleSide}
+        <>
+          {/* Основной неоновый свет - переливается всеми цветами радуги - НЕ освещает сам шар (layer 1) */}
+          <pointLight
+            ref={glowMeshRef as any}
+            position={[0, 0, 0]}
+            color="#ff00ff"
+            intensity={10}
+            distance={12}
+            decay={0.8}
+            layers={1} // Только слой 1 - не влияет на шар (слой 0)
           />
-        </mesh>
+          {/* Дополнительный свет для переливания - тоже не на шар */}
+          <pointLight
+            ref={glowMeshSecondLightRef}
+            position={[0, 0, 0]}
+            color="#00ffff"
+            intensity={8}
+            distance={10}
+            decay={0.9}
+            layers={1} // Только слой 1
+          />
+          {/* Очень тонкое свечение вокруг шара (почти прозрачное) */}
+          <mesh ref={glowMeshLayerRef}>
+            <sphereGeometry args={[0.42 * (toy.ball_size || 1), 32, 32]} />
+          <meshStandardMaterial
+              color="#ff00ff"
+            transparent
+              opacity={0.2}
+              emissive="#ff00ff"
+              emissiveIntensity={2.0}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Частицы-звездочки вокруг шарика */}
+          <UserBallParticles 
+            position={[0, 0, 0]} 
+            count={40}
+            enabled={true}
+          />
+        </>
       )}
 
       {/* Кнопка лайка (если не свой шар и еще не лайкнули) */}
@@ -378,8 +447,8 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
     isBallOrStarMaterialRef.current = [];
     isStarMaterialRef.current = []; // Инициализируем массив для звезд
       
-    let meshCount = 0;
-    let replacedCount = 0;
+      let meshCount = 0;
+      let replacedCount = 0;
     let ballCount = 0; // Отдельный счетчик для шариков
     let starCount = 0; // Отдельный счетчик для звезд
     let branchCountForLog = 0; // Счетчик веток для логирования
@@ -400,9 +469,9 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
     } catch (e) {
       modelMaxSize = 2048; // Fallback при ошибке
     }
-    
-    // Если MTL не загружен (materials === null), заменяем ВСЕ материалы
-    const shouldReplaceAll = !materials;
+      
+      // Если MTL не загружен (materials === null), заменяем ВСЕ материалы
+      const shouldReplaceAll = !materials;
     
     // Палитра градиента для веток ёлки (выносим наружу для логирования)
     // МНОГО оттенков зеленого для плавных переходов и градиента + фиолетово-индиго для эффекта "теней"
@@ -474,33 +543,33 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
       console.log(`${index + 1}. Оттенок ${color.h}°, насыщенность ${color.s}%, яркость ${color.l}% → RGB(${Math.round(testColor.r * 255)}, ${Math.round(testColor.g * 255)}, ${Math.round(testColor.b * 255)})`);
     });
     console.log('=== КОНЕЦ ПАЛИТРЫ ===');
-    
-    clonedObj.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        meshCount++;
-        
-        // Проверяем, не является ли объект очень большим плоским фоном
-        // Если размер по одной из осей очень маленький, а по другим очень большой - это фон
-        const geometry = child.geometry;
+      
+      clonedObj.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          meshCount++;
+          
+          // Проверяем, не является ли объект очень большим плоским фоном
+          // Если размер по одной из осей очень маленький, а по другим очень большой - это фон
+          const geometry = child.geometry;
         let box: THREE.Box3 | null = null;
-        if (geometry) {
-          geometry.computeBoundingBox();
+          if (geometry) {
+            geometry.computeBoundingBox();
           box = geometry.boundingBox;
-          if (box) {
-            const boxSize = new THREE.Vector3();
-            box.getSize(boxSize);
-            const boxMax = Math.max(boxSize.x, boxSize.y, boxSize.z);
-            const boxMin = Math.min(boxSize.x, boxSize.y, boxSize.z);
-            
-            // Если объект очень плоский (одна ось < 1% от максимальной) и большой (> 500)
-            // Скрываем его, так как это вероятно фон
-            if (boxMin < boxMax * 0.01 && boxMax > 500) {
-              child.visible = false;
-              console.log('Скрыт большой плоский объект (фон):', boxSize);
-              return; // Пропускаем этот объект
+            if (box) {
+              const boxSize = new THREE.Vector3();
+              box.getSize(boxSize);
+              const boxMax = Math.max(boxSize.x, boxSize.y, boxSize.z);
+              const boxMin = Math.min(boxSize.x, boxSize.y, boxSize.z);
+              
+              // Если объект очень плоский (одна ось < 1% от максимальной) и большой (> 500)
+              // Скрываем его, так как это вероятно фон
+              if (boxMin < boxMax * 0.01 && boxMax > 500) {
+                child.visible = false;
+                console.log('Скрыт большой плоский объект (фон):', boxSize);
+                return; // Пропускаем этот объект
+              }
             }
           }
-        }
         
         // Определение типа объекта: сначала по имени, затем по размеру и форме
         const nameLower = (child.name || '').toLowerCase();
@@ -568,52 +637,52 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
             console.warn('Ошибка при определении шарика:', e);
           }
         }
-        
-        let needsMaterial = false;
+          
+          let needsMaterial = false;
         // Объявляем группу цвета для этого материала (по умолчанию 'main')
         let colorGroupType: 'main' | 'dark' | 'shadow' = 'main';
-        
-        if (shouldReplaceAll) {
-          // Если MTL не загружен, заменяем все материалы
-          needsMaterial = true;
-    } else {
-          // Проверяем, есть ли материал и валиден ли он
-          if (!child.material || (Array.isArray(child.material) && child.material.length === 0)) {
+          
+          if (shouldReplaceAll) {
+            // Если MTL не загружен, заменяем все материалы
             needsMaterial = true;
-          } else if (Array.isArray(child.material)) {
-            // Проверяем все материалы в массиве
-            const validMaterials = child.material.filter(mat => mat && mat.isMaterial);
-            if (validMaterials.length === 0) {
+          } else {
+            // Проверяем, есть ли материал и валиден ли он
+            if (!child.material || (Array.isArray(child.material) && child.material.length === 0)) {
               needsMaterial = true;
-            } else {
-              // Проверяем, есть ли цвет у материалов
-              const hasColor = validMaterials.some(mat => {
-                const color = mat.color || mat.diffuse;
-                return color && (color.r > 0.1 || color.g > 0.1 || color.b > 0.1);
-              });
-              // Если материалы белые/прозрачные, заменяем их
-              if (!hasColor) {
+            } else if (Array.isArray(child.material)) {
+              // Проверяем все материалы в массиве
+              const validMaterials = child.material.filter(mat => mat && mat.isMaterial);
+              if (validMaterials.length === 0) {
+                needsMaterial = true;
+              } else {
+                // Проверяем, есть ли цвет у материалов
+                const hasColor = validMaterials.some(mat => {
+                  const color = mat.color || mat.diffuse;
+                  return color && (color.r > 0.1 || color.g > 0.1 || color.b > 0.1);
+                });
+                // Если материалы белые/прозрачные, заменяем их
+                if (!hasColor) {
+                  needsMaterial = true;
+                }
+              }
+            } else if (child.material && child.material.isMaterial) {
+              // Проверяем цвет материала
+              const color = child.material.color || child.material.diffuse;
+              let hasColor = false;
+              if (color) {
+                hasColor = color.r > 0.1 || color.g > 0.1 || color.b > 0.1;
+              }
+              // Если материал белый/прозрачный или нет цвета, заменяем
+              if (!hasColor || (!color && !child.material.map)) {
                 needsMaterial = true;
               }
-            }
-          } else if (child.material && child.material.isMaterial) {
-            // Проверяем цвет материала
-            const color = child.material.color || child.material.diffuse;
-            let hasColor = false;
-            if (color) {
-              hasColor = color.r > 0.1 || color.g > 0.1 || color.b > 0.1;
-            }
-            // Если материал белый/прозрачный или нет цвета, заменяем
-            if (!hasColor || (!color && !child.material.map)) {
+            } else {
               needsMaterial = true;
             }
-          } else {
-            needsMaterial = true;
           }
-        }
-        
-        if (needsMaterial) {
-          replacedCount++;
+          
+          if (needsMaterial) {
+            replacedCount++;
           
           // Увеличиваем счетчики только для объектов, которые получают материал
           if (meshIsBall) {
@@ -873,7 +942,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
           }
           
           const material = new THREE.MeshStandardMaterial({
-            color: color,
+              color: color,
             emissive: color,
             emissiveIntensity: emissiveIntensity,
             roughness: 0.6 + (meshCount % 3) * 0.1,
@@ -911,11 +980,11 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
           const treeCenter = recalculatedCenter || center;
           const relativePosition = meshPosition.clone().sub(treeCenter);
           materialPositionsRef.current.push(relativePosition);
+          }
         }
-      }
-    });
-    
-    console.log(`Материалы применены: ${meshCount} мешей, ${replacedCount} заменено, MTL загружен: ${!!materials}`);
+      });
+      
+      console.log(`Материалы применены: ${meshCount} мешей, ${replacedCount} заменено, MTL загружен: ${!!materials}`);
     console.log(`Определено объектов: ${meshCount} мешей, ${ballCount} шариков, ${starCount} звезд(а)`);
     
     // Отладка: статистика по цветам веток (первые 10) - используем ТУ ЖЕ логику определения, что и в основном коде
@@ -1312,18 +1381,18 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
   });
 
   if (error) {
-              return (
+    return (
       <group>
         <mesh>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="red" />
-                </mesh>
-          </group>
-        );
+        </mesh>
+      </group>
+    );
   }
 
   if (error) {
-        return (
+    return (
       <group>
         <mesh>
           <boxGeometry args={[1, 1, 1]} />
@@ -1345,7 +1414,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
   
   if (!clonedObj || effectiveModelSize.y === 0) {
     // Если размер еще не вычислен, используем временное позиционирование
-          return (
+  return (
       <group ref={treeRef} scale={[scale, scale, scale]} position={[0, -10, 0]}>
         {clonedObj && <primitive object={clonedObj} />}
           </group>
@@ -1386,13 +1455,13 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
           return (
     <>
       {!shouldHideTree && (
-        <group 
-          ref={treeRef} 
-          scale={[scale, scale, scale]}
-          position={[positionX, positionY, positionZ]}
-        >
+    <group 
+      ref={treeRef} 
+      scale={[scale, scale, scale]}
+      position={[positionX, positionY, positionZ]}
+    >
           {/* Сама 3D-ёлка */}
-          <primitive object={clonedObj} />
+      <primitive object={clonedObj} />
           {/* Свечение ствола изнутри */}
           <TrunkGlow enabled={glowEnabled} />
           {/* Снежинки на ёлке (только в режиме БЕЗ подсветки) */}
@@ -1404,7 +1473,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
               treeWidth={Math.max(effectiveModelSize.x, effectiveModelSize.z)}
             />
           )}
-        </group>
+    </group>
       )}
       {/* Падающие снежинки (скрываем при новогодней анимации после 14 секунды) */}
       {!isNewYearAnimation && (
@@ -1528,8 +1597,8 @@ function TrunkGlow({ enabled = true }: { enabled?: boolean }) {
             decay={0.8} // Меньшее затухание для яркого света
             color={initialColor}
           />
-          );
-        })}
+              );
+            })}
           </group>
         );
 }
@@ -1871,7 +1940,7 @@ function NewYearAnimation({
           <mesh position={[0, 0, -200]} renderOrder={-10}>
             <planeGeometry args={[1000, 1000]} />
             <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
-          </mesh>
+        </mesh>
           {/* Дополнительный фон ближе для надежности */}
           <mesh position={[0, 0, -100]} renderOrder={-9}>
             <planeGeometry args={[800, 800]} />
@@ -1934,7 +2003,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       const isUserBall = currentUserId && toy.user_id === currentUserId;
       const pos = getBallPosition(toy.id);
       const point = new THREE.Vector3(...pos);
-      const distance = camera.position.distanceTo(point);
+        const distance = camera.position.distanceTo(point);
       
       // Сохраняем шарик пользователя отдельно
       if (isUserBall) {
