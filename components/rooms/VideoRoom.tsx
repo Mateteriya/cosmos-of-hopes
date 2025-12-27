@@ -25,8 +25,9 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
   // Имя пользователя для отображения в Jitsi
   const userName = displayName || `Участник ${currentUserId.slice(-6)}`;
 
-  // URL для Jitsi Meet (используем публичный сервер)
-  const jitsiUrl = `https://meet.jit.si/${jitsiRoomName}?userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_BRAND_WATERMARK=false&interfaceConfig.SHOW_POWERED_BY=false`;
+  // URL для Jitsi Meet (используем переменную окружения или публичный сервер по умолчанию)
+  const jitsiServerUrl = process.env.NEXT_PUBLIC_JITSI_SERVER_URL || 'https://meet.jit.si';
+  const jitsiUrl = `${jitsiServerUrl}/${jitsiRoomName}?userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_BRAND_WATERMARK=false&interfaceConfig.SHOW_POWERED_BY=false`;
 
   useEffect(() => {
     // Загружаем скрипт Jitsi для управления iframe (опционально)
