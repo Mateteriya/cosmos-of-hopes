@@ -29,7 +29,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
           {/* Создать шар */}
           <button
-            onClick={() => router.push('/constructor')}
+            onClick={() => router.push('/create')}
             className="group relative text-white font-bold px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 rounded-xl sm:rounded-2xl shadow-2xl transition-all transform active:scale-95 touch-manipulation"
             style={{ backgroundColor: '#9333ea', background: 'linear-gradient(to bottom right, #9333ea, #db2777)' }}
           >

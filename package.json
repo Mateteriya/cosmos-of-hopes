@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-vapid-keys": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
@@ -19,7 +20,8 @@
     "next": "16.0.8",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "web-push": "^3.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

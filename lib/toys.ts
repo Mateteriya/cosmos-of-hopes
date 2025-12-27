@@ -347,3 +347,271 @@ export async function getToysOnTreeCount(): Promise<number> {
   return count || 0;
 }
 
+/**
+ * Получает количество лайков у конкретного шара
+ */
+export async function getToyLikesCount(toyId: string): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('supports')
+      .select('*', { count: 'exact', head: true })
+      .eq('toy_id', toyId);
+
+    if (error) {
+      // Если таблица не существует, возвращаем 0
+      const isTableNotFound = 
+        error.code === 'PGRST205' || 
+        error.code === '42P01' || 
+        error.message?.includes('does not exist') ||
+        error.message?.includes('schema cache');
+      
+      if (isTableNotFound) {
+        return 0;
+      }
+      console.warn('Ошибка подсчета лайков:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (err: any) {
+    const isTableNotFound = 
+      err?.code === 'PGRST205' || 
+      err?.status === 404 ||
+      err?.message?.includes('does not exist') ||
+      err?.message?.includes('schema cache');
+    
+    if (isTableNotFound) {
+      return 0;
+    }
+    console.warn('Ошибка подсчета лайков:', err);
+    return 0;
+  }
+}
+
+/**
+ * Проверяет, лайкнул ли пользователь конкретный шар
+ */
+export async function hasUserLikedToy(toyId: string, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('supports')
+      .select('id')
+      .eq('toy_id', toyId)
+      .eq('supporter_tg_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      // Если таблица не существует или запись не найдена, возвращаем false
+      const isTableNotFound = 
+        error.code === 'PGRST205' || 
+        error.code === '42P01' || 
+        error.code === 'PGRST116' || // PGRST116 = no rows returned
+        error.message?.includes('does not exist') ||
+        error.message?.includes('schema cache');
+      
+      if (isTableNotFound) {
+        return false;
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Ошибка проверки лайка:', error);
+      }
+      return false;
+    }
+
+    return !!data;
+  } catch (err: any) {
+    const isTableNotFound = 
+      err?.code === 'PGRST205' || 
+      err?.status === 404 ||
+      err?.code === 'PGRST116' ||
+      err?.message?.includes('does not exist') ||
+      err?.message?.includes('schema cache');
+    
+    if (isTableNotFound) {
+      return false;
+    }
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Ошибка проверки лайка:', err);
+    }
+    return false;
+  }
+}
+
+/**
+ * Удаляет поддержку (лайк) у шара
+ */
+export async function removeSupport(toyId: string, supporterId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('supports')
+      .delete()
+      .eq('toy_id', toyId)
+      .eq('supporter_tg_id', supporterId);
+
+    if (error) {
+      // Если таблица не существует, просто игнорируем
+      const isTableNotFound = 
+        error.code === 'PGRST205' || 
+        error.code === '42P01' || 
+        error.message?.includes('does not exist') ||
+        error.message?.includes('schema cache');
+      
+      if (isTableNotFound) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Таблица supports еще не создана, лайк не удален');
+        }
+        return;
+      }
+      throw new Error(`Ошибка удаления поддержки: ${error.message}`);
+    }
+  } catch (err: any) {
+    const isTableNotFound = 
+      err?.code === 'PGRST205' || 
+      err?.status === 404 ||
+      err?.message?.includes('does not exist') ||
+      err?.message?.includes('schema cache');
+    
+    if (isTableNotFound) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Таблица supports еще не создана, лайк не удален');
+      }
+      return;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Получает игрушку пользователя (если существует)
+ */
+export async function getUserToy(userId: string, roomId?: string): Promise<Toy | null> {
+  try {
+    let query = supabase
+      .from('toys')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (roomId) {
+      query = query.eq('room_id', roomId);
+    } else {
+      query = query.is('room_id', null);
+    }
+
+    const { data, error } = await query.maybeSingle();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Не найдено - это нормально
+      }
+      console.error('Ошибка загрузки игрушки пользователя:', error);
+      return null;
+    }
+
+    return data as Toy | null;
+  } catch (err: any) {
+    console.error('Ошибка загрузки игрушки пользователя:', err);
+    return null;
+  }
+}
+
+/**
+ * ID разработчика для автоматических лайков
+ */
+const DEVELOPER_USER_ID = 'developer_auto_like';
+
+/**
+ * Проверяет и добавляет автоматический лайк разработчика к шару пользователя
+ */
+export async function checkAndAddDeveloperLikes(userId: string): Promise<void> {
+  try {
+    // Получаем шар пользователя
+    const userToy = await getUserToy(userId);
+    if (!userToy) return;
+
+    // Проверяем, лайкнул ли разработчик этот шар
+    const hasLiked = await hasUserLikedToy(userToy.id, DEVELOPER_USER_ID);
+    if (!hasLiked) {
+      // Добавляем автоматический лайк
+      await addSupport(userToy.id, DEVELOPER_USER_ID);
+    }
+  } catch (err: any) {
+    // Игнорируем ошибки - это не критично для работы приложения
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Ошибка добавления автоматического лайка разработчика:', err);
+    }
+  }
+}
+
+/**
+ * Результат проверки новых лайков
+ */
+export interface NewLikesInfo {
+  hasNewLikes: boolean;
+  toysWithNewLikes: Array<{ toyId: string; likesCount: number }>;
+}
+
+/**
+ * Проверяет новые лайки для шаров пользователя с момента lastCheckedTimestamp
+ */
+export async function checkNewLikes(userId: string, lastCheckedTimestamp: number | null): Promise<NewLikesInfo> {
+  try {
+    // Получаем шар пользователя
+    const userToy = await getUserToy(userId);
+    if (!userToy) {
+      return { hasNewLikes: false, toysWithNewLikes: [] };
+    }
+
+    // Получаем текущее количество лайков
+    const currentLikesCount = await getToyLikesCount(userToy.id);
+
+    // Если не было предыдущей проверки, возвращаем текущее состояние
+    if (lastCheckedTimestamp === null) {
+      return {
+        hasNewLikes: currentLikesCount > 0,
+        toysWithNewLikes: currentLikesCount > 0 ? [{ toyId: userToy.id, likesCount: currentLikesCount }] : [],
+      };
+    }
+
+    // Получаем лайки, добавленные после lastCheckedTimestamp
+    const { data: newLikes, error } = await supabase
+      .from('supports')
+      .select('id')
+      .eq('toy_id', userToy.id)
+      .gt('created_at', new Date(lastCheckedTimestamp).toISOString());
+
+    if (error) {
+      // Если таблица не существует, возвращаем пустой результат
+      const isTableNotFound = 
+        error.code === 'PGRST205' || 
+        error.code === '42P01' || 
+        error.message?.includes('does not exist') ||
+        error.message?.includes('schema cache');
+      
+      if (isTableNotFound) {
+        return { hasNewLikes: false, toysWithNewLikes: [] };
+      }
+      console.warn('Ошибка проверки новых лайков:', error);
+      return { hasNewLikes: false, toysWithNewLikes: [] };
+    }
+
+    const hasNewLikes = (newLikes?.length || 0) > 0;
+
+    return {
+      hasNewLikes,
+      toysWithNewLikes: hasNewLikes ? [{ toyId: userToy.id, likesCount: currentLikesCount }] : [],
+    };
+  } catch (err: any) {
+    const isTableNotFound = 
+      err?.code === 'PGRST205' || 
+      err?.status === 404 ||
+      err?.message?.includes('does not exist') ||
+      err?.message?.includes('schema cache');
+    
+    if (isTableNotFound) {
+      return { hasNewLikes: false, toysWithNewLikes: [] };
+    }
+    console.warn('Ошибка проверки новых лайков:', err);
+    return { hasNewLikes: false, toysWithNewLikes: [] };
+  }
+}
+

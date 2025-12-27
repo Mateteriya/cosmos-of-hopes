@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Баннеры для рекламы - Cosmos of Hopes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            padding: 40px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .banner-container {
+            margin-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .banner-title {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .banner-instructions {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* БАННЕР 1: Квадратный для Instagram (1080x1080) */
+        .banner-instagram {
+            width: 1080px;
+            height: 1080px;
+            background: linear-gradient(135deg, #0f172a, #581c87, #0f172a);
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #9333ea;
+        }
+
+        .banner-instagram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(168, 85, 247, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.3) 0%, transparent 50%);
+        }
+
+        .banner-instagram-content {
+            position: relative;
+            z-index: 2;
+            padding: 80px 60px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .banner-instagram h1 {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a855f7, #ec4899, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.1;
+        }
+
+        .banner-instagram .emoji {
+            font-size: 8rem;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .banner-instagram .subtitle {
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
+        .banner-instagram .tagline {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+        }
+
+        .banner-instagram .cta {
+            background: linear-gradient(135deg, #9333ea, #db2777);
+            color: white;
+            padding: 25px 60px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(147, 51, 234, 0.5);
+        }
+
+        /* БАННЕР 2: Stories вертикальный (1080x1920) */
+        .banner-stories {
+            width: 1080px;
+            height: 1920px;
+            background: linear-gradient(to bottom, #0f172a, #581c87, #0f172a);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner-stories-content {
+            position: relative;
+            z-index: 2;
+            padding: 100px 60px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .banner-stories .emoji {
+            font-size: 10rem;
+            margin-bottom: 40px;
+        }
+
+        .banner-stories h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+
+        .banner-stories .subtitle {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+        }
+
+        .banner-stories .tagline {
+            font-size: 1.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 60px;
+            line-height: 1.6;
+        }
+
+        .banner-stories .cta {
+            background: linear-gradient(135deg, #9333ea, #db2777);
+            color: white;
+            padding: 30px 70px;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(147, 51, 234, 0.5);
+            margin-top: 40px;
+        }
+
+        /* БАННЕР 3: Горизонтальный для ВКонтакте/YouTube (1920x1080) */
+        .banner-wide {
+            width: 1920px;
+            height: 1080px;
+            background: linear-gradient(135deg, #0f172a, #581c87, #0f172a);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-wide-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 80px;
+            padding: 0 100px;
+        }
+
+        .banner-wide-left {
+            flex: 1;
+        }
+
+        .banner-wide .emoji {
+            font-size: 12rem;
+            margin-bottom: 30px;
+        }
+
+        .banner-wide h1 {
+            font-size: 5.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #a855f7, #ec4899, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            line-height: 1.1;
+        }
+
+        .banner-wide .subtitle {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+        }
+
+        .banner-wide .tagline {
+            font-size: 1.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .banner-wide .cta {
+            background: linear-gradient(135deg, #9333ea, #db2777);
+            color: white;
+            padding: 25px 60px;
+            border-radius: 50px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(147, 51, 234, 0.5);
+            display: inline-block;
+        }
+
+        .banner-wide-right {
+            flex: 1;
+            text-align: center;
+        }
+
+        .banner-wide-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-item .emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-item .text {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* БАННЕР 4: Компактный для Telegram/ссылок (1200x630) */
+        .banner-compact {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, #0f172a, #581c87);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .banner-compact-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px;
+        }
+
+        .banner-compact .emoji {
+            font-size: 6rem;
+            margin-bottom: 20px;
+        }
+
+        .banner-compact h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .banner-compact .subtitle {
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+        }
+
+        .banner-compact .cta {
+            background: linear-gradient(135deg, #9333ea, #db2777);
+            color: white;
+            padding: 20px 50px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 15px 40px rgba(147, 51, 234, 0.5);
+            display: inline-block;
+        }
+
+        /* Общие стили для звёзд на фоне */
+        .stars-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Инструкции */
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #fbbf24;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 2;
+        }
+
+        .instructions code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>📸 Как использовать эти баннеры:</h2>
+        <ol>
+            <li>Откройте баннер в браузере</li>
+            <li>Нажмите <code>F12</code> (или правой кнопкой → "Просмотреть код")</li>
+            <li>Нажмите <code>Ctrl+Shift+P</code> (или Cmd+Shift+P на Mac)</li>
+            <li>Введите "screenshot" и выберите "Capture full size screenshot"</li>
+            <li>Или используйте расширение браузера (например, "Awesome Screenshot")</li>
+            <li>Для печати: <code>Ctrl+P</code> → "Сохранить как PDF" → конвертируйте в изображение</li>
+        </ol>
+    </div>
+
+    <!-- БАННЕР 1: Instagram квадратный -->
+    <div class="banner-container">
+        <h2 class="banner-title">📱 Баннер для Instagram (1080x1080)</h2>
+        <p class="banner-instructions">Используйте для постов в Instagram</p>
+        <div class="banner-instagram">
+            <div class="stars-bg" id="stars1"></div>
+            <div class="banner-instagram-content">
+                <div class="emoji">🎄✨</div>
+                <h1>Cosmos<br>of Hopes</h1>
+                <p class="subtitle">Виртуальная новогодняя ёлка желаний</p>
+                <p class="tagline">Создай шар, повесь на ёлку<br>1 января станет звездой! ⭐</p>
+                <a href="#" class="cta">🎄 Попробовать</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- БАННЕР 2: Stories вертикальный -->
+    <div class="banner-container">
+        <h2 class="banner-title">📱 Баннер для Stories (1080x1920)</h2>
+        <p class="banner-instructions">Используйте для Stories в Instagram, ВКонтакте</p>
+        <div class="banner-stories">
+            <div class="stars-bg" id="stars2"></div>
+            <div class="banner-stories-content">
+                <div class="emoji">✨</div>
+                <h1>Cosmos<br>of Hopes</h1>
+                <p class="subtitle">Виртуальная новогодняя ёлка желаний</p>
+                <p class="tagline">Создай свой шар желаний<br>Повесь на общую ёлку<br>Встреть Новый год с друзьями онлайн</p>
+                <p class="tagline" style="font-size: 1.5rem; color: #fbbf24; margin-top: 40px;">
+                    1 января все шары<br>станут звёздами! ⭐
+                </p>
+                <a href="#" class="cta">🎄 Бесплатно</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- БАННЕР 3: Горизонтальный широкий -->
+    <div class="banner-container">
+        <h2 class="banner-title">🖥️ Баннер для YouTube/ВКонтакте (1920x1080)</h2>
+        <p class="banner-instructions">Используйте как обложку видео или для постов</p>
+        <div class="banner-wide">
+            <div class="stars-bg" id="stars3"></div>
+            <div class="banner-wide-content">
+                <div class="banner-wide-left">
+                    <div class="emoji">🎄✨</div>
+                    <h1>Cosmos of Hopes</h1>
+                    <p class="subtitle">Виртуальная новогодняя ёлка желаний</p>
+                    <p class="tagline">Создай шар, повесь на ёлку, встреть Новый год онлайн с друзьями</p>
+                    <a href="#" class="cta">🎄 Попробовать бесплатно</a>
+                </div>
+                <div class="banner-wide-right">
+                    <div class="banner-wide-features">
+                        <div class="feature-item">
+                            <div class="emoji">🎨</div>
+                            <div class="text">Создай шар</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="emoji">🌲</div>
+                            <div class="text">Укрась ёлку</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="emoji">🏠</div>
+                            <div class="text">Комнаты</div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="emoji">⭐</div>
+                            <div class="text">1 января → звёзды</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- БАННЕР 4: Компактный -->
+    <div class="banner-container">
+        <h2 class="banner-title">🔗 Баннер для ссылок/Telegram (1200x630)</h2>
+        <p class="banner-instructions">Используйте для preview ссылок в соцсетях</p>
+        <div class="banner-compact">
+            <div class="stars-bg" id="stars4"></div>
+            <div class="banner-compact-content">
+                <div class="emoji">🎄✨</div>
+                <h1>Cosmos of Hopes</h1>
+                <p class="subtitle">Виртуальная новогодняя ёлка желаний</p>
+                <a href="#" class="cta">🎄 Бесплатно • С любовью ❤️</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция создания звёзд
+        function createStars(containerId, count) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        // Создаём звёзды для каждого баннера
+        createStars('stars1', 50);
+        createStars('stars2', 80);
+        createStars('stars3', 100);
+        createStars('stars4', 40);
+    </script>
+</body>
+</html>
+

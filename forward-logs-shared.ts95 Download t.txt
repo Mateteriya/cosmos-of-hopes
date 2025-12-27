@@ -1,0 +1,13 @@
+forward-logs-shared.ts:95 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+forward-logs-shared.ts:95 [HMR] connected
+fetch.ts:7  GET https://pjvbiblalapcbgwpojvm.supabase.co/rest/v1/supports?select=id&supporter_tg_id=eq.test_user_1765773336903&limit=1 404 (Not Found)
+(anonymous) @ fetch.ts:7
+(anonymous) @ fetch.ts:34
+await in (anonymous)
+then @ PostgrestBuilder.ts:122
+intercept-console-error.ts:42 THREE.THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false
+
+Material Name: 
+Material Type: ShaderMaterial
+
+Program Info Log: Fragment shader is not compiled.
