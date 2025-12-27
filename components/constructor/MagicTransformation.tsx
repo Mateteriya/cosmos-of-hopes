@@ -96,6 +96,9 @@ function Toy3D({
   // Обновляем размер mesh при изменении ballSize (даже когда анимация не запущена)
   useEffect(() => {
     if (meshRef.current) {
+      const geometry = meshRef.current.geometry;
+      // Пересчитываем нормали после изменения размера для правильного освещения
+      geometry.computeVertexNormals();
       const currentScale = scale > 0 ? scale : 1; // Если анимация не запущена, используем полный масштаб
       meshRef.current.scale.setScalar(currentScale * ballSize);
     }
@@ -142,17 +145,50 @@ function Toy3D({
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        // Для сферы используем RepeatWrapping с offset для правильного оборачивания текстуры
-        // Это устраняет черную полосу на шве
-        const tex = new THREE.Texture(img);
+        // Обрабатываем изображение для устранения черной полосы
+        // Создаем canvas для обработки изображения
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          setSeamlessTexture(null);
+          return;
+        }
+        
+        // Используем размеры исходного изображения
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // Используем цвет, который выбрал пользователь для шара, вместо белого
+        // Если цвет не задан или черный, используем белый по умолчанию
+        let backgroundColor = color || '#FFFFFF';
+        if (backgroundColor === '#000000' || backgroundColor === '#000' || backgroundColor.toLowerCase() === 'black') {
+          backgroundColor = '#FFFFFF';
+        }
+        
+        // Заливаем фоном выбранного пользователем цвета (на случай прозрачных или черных краев)
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Рисуем исходное изображение поверх фона
+        ctx.drawImage(img, 0, 0);
+        
+        // Создаем текстуру из обработанного canvas
+        const tex = new THREE.CanvasTexture(canvas);
+        
+        // Используем RepeatWrapping для возможности смещения
         tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
         tex.flipY = false;
-        // Смещаем текстуру на половину, чтобы шов был сзади
-        tex.offset.set(0.5, 0);
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
+        
+        // НЕ используем offset - это может создавать артефакты
+        // Вместо этого используем текстуру как есть
+        tex.offset.set(0, 0);
+        tex.repeat.set(1, 1);
+        
         tex.needsUpdate = true;
         setSeamlessTexture(tex);
       };
@@ -161,7 +197,7 @@ function Toy3D({
     } else {
       setSeamlessTexture(null);
     }
-  }, [imageDataUrl]);
+  }, [imageDataUrl, color]);
   
   const texture = seamlessTexture;
 
@@ -352,9 +388,13 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         mat.map = texture;
         mat.map.needsUpdate = true;
-        // Текстура уже создана как seamless, используем ее настройки
-        // wrapS и wrapT уже установлены в RepeatWrapping при создании
-        mat.map.flipY = false; // Отключаем flip для правильного отображения
+        // Используем RepeatWrapping без смещения
+        mat.map.wrapS = THREE.RepeatWrapping;
+        mat.map.wrapT = THREE.ClampToEdgeWrapping;
+        mat.map.flipY = false;
+        // Не используем offset - это может создавать черную полосу
+        if (mat.map.offset) mat.map.offset.set(0, 0);
+        if (mat.map.repeat) mat.map.repeat.set(1, 1);
       } else if (gradientTexture && gradientTexture.image) {
         mat.map = gradientTexture;
         mat.map.needsUpdate = true;
@@ -450,27 +490,25 @@ function Toy3D({
         // Пользовательский рисунок всегда имеет приоритет
         material.map = texture;
         material.map.needsUpdate = true;
-        // Для сферы используем RepeatWrapping с offset для устранения шва
+        // Используем RepeatWrapping без смещения
         material.map.wrapS = THREE.RepeatWrapping;
-        material.map.wrapT = THREE.RepeatWrapping;
-        material.map.offset.set(0.5, 0);
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        // Не используем offset - это может создавать черную полосу
+        if (material.map.offset) material.map.offset.set(0, 0);
+        if (material.map.repeat) material.map.repeat.set(1, 1);
       } else if (effects.gradient && gradientTexture && gradientTexture.image) {
         material.map = gradientTexture;
         material.map.needsUpdate = true;
-        material.map.wrapS = THREE.RepeatWrapping;
-        material.map.wrapT = THREE.RepeatWrapping;
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
-        material.map.offset.set(0.5, 0);
-        material.map.repeat.set(1, 1);
       } else if (patternTexture && patternTexture.image) {
         material.map = patternTexture;
         material.map.needsUpdate = true;
-        material.map.wrapS = THREE.RepeatWrapping;
-        material.map.wrapT = THREE.RepeatWrapping;
+        material.map.wrapS = THREE.ClampToEdgeWrapping;
+        material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
-        material.map.offset.set(0.5, 0);
-        material.map.repeat.set(1, 1);
       } else {
         material.map = null;
       }
@@ -485,8 +523,8 @@ function Toy3D({
       {/* Основная форма игрушки - всегда шар */}
       {/* ballSize применяется в useFrame, поэтому здесь не нужно */}
       <mesh ref={meshRef} material={material} castShadow receiveShadow>
-        {/* Увеличиваем количество сегментов для более плавной сферы и уменьшения швов */}
-        <sphereGeometry args={[1, 128, 128]} />
+        {/* Оптимизированное количество сегментов для плавной сферы без артефактов */}
+        <sphereGeometry args={[1, 64, 64]} />
       </mesh>
       
       {/* Эффект блеска (sparkle) - улучшенный, более яркий */}
