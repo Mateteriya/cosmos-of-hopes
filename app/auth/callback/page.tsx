@@ -55,9 +55,17 @@ export default function AuthCallbackPage() {
             
             // Мигрируем данные анонимного пользователя к зарегистрированному
             try {
-              const { migrateUserData } = await import('@/lib/userMigration');
-              await migrateUserData(data.user.id);
-              console.log('[AuthCallback] User data migrated successfully');
+              const { migrateAnonymousDataToUser } = await import('@/lib/userMigration');
+              const { getOrCreateUserId } = await import('@/lib/userId');
+              
+              // Получаем старый анонимный ID из localStorage
+              if (typeof window !== 'undefined') {
+                const oldUserId = localStorage.getItem('cosmos_user_id');
+                if (oldUserId && oldUserId !== data.user.id) {
+                  await migrateAnonymousDataToUser(oldUserId, data.user.id);
+                  console.log('[AuthCallback] User data migrated successfully');
+                }
+              }
             } catch (migrationError) {
               console.error('[AuthCallback] Error migrating user data:', migrationError);
               // Не прерываем процесс, даже если миграция не удалась
@@ -97,9 +105,16 @@ export default function AuthCallbackPage() {
               
               // Мигрируем данные анонимного пользователя к зарегистрированному
               try {
-                const { migrateUserData } = await import('@/lib/userMigration');
-                await migrateUserData(data.user.id);
-                console.log('[AuthCallback] User data migrated successfully');
+                const { migrateAnonymousDataToUser } = await import('@/lib/userMigration');
+                
+                // Получаем старый анонимный ID из localStorage
+                if (typeof window !== 'undefined') {
+                  const oldUserId = localStorage.getItem('cosmos_user_id');
+                  if (oldUserId && oldUserId !== data.user.id) {
+                    await migrateAnonymousDataToUser(oldUserId, data.user.id);
+                    console.log('[AuthCallback] User data migrated successfully');
+                  }
+                }
               } catch (migrationError) {
                 console.error('[AuthCallback] Error migrating user data:', migrationError);
                 // Не прерываем процесс, даже если миграция не удалась
