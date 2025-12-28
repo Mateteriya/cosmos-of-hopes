@@ -72,11 +72,7 @@ export default function AuthCallbackPage() {
             }
             
             setStatus('success');
-            setMessage('Email успешно подтвержден! Перенаправление...');
-            // Обновляем страницу, чтобы обновить состояние авторизации во всех компонентах
-            setTimeout(() => {
-              window.location.href = '/';
-            }, 2000);
+            setMessage('Email успешно подтвержден! Теперь вы можете вернуться на сайт и войти в свой аккаунт.');
           } else {
             throw new Error('Не удалось получить данные пользователя');
           }
@@ -121,10 +117,7 @@ export default function AuthCallbackPage() {
               }
               
               setStatus('success');
-              setMessage('Email успешно подтвержден! Перенаправление...');
-              setTimeout(() => {
-                window.location.href = '/';
-              }, 2000);
+              setMessage('Email успешно подтвержден! Теперь вы можете вернуться на сайт и войти в свой аккаунт.');
             } else {
               throw new Error('Не удалось получить данные пользователя после подтверждения');
             }
@@ -136,10 +129,7 @@ export default function AuthCallbackPage() {
             if (session && session.user) {
               console.log('[AuthCallback] Found existing session, user:', session.user.email);
               setStatus('success');
-              setMessage('Вы уже авторизованы! Перенаправление...');
-              setTimeout(() => {
-                window.location.href = '/';
-              }, 2000);
+              setMessage('Вы уже авторизованы! Можете вернуться на сайт.');
             } else {
               console.error('[AuthCallback] No session found and no tokens in URL');
               throw new Error('Токен не найден в URL и сессия не установлена');
@@ -174,7 +164,15 @@ export default function AuthCallbackPage() {
           <>
             <div className="text-4xl mb-4">✅</div>
             <h2 className="text-xl font-bold text-white mb-2">Успешно!</h2>
-            <p className="text-slate-300">{message}</p>
+            <p className="text-slate-300 mb-4">{message}</p>
+            <button
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
+            >
+              Вернуться на сайт
+            </button>
           </>
         )}
 

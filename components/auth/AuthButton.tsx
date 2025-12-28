@@ -114,20 +114,38 @@ export default function AuthButton() {
   }
 
   if (user) {
-    // Пользователь авторизован - показываем кнопку выхода
+    // Пользователь авторизован - показываем компактную зеленую галочку
+    const shouldShowFull = !isMobile || !isCollapsed || isHovered;
+    
     return (
-      <div className="fixed top-4 right-4 z-50">
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold px-4 py-2.5 rounded-lg shadow-2xl backdrop-blur-md border-2 border-white/20 flex items-center gap-2 text-sm sm:text-base">
+      <div 
+        className={`fixed top-4 right-4 z-[100] transition-all duration-300`}
+        style={{ 
+          position: 'fixed',
+          top: '1rem',
+          right: '1rem',
+          zIndex: 100
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => {
+          setIsHovered(true);
+          setIsCollapsed(false);
+        }}
+        onTouchEnd={() => setTimeout(() => setIsHovered(false), 300)}
+      >
+        <div 
+          className={`bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-lg shadow-2xl backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
+            shouldShowFull 
+              ? 'px-4 py-2.5 text-sm sm:text-base' 
+              : 'px-2 py-2 text-xl'
+          }`}
+          title="Выполнен вход в аккаунт"
+        >
           <span className="text-lg">✅</span>
-          <span className="hidden sm:inline">{user.email || 'Авторизован'}</span>
-          <span className="sm:hidden">✓</span>
-          <button
-            onClick={handleSignOut}
-            className="ml-2 hover:opacity-80 transition-opacity"
-            title="Выйти"
-          >
-            🚪
-          </button>
+          {shouldShowFull && (
+            <span className="hidden sm:inline">{user.email || 'Авторизован'}</span>
+          )}
         </div>
       </div>
     );
