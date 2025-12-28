@@ -172,26 +172,48 @@ export default function AuthButton() {
         }}
         onTouchEnd={() => setTimeout(() => setIsHovered(false), 300)}
       >
-        <button
-          onClick={() => {
-            setModalMode('signup');
-            setShowModal(true);
-          }}
-          className={`bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
-            shouldShowFull 
-              ? 'px-4 py-2.5 text-sm sm:text-base' 
-              : 'px-2 py-2 text-xl'
-          }`}
-          title={!shouldShowFull ? 'Регистрация' : undefined}
-        >
-          <span className="text-lg">🔐</span>
-          {shouldShowFull && (
-            <>
-              <span className="hidden sm:inline">Регистрация</span>
-              <span className="sm:hidden">Регистрация</span>
-            </>
-          )}
-        </button>
+        {shouldShowFull ? (
+          // Полная кнопка с двумя опциями
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setModalMode('signup');
+                setShowModal(true);
+              }}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-3 py-2.5 text-xs sm:text-sm"
+              title="Регистрация"
+            >
+              Регистрация
+            </button>
+            <button
+              onClick={() => {
+                setModalMode('signin');
+                setShowModal(true);
+              }}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-3 py-2.5 text-xs sm:text-sm"
+              title="Войти"
+            >
+              Войти
+            </button>
+          </div>
+        ) : (
+          // Свернутая кнопка - только замочек
+          <button
+            onClick={() => {
+              setIsCollapsed(false);
+              setIsHovered(false);
+              setTimeout(() => {
+                if (isMobile && !user && !isLoading) {
+                  setIsCollapsed(true);
+                }
+              }, 3000);
+            }}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-2 py-2 text-xl"
+            title="Регистрация / Войти"
+          >
+            <span className="text-lg">🔐</span>
+          </button>
+        )}
       </div>
 
       <AuthModal
