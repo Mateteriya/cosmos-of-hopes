@@ -139,10 +139,19 @@ export default function AuthButton() {
   return (
     <>
       <div 
-        className="fixed top-4 right-4 z-50"
+        className="fixed top-4 right-4 z-[100]"
+        style={{ 
+          position: 'fixed',
+          top: '1rem',
+          right: '1rem',
+          zIndex: 100
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onTouchStart={() => setIsHovered(true)}
+        onTouchStart={() => {
+          setIsHovered(true);
+          setIsCollapsed(false);
+        }}
         onTouchEnd={() => setTimeout(() => setIsHovered(false), 300)}
       >
         <button

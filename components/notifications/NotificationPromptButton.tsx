@@ -270,8 +270,9 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
     return null;
   }
 
-  // 2. Не поддерживается - не показываем
-  if (!isSupported) {
+  // 2. Не поддерживается - не показываем (но на мобильных все равно показываем, если инициализировано)
+  // На мобильных может быть проблема с определением поддержки, поэтому показываем кнопку всегда после инициализации
+  if (!isSupported && !isMobile) {
     return null;
   }
 
