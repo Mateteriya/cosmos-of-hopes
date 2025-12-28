@@ -21,27 +21,37 @@ export default function Home() {
 
   // Проверяем, нужно ли показать запрос уведомлений (второй заход)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const checkSecondVisit = async () => {
-      // Проверяем, был ли уже первый заход
-      const firstVisit = localStorage.getItem('cosmos_first_visit');
-      const hasSeenSecondVisitPrompt = localStorage.getItem('cosmos_second_visit_notification_prompt');
-      
-      if (firstVisit && !hasSeenSecondVisitPrompt) {
-        // Это второй заход - проверяем, подписаны ли на уведомления
-        if (isPushNotificationSupported()) {
-          const registration = await registerServiceWorker();
-          if (registration) {
-            const subscription = await getPushSubscription(registration);
-            if (!subscription) {
-              // Не подписаны - показываем запрос
-              setShowNotificationPrompt(true);
-              localStorage.setItem('cosmos_second_visit_notification_prompt', 'shown');
+      try {
+        // Проверяем, был ли уже первый заход
+        const firstVisit = localStorage.getItem('cosmos_first_visit');
+        const hasSeenSecondVisitPrompt = localStorage.getItem('cosmos_second_visit_notification_prompt');
+        
+        if (firstVisit && !hasSeenSecondVisitPrompt) {
+          // Это второй заход - проверяем, подписаны ли на уведомления
+          if (isPushNotificationSupported()) {
+            try {
+              const registration = await registerServiceWorker();
+              if (registration) {
+                const subscription = await getPushSubscription(registration);
+                if (!subscription) {
+                  // Не подписаны - показываем запрос
+                  setShowNotificationPrompt(true);
+                  localStorage.setItem('cosmos_second_visit_notification_prompt', 'shown');
+                }
+              }
+            } catch (error) {
+              console.error('Error checking notification subscription:', error);
             }
           }
+        } else if (!firstVisit) {
+          // Первый заход - сохраняем метку
+          localStorage.setItem('cosmos_first_visit', Date.now().toString());
         }
-      } else if (!firstVisit) {
-        // Первый заход - сохраняем метку
-        localStorage.setItem('cosmos_first_visit', Date.now().toString());
+      } catch (error) {
+        console.error('Error in checkSecondVisit:', error);
       }
     };
 

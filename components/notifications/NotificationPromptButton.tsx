@@ -78,12 +78,27 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
   // Определяем мобильное устройство и таймер сворачивания
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // sm breakpoint
+      try {
+        if (typeof window !== 'undefined' && window.innerWidth) {
+          setIsMobile(window.innerWidth < 640); // sm breakpoint
+        }
+      } catch (error) {
+        console.error('Error checking mobile:', error);
+        // По умолчанию считаем мобильным, если не можем определить
+        setIsMobile(true);
+      }
     };
     
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    
+    try {
+      window.addEventListener('resize', checkMobile);
+    } catch (error) {
+      console.error('Error adding resize listener:', error);
+    }
     
     // На мобильном сворачиваем через 3.5 секунды (только если не в процессе загрузки)
     if (isInitialized && isSupported && !isSubscribed && !isLoading) {
@@ -95,12 +110,24 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('resize', checkMobile);
+        try {
+          if (typeof window !== 'undefined') {
+            window.removeEventListener('resize', checkMobile);
+          }
+        } catch (error) {
+          console.error('Error removing resize listener:', error);
+        }
       };
     }
     
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('resize', checkMobile);
+        }
+      } catch (error) {
+        console.error('Error removing resize listener:', error);
+      }
     };
   }, [isInitialized, isSupported, isSubscribed, isMobile, isLoading]);
 

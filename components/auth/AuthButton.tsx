@@ -35,12 +35,27 @@ export default function AuthButton() {
 
   // Определяем мобильное устройство и таймер сворачивания
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // sm breakpoint
+      try {
+        if (typeof window !== 'undefined' && window.innerWidth) {
+          setIsMobile(window.innerWidth < 640); // sm breakpoint
+        }
+      } catch (error) {
+        console.error('Error checking mobile:', error);
+        // По умолчанию считаем мобильным, если не можем определить
+        setIsMobile(true);
+      }
     };
     
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    
+    try {
+      window.addEventListener('resize', checkMobile);
+    } catch (error) {
+      console.error('Error adding resize listener:', error);
+    }
     
     // На мобильном сворачиваем через 3 секунды (только если не авторизован)
     if (!isLoading && !user) {
@@ -52,12 +67,24 @@ export default function AuthButton() {
       
       return () => {
         clearTimeout(timer);
-        window.removeEventListener('resize', checkMobile);
+        try {
+          if (typeof window !== 'undefined') {
+            window.removeEventListener('resize', checkMobile);
+          }
+        } catch (error) {
+          console.error('Error removing resize listener:', error);
+        }
       };
     }
     
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('resize', checkMobile);
+        }
+      } catch (error) {
+        console.error('Error removing resize listener:', error);
+      }
     };
   }, [isLoading, user, isMobile]);
 
