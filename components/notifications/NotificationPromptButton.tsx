@@ -165,8 +165,8 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       return;
     }
     
-    // Если уже показывали - сразу переходим к запросу разрешения
-    await requestPermissionAndSubscribe();
+    // Если уже показывали - показываем промежуточную модалку с подтверждением
+    setShowConfirmationModal(true);
   };
 
   const requestPermissionAndSubscribe = async () => {
