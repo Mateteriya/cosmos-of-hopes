@@ -353,6 +353,12 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 <strong className="text-white">Мобильные:</strong>
                 <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
               </div>
+              
+              {/* Последний шаг */}
+              <div className="bg-gradient-to-r from-purple-700/50 to-pink-700/50 rounded-lg p-3 border-2 border-purple-400/30">
+                <strong className="text-purple-200">📌 Важно - последний шаг:</strong>
+                <p className="mt-1 text-xs text-white">После включения уведомлений в настройках браузера вернитесь на главную страницу и нажмите на кнопку 🔔 "Включить уведомления" в левом верхнем углу, чтобы подтвердить подключение.</p>
+              </div>
             </div>
 
             <div className="space-y-2">
