@@ -29,6 +29,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showDeniedModal, setShowDeniedModal] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -143,14 +144,36 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
     }
 
     try {
+      // Проверяем текущий статус разрешения перед запросом
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const currentPermission = Notification.permission;
+        
+        if (currentPermission === 'denied') {
+          // Разрешение было отклонено ранее - показываем инструкции
+          setIsLoading(false);
+          setShowDeniedModal(true);
+          // На мобильном сворачиваем кнопку обратно
+          if (isMobile) {
+            setTimeout(() => {
+              setIsCollapsed(true);
+            }, 500);
+          }
+          return;
+        }
+      }
+      
       const permission = await requestNotificationPermission();
       
       if (permission !== 'granted') {
-        alert('Разрешение на уведомления отклонено');
+        if (permission === 'denied') {
+          // Пользователь только что отклонил - показываем инструкции
+          setShowDeniedModal(true);
+        } else {
+          alert('Разрешение на уведомления не предоставлено');
+        }
         setIsLoading(false);
         // На мобильном сворачиваем кнопку обратно после отказа
         if (isMobile) {
-          // Сворачиваем сразу и устанавливаем таймер для повторного сворачивания
           setTimeout(() => {
             setIsCollapsed(true);
           }, 500);
@@ -207,29 +230,93 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const showPulse = isMobile && !isCollapsed;
 
   return (
-    <div 
-      className={`fixed top-4 left-4 z-50 transition-all duration-300 ${
-        showPulse ? 'animate-pulse' : ''
-      } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <button
-        onClick={handleSubscribe}
-        disabled={isLoading}
-        className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
-          shouldShowFull 
-            ? 'px-4 py-2.5 text-sm sm:text-base' 
-            : 'px-2 py-2 text-xl'
-        }`}
-        title={!shouldShowFull ? 'Включить уведомления' : undefined}
+    <>
+      <div 
+        className={`fixed top-4 left-4 z-50 transition-all duration-300 ${
+          showPulse ? 'animate-pulse' : ''
+        } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <span className="text-lg">🔔</span>
-        {shouldShowFull && (
-          <span>{isLoading ? 'Загрузка...' : 'Включить уведомления'}</span>
-        )}
-      </button>
-    </div>
+        <button
+          onClick={handleSubscribe}
+          disabled={isLoading}
+          className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
+            shouldShowFull 
+              ? 'px-4 py-2.5 text-sm sm:text-base' 
+              : 'px-2 py-2 text-xl'
+          }`}
+          title={!shouldShowFull ? 'Включить уведомления' : undefined}
+        >
+          <span className="text-lg">🔔</span>
+          {shouldShowFull && (
+            <span>{isLoading ? 'Загрузка...' : 'Включить уведомления'}</span>
+          )}
+        </button>
+      </div>
+
+      {/* Модальное окно с инструкциями, если разрешение отклонено */}
+      {showDeniedModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-3">🔔</div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Разрешение на уведомления отклонено
+              </h2>
+              <p className="text-slate-300 text-sm mb-4">
+                Вы можете включить уведомления в настройках браузера:
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-4 text-sm text-slate-200 max-h-[300px] overflow-y-auto">
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Chrome/Edge:</strong>
+                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Firefox:</strong>
+                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Safari:</strong>
+                <p className="mt-1 text-xs">Настройки → Сайты → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Мобильные:</strong>
+                <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setShowDeniedModal(false);
+                  // После закрытия проверяем, изменился ли статус
+                  setTimeout(() => {
+                    if (typeof window !== 'undefined' && 'Notification' in window) {
+                      if (Notification.permission === 'granted') {
+                        // Если пользователь включил уведомления, пытаемся подписаться
+                        handleSubscribe();
+                      }
+                    }
+                  }, 500);
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Я включил уведомления в настройках
+              </button>
+              <button
+                onClick={() => setShowDeniedModal(false)}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
+              >
+                Понятно, закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
