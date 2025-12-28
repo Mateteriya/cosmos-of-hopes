@@ -29,30 +29,41 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
   useEffect(() => {
     const init = async () => {
+      console.log('[NotificationPromptButton] Initializing...');
+      
       if (!isPushNotificationSupported()) {
+        console.log('[NotificationPromptButton] Push notifications not supported');
         setIsSupported(false);
         setIsInitialized(true);
         return;
       }
 
+      console.log('[NotificationPromptButton] Push notifications supported');
       setIsSupported(true);
 
       try {
         // Регистрируем Service Worker
+        console.log('[NotificationPromptButton] Registering Service Worker...');
         const swRegistration = await registerServiceWorker();
         if (swRegistration) {
+          console.log('[NotificationPromptButton] Service Worker registered');
           setRegistration(swRegistration);
 
           // Проверяем текущую подписку
+          console.log('[NotificationPromptButton] Checking subscription...');
           const subscription = await getPushSubscription(swRegistration);
           const subscribed = !!subscription;
+          console.log('[NotificationPromptButton] Subscription status:', subscribed, subscription);
           setIsSubscribed(subscribed);
+        } else {
+          console.log('[NotificationPromptButton] Service Worker registration failed, but will show button');
         }
         // Если Service Worker не зарегистрирован - кнопка все равно покажется, попробуем зарегистрировать при клике
       } catch (error) {
         console.error('[NotificationPromptButton] Error during initialization:', error);
         // В случае ошибки кнопка покажется, попробуем при клике
       } finally {
+        console.log('[NotificationPromptButton] Initialization complete');
         setIsInitialized(true);
       }
     };
@@ -87,8 +98,6 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       setIsLoading(false);
       return;
     }
-
-    setIsLoading(true);
 
     try {
       const permission = await requestNotificationPermission();
@@ -128,12 +137,22 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   };
 
   // Не показываем кнопку, если:
-  // 1. Еще инициализируется
-  // 2. Не поддерживается
-  // 3. Уже подписан
-  if (!isInitialized || !isSupported || isSubscribed) {
+  // 1. Еще инициализируется (ждем проверки)
+  if (!isInitialized) {
     return null;
   }
+
+  // 2. Не поддерживается - не показываем
+  if (!isSupported) {
+    return null;
+  }
+
+  // 3. Уже подписан - не показываем
+  if (isSubscribed) {
+    return null;
+  }
+
+  // Во всех остальных случаях показываем кнопку
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-pulse">
