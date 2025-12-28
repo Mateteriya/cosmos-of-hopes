@@ -181,28 +181,44 @@ export default function Home() {
           </h2>
           <div className="space-y-3 sm:space-y-4 text-left">
             <div className="flex items-start gap-3">
-              <span className="text-2xl sm:text-3xl flex-shrink-0">🎨</span>
+              <span className="text-2xl sm:text-3xl flex-shrink-0 flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </span>
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-white mb-1">Создайте уникальный шар желаний</h3>
                 <p className="text-xs sm:text-sm text-white/80">Нарисуйте свой шар, выберите цвета, эффекты и фильтры. Каждый шар неповторим, как ваше желание.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl sm:text-3xl flex-shrink-0">🌲</span>
+              <span className="text-2xl sm:text-3xl flex-shrink-0 flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </span>
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-white mb-1">Украсьте общую ёлку</h3>
                 <p className="text-xs sm:text-sm text-white/80">Ваш шар появится на виртуальной ёлке вместе с шарами других людей. Поддерживайте чужие мечты лайками!</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl sm:text-3xl flex-shrink-0">🏠</span>
+              <span className="text-2xl sm:text-3xl flex-shrink-0 flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </span>
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-white mb-1">Празднуйте вместе в комнатах</h3>
                 <p className="text-xs sm:text-sm text-white/80">Создавайте комнаты для друзей и близких. Встречайте Новый год вместе, даже находясь далеко друг от друга.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-2xl sm:text-3xl flex-shrink-0">💫</span>
+              <span className="text-2xl sm:text-3xl flex-shrink-0 flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </span>
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-white mb-1">Загадайте желание</h3>
                 <p className="text-xs sm:text-sm text-white/80">Напишите ваше самое заветное желание. Пусть оно станет частью магии Нового года!</p>
