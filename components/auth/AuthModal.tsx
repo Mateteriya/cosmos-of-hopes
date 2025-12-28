@@ -203,7 +203,7 @@ export default function AuthModal({
                 setError(null);
                 setSuccessMessage(null);
               }}
-              className="w-full text-white/70 hover:text-white text-xs sm:text-sm transition-colors"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
             >
               {mode === 'signup'
                 ? 'Уже есть аккаунт? Войти'
