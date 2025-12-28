@@ -7,15 +7,23 @@
 
 ### Шаг 1: Обновить Site URL в Supabase
 
+⚠️ **ВАЖНО**: НЕ меняйте "Project URL" в разделе API Settings! Это URL вашего Supabase проекта (например, `https://pjvbiblalapcbgwpojvm.supabase.co`), его нужно оставить как есть.
+
+**Правильное место для настройки:**
+
 1. Откройте **Supabase Dashboard**: https://supabase.com/dashboard
 2. Выберите ваш проект
-3. Перейдите в **Settings** (Настройки) → **API**
-4. Найдите раздел **"Project URL"** или **"Site URL"**
+3. Перейдите в **Authentication** → **URL Configuration** (или **Authentication** → **Settings**)
+4. Найдите поле **"Site URL"** (НЕ "Project URL"!)
 5. Измените **Site URL** на:
    ```
    https://super2026.online
    ```
 6. Сохраните изменения
+
+**Если не видите "Site URL" в URL Configuration:**
+- Попробуйте **Authentication** → **Settings** → **General**
+- Или **Project Settings** → **General** → **Site URL**
 
 ### Шаг 2: Обновить Redirect URLs
 
