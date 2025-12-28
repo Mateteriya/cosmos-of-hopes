@@ -145,22 +145,40 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   }, [isInitialized, isSupported, isSubscribed, isMobile, isLoading]);
 
   const handleSubscribe = async () => {
+    console.log('[NotificationPromptButton] handleSubscribe called');
+    
     // Если кнопка свернута, разворачиваем её при клике
     if (isCollapsed && isMobile) {
       setIsCollapsed(false);
       setIsHovered(false);
     }
     
+    // Проверяем текущий статус разрешения
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      const currentPermission = Notification.permission;
+      console.log('[NotificationPromptButton] Current permission in handleSubscribe:', currentPermission);
+      
+      // Если разрешение уже отклонено - сразу показываем инструкции
+      if (currentPermission === 'denied') {
+        console.log('[NotificationPromptButton] Permission already denied, showing instructions modal');
+        setShowDeniedModal(true);
+        return;
+      }
+    }
+    
     // Проверяем, показывали ли мы уже информационное окно
     const hasSeenInfo = typeof window !== 'undefined' ? localStorage.getItem('has_seen_notification_info') : null;
+    console.log('[NotificationPromptButton] Has seen info:', hasSeenInfo);
     
     // Если еще не показывали - показываем информационное окно
     if (!hasSeenInfo) {
+      console.log('[NotificationPromptButton] Showing info modal');
       setShowInfoModal(true);
       return;
     }
     
     // Если уже показывали - показываем промежуточную модалку с подтверждением
+    console.log('[NotificationPromptButton] Showing confirmation modal');
     setShowConfirmationModal(true);
   };
 
