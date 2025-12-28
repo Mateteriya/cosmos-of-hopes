@@ -83,10 +83,10 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    // На мобильном сворачиваем через 3.5 секунды
-    if (isInitialized && isSupported && !isSubscribed) {
+    // На мобильном сворачиваем через 3.5 секунды (только если не в процессе загрузки)
+    if (isInitialized && isSupported && !isSubscribed && !isLoading) {
       const timer = setTimeout(() => {
-        if (isMobile) {
+        if (isMobile && !isLoading) {
           setIsCollapsed(true);
         }
       }, 3500);
@@ -100,9 +100,21 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, [isInitialized, isSupported, isSubscribed, isMobile]);
+  }, [isInitialized, isSupported, isSubscribed, isMobile, isLoading]);
 
   const handleSubscribe = async () => {
+    // Если кнопка свернута, разворачиваем её при клике
+    if (isCollapsed && isMobile) {
+      setIsCollapsed(false);
+      setIsHovered(false);
+      // Устанавливаем таймер для повторного сворачивания через 3 секунды
+      setTimeout(() => {
+        if (isMobile && !isSubscribed && !isLoading) {
+          setIsCollapsed(true);
+        }
+      }, 3000);
+    }
+    
     setIsLoading(true);
 
     // Если регистрации нет, попробуем зарегистрировать Service Worker
@@ -136,6 +148,13 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       if (permission !== 'granted') {
         alert('Разрешение на уведомления отклонено');
         setIsLoading(false);
+        // На мобильном сворачиваем кнопку обратно после отказа
+        if (isMobile) {
+          // Сворачиваем сразу и устанавливаем таймер для повторного сворачивания
+          setTimeout(() => {
+            setIsCollapsed(true);
+          }, 500);
+        }
         return;
       }
 
@@ -189,7 +208,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
   return (
     <div 
-      className={`fixed top-20 right-4 z-50 sm:top-24 transition-all duration-300 ${
+      className={`fixed top-4 left-4 z-50 transition-all duration-300 ${
         showPulse ? 'animate-pulse' : ''
       } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
       onMouseEnter={() => setIsHovered(true)}

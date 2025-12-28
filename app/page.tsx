@@ -7,6 +7,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import NotificationPromptButton from '@/components/notifications/NotificationPromptButton';
+import LanguageSwitcher from '@/components/language/LanguageSwitcher';
+import { AutoTranslator } from '@/components/constructor/AutoTranslator';
 import {
   isPushNotificationSupported,
   getPushSubscription,
@@ -48,8 +50,14 @@ export default function Home() {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative">
-      {/* Кнопка уведомлений в правом верхнем углу */}
+      {/* Кнопка уведомлений в левом верхнем углу */}
       <NotificationPromptButton />
+      
+      {/* Кнопки переключения языков по центру сверху */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3">
+        <LanguageSwitcher />
+        <AutoTranslator />
+      </div>
       
       {/* Модальное окно запроса уведомлений для второго захода */}
       {showNotificationPrompt && (

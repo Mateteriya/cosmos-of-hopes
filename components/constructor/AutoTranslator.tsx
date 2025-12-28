@@ -70,8 +70,7 @@ export function AutoTranslator() {
   const currentTranslations = translations[language];
 
   return (
-    <div className="fixed top-12 right-2 sm:top-4 sm:right-4 z-50">
-      <div className="relative">
+    <div className="relative">
         <button
           onClick={() => setShowOptions(!showOptions)}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold p-2 sm:p-2.5 rounded-lg shadow-xl transition-all transform hover:scale-105 flex items-center justify-center"
