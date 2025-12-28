@@ -13,18 +13,28 @@ export function AutoTranslator() {
 
   // Функция для перевода через Google Translate
   const translateWithGoogle = (targetLang: string) => {
-    const currentUrl = window.location.href;
-    const googleTranslateUrl = `https://translate.google.com/translate?sl=auto&tl=${targetLang}&u=${encodeURIComponent(currentUrl)}`;
-    window.open(googleTranslateUrl, '_blank');
+    if (typeof window === 'undefined') return;
+    try {
+      const currentUrl = window.location.href;
+      const googleTranslateUrl = `https://translate.google.com/translate?sl=auto&tl=${targetLang}&u=${encodeURIComponent(currentUrl)}`;
+      window.open(googleTranslateUrl, '_blank');
+    } catch (error) {
+      console.error('Error opening Google Translate:', error);
+    }
   };
 
   // Функция для перевода через Yandex Translate (если доступен)
   const translateWithYandex = (targetLang: string) => {
-    const currentUrl = window.location.href;
-    // Yandex Translate не имеет прямого виджета для перевода страниц, но можно использовать их API
-    // Для простоты - просто ссылка на их сервис
-    const yandexUrl = `https://translate.yandex.com/?lang=${targetLang}&url=${encodeURIComponent(currentUrl)}`;
-    window.open(yandexUrl, '_blank');
+    if (typeof window === 'undefined') return;
+    try {
+      const currentUrl = window.location.href;
+      // Yandex Translate не имеет прямого виджета для перевода страниц, но можно использовать их API
+      // Для простоты - просто ссылка на их сервис
+      const yandexUrl = `https://translate.yandex.com/?lang=${targetLang}&url=${encodeURIComponent(currentUrl)}`;
+      window.open(yandexUrl, '_blank');
+    } catch (error) {
+      console.error('Error opening Yandex Translate:', error);
+    }
   };
 
   // Популярные языки для быстрого доступа
