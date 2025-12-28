@@ -34,17 +34,29 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
   useEffect(() => {
     const init = async () => {
+      if (typeof window === 'undefined') {
+        setIsInitialized(true);
+        return;
+      }
+      
       console.log('[NotificationPromptButton] Initializing...');
       
-      if (!isPushNotificationSupported()) {
-        console.log('[NotificationPromptButton] Push notifications not supported');
+      try {
+        if (!isPushNotificationSupported()) {
+          console.log('[NotificationPromptButton] Push notifications not supported');
+          setIsSupported(false);
+          setIsInitialized(true);
+          return;
+        }
+
+        console.log('[NotificationPromptButton] Push notifications supported');
+        setIsSupported(true);
+      } catch (error) {
+        console.error('[NotificationPromptButton] Error checking support:', error);
         setIsSupported(false);
         setIsInitialized(true);
         return;
       }
-
-      console.log('[NotificationPromptButton] Push notifications supported');
-      setIsSupported(true);
 
       try {
         // Регистрируем Service Worker
@@ -272,6 +284,18 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const shouldShowFull = !isMobile || !isCollapsed || isHovered;
   const showPulse = isMobile && !isCollapsed;
 
+  // Отладочная информация (можно убрать позже)
+  if (typeof window !== 'undefined') {
+    console.log('[NotificationPromptButton] Render:', {
+      isInitialized,
+      isSupported,
+      isSubscribed,
+      isMobile,
+      isCollapsed,
+      shouldShowFull,
+    });
+  }
+
   return (
     <>
       <div 
@@ -280,6 +304,8 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => setIsHovered(true)}
+        onTouchEnd={() => setTimeout(() => setIsHovered(false), 300)}
       >
         <button
           onClick={handleSubscribe}

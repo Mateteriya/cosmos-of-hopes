@@ -142,6 +142,8 @@ export default function AuthButton() {
         className="fixed top-4 right-4 z-50"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => setIsHovered(true)}
+        onTouchEnd={() => setTimeout(() => setIsHovered(false), 300)}
       >
         <button
           onClick={() => {
