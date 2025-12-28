@@ -30,6 +30,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Промежуточная модалка перед системным диалогом
   const [showDeniedModal, setShowDeniedModal] = useState(false);
 
   useEffect(() => {
