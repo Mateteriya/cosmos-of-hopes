@@ -23,7 +23,7 @@ export function isPushNotificationSupported(): boolean {
  * Запрашивает разрешение на уведомления у пользователя
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (!('Notification' in window)) {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
     throw new Error('Браузер не поддерживает уведомления');
   }
 
@@ -35,8 +35,14 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
     throw new Error('Разрешение на уведомления отклонено');
   }
 
-  const permission = await Notification.requestPermission();
-  return permission;
+  // Для Edge и других браузеров может потребоваться явная проверка
+  try {
+    const permission = await Notification.requestPermission();
+    return permission;
+  } catch (error: any) {
+    console.error('[Push Notifications] Error requesting permission:', error);
+    throw new Error('Ошибка при запросе разрешения: ' + (error.message || 'Неизвестная ошибка'));
+  }
 }
 
 /**
