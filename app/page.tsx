@@ -132,8 +132,8 @@ export default function Home() {
             style={{ backgroundColor: '#9333ea', background: 'linear-gradient(to bottom right, #9333ea, #db2777)' }}
           >
             <div className="mb-2 sm:mb-3 md:mb-4 flex justify-center">
-              <svg className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" fill="currentColor" viewBox="0 0 24 24" strokeWidth="0">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <svg className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
             <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Создать шар</div>
