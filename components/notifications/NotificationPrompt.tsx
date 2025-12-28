@@ -34,6 +34,7 @@ export default function NotificationPrompt({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Промежуточная модалка перед системным диалогом
 
   useEffect(() => {
     const init = async () => {
@@ -63,6 +64,14 @@ export default function NotificationPrompt({
   const handleSubscribe = async () => {
     if (!registration) return;
 
+    // Показываем промежуточную модалку с подтверждением перед системным диалогом
+    setShowConfirmationModal(true);
+  };
+
+  const handleConfirmSubscribe = async () => {
+    if (!registration) return;
+
+    setShowConfirmationModal(false);
     setIsLoading(true);
 
     try {
@@ -166,6 +175,59 @@ export default function NotificationPrompt({
           )}
         </div>
       </div>
+
+      {/* Промежуточная модалка с подтверждением перед системным диалогом браузера */}
+      {showConfirmationModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-3">🔔</div>
+              <h2 className="text-xl font-bold text-white mb-3">
+                Подтвердите подключение уведомлений
+              </h2>
+            </div>
+
+            <div className="space-y-3 mb-6 text-sm text-slate-200">
+              <div className="bg-gradient-to-r from-purple-700/30 to-pink-700/30 rounded-lg p-3 border border-purple-400/20">
+                <p className="text-white font-semibold mb-2">✨ Что вы получите:</p>
+                <ul className="space-y-1.5 text-xs text-slate-200">
+                  <li>• <strong>31 декабря в 23:57</strong> — напоминание о запуске вашего шара желаний в космос</li>
+                  <li>• <strong>31 декабря в 22:50</strong> — напоминание для создателей комнат о начале празднования</li>
+                  <li>• <strong>Новые лайки</strong> — уведомления о поддержке вашего шара</li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-r from-amber-700/30 to-orange-700/30 rounded-lg p-3 border border-amber-400/20">
+                <p className="text-amber-200 font-semibold mb-2">⚠️ Важно:</p>
+                <p className="text-xs text-slate-200">
+                  После нажатия "Подключить" браузер покажет системный диалог с вариантами "Разрешить" или "Блокировать". 
+                  Если вы выберете "Блокировать", то в дальнейшем подключить уведомления можно будет только через настройки браузера.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={handleConfirmSubscribe}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                Подключить уведомления
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmationModal(false);
+                  if (onClose) onClose();
+                }}
+                disabled={isLoading}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Позже
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

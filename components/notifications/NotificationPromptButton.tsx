@@ -352,8 +352,11 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
               <button
                 onClick={async () => {
                   setShowInfoModal(false);
-                  localStorage.setItem('has_seen_notification_info', 'true');
-                  await requestPermissionAndSubscribe();
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('has_seen_notification_info', 'true');
+                  }
+                  // Показываем промежуточную модалку с подтверждением
+                  setShowConfirmationModal(true);
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
@@ -362,7 +365,9 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
               <button
                 onClick={() => {
                   setShowInfoModal(false);
-                  localStorage.setItem('has_seen_notification_info', 'true');
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('has_seen_notification_info', 'true');
+                  }
                 }}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
               >
