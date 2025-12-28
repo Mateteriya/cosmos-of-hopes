@@ -66,10 +66,26 @@ export default function NotificationPrompt({
     setIsLoading(true);
 
     try {
+      // Проверяем текущий статус разрешения перед запросом
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const currentPermission = Notification.permission;
+        
+        if (currentPermission === 'denied') {
+          // Разрешение было отклонено ранее
+          alert('Вы ранее отклонили уведомления. Чтобы включить их, откройте настройки браузера и разрешите уведомления для этого сайта.');
+          setIsLoading(false);
+          return;
+        }
+      }
+      
       const permission = await requestNotificationPermission();
       
       if (permission !== 'granted') {
-        alert(t('notificationPermissionDenied') || 'Разрешение на уведомления отклонено');
+        if (permission === 'denied') {
+          alert('Уведомления отклонены. Если передумаете, откройте настройки браузера и разрешите уведомления для этого сайта.');
+        } else {
+          alert(t('notificationPermissionDenied') || 'Разрешение на уведомления отклонено');
+        }
         setIsLoading(false);
         return;
       }

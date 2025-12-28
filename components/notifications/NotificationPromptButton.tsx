@@ -29,6 +29,8 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showDeniedModal, setShowDeniedModal] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -115,6 +117,20 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       }, 3000);
     }
     
+    // Проверяем, показывали ли мы уже информационное окно
+    const hasSeenInfo = localStorage.getItem('has_seen_notification_info');
+    
+    // Если еще не показывали - показываем информационное окно
+    if (!hasSeenInfo) {
+      setShowInfoModal(true);
+      return;
+    }
+    
+    // Если уже показывали - сразу переходим к запросу разрешения
+    await requestPermissionAndSubscribe();
+  };
+
+  const requestPermissionAndSubscribe = async () => {
     setIsLoading(true);
 
     // Если регистрации нет, попробуем зарегистрировать Service Worker
@@ -148,42 +164,9 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         const currentPermission = Notification.permission;
         
         if (currentPermission === 'denied') {
-          // Разрешение было отклонено ранее
-          // Но пользователь мог включить его в настройках браузера - проверяем еще раз
-          // Если статус все еще 'denied', показываем сообщение
+          // Разрешение было отклонено ранее - показываем модальное окно с инструкциями
           setIsLoading(false);
-          
-          // Даем небольшую задержку и проверяем еще раз (на случай, если пользователь только что включил)
-          setTimeout(async () => {
-            if (typeof window !== 'undefined' && 'Notification' in window) {
-              const recheckPermission = Notification.permission;
-              if (recheckPermission === 'granted') {
-                // Пользователь включил уведомления! Пытаемся подписаться
-                try {
-                  const subscription = await subscribeToPushNotifications(currentRegistration);
-                  if (subscription) {
-                    const userId = await getOrCreateUserId();
-                    await saveSubscriptionToServer(subscription, userId);
-                    setIsSubscribed(true);
-                    if (currentRegistration.showNotification) {
-                      currentRegistration.showNotification('Вы подписались на уведомления!', {
-                        body: 'Вы будете получать напоминания о волшебном моменте!',
-                        icon: '/favicon.ico',
-                        badge: '/favicon.ico',
-                      });
-                    }
-                  }
-                } catch (error) {
-                  console.error('Error subscribing after permission granted:', error);
-                }
-                return;
-              }
-            }
-            
-            // Если статус все еще 'denied', показываем сообщение
-            alert('Вы ранее отклонили уведомления. Если передумали, включите их в настройках браузера и нажмите кнопку снова.');
-          }, 100);
-          
+          setShowDeniedModal(true);
           // На мобильном сворачиваем кнопку обратно
           if (isMobile) {
             setTimeout(() => {
@@ -194,13 +177,13 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         }
       }
       
-      // Пытаемся запросить разрешение (может не сработать, если было отклонено)
+      // Пытаемся запросить разрешение
       const permission = await requestNotificationPermission();
       
       if (permission !== 'granted') {
         if (permission === 'denied') {
-          // Пользователь только что отклонил
-          alert('Уведомления отклонены. Если передумаете, откройте настройки браузера и разрешите уведомления для этого сайта.');
+          // Пользователь только что отклонил - показываем модальное окно с инструкциями
+          setShowDeniedModal(true);
         } else {
           alert('Разрешение на уведомления не предоставлено');
         }
@@ -288,6 +271,111 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         </button>
       </div>
 
+      {/* Модальное окно с описанием уведомлений (показывается перед запросом разрешения) */}
+      {showInfoModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-3">🔔</div>
+              <h2 className="text-xl font-bold text-white mb-3">
+                Зачем нужны уведомления?
+              </h2>
+            </div>
+
+            <div className="space-y-3 mb-6 text-sm text-slate-200">
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-purple-300">31 декабря в 23:57</strong>
+                <p className="mt-1 text-xs">Напоминание о том, что ваш шар желаний отправляется в космос! Вы сможете увидеть это волшебство.</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-purple-300">31 декабря в 22:50</strong>
+                <p className="mt-1 text-xs">Напоминание для создателей комнат: пора запускать празднование и приглашать гостей!</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-purple-300">Новые лайки</strong>
+                <p className="mt-1 text-xs">Уведомления о том, что кто-то поддержал ваш шар желаний.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={async () => {
+                  setShowInfoModal(false);
+                  localStorage.setItem('has_seen_notification_info', 'true');
+                  await requestPermissionAndSubscribe();
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Подключить уведомления
+              </button>
+              <button
+                onClick={() => {
+                  setShowInfoModal(false);
+                  localStorage.setItem('has_seen_notification_info', 'true');
+                }}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
+              >
+                Позже
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно с инструкциями, если разрешение отклонено */}
+      {showDeniedModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-3">🔔</div>
+              <h2 className="text-xl font-bold text-white mb-2">
+                Разрешение на уведомления отклонено
+              </h2>
+              <p className="text-slate-300 text-sm mb-4">
+                Чтобы включить уведомления, откройте настройки браузера:
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-4 text-sm text-slate-200 max-h-[300px] overflow-y-auto">
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Chrome/Edge:</strong>
+                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Firefox:</strong>
+                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Safari:</strong>
+                <p className="mt-1 text-xs">Настройки → Сайты → Уведомления → Разрешить для этого сайта</p>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3">
+                <strong className="text-white">Мобильные:</strong>
+                <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={async () => {
+                  setShowDeniedModal(false);
+                  // Проверяем статус и пытаемся подписаться, если разрешение было предоставлено
+                  await requestPermissionAndSubscribe();
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
+              >
+                Я включил уведомления в настройках
+              </button>
+              <button
+                onClick={() => setShowDeniedModal(false)}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
+              >
+                Понятно, закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
