@@ -88,13 +88,19 @@ export default function Home() {
       <div className="max-w-4xl w-full">
         {/* Заголовок */}
         <div className="text-center mb-6 sm:mb-8 md:mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 sm:mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent">
-            ✨ Cosmos of Hopes ✨
+          {/* Русское название приложения */}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent leading-tight" style={{ fontFamily: 'var(--font-inter)' }}>
+            ✨ Вселенная Желаний ✨
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/80 mb-1 sm:mb-2 px-2">
+          {/* Английское название (меньше, под русским) */}
+          <p className="text-xs sm:text-sm md:text-base text-white/50 mb-4 sm:mb-6 font-light italic" style={{ fontFamily: 'var(--font-inter)' }}>
+            Cosmos of Hopes
+          </p>
+          {/* Описание - улучшенные стили для мобильных */}
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/80 mb-2 sm:mb-3 px-4 sm:px-6 md:px-8 max-w-lg mx-auto leading-relaxed" style={{ fontFamily: 'var(--font-inter)' }}>
             Совместное празднование Нового года онлайн
           </p>
-          <p className="text-sm sm:text-base md:text-lg text-white/60 px-2">
+          <p className="text-xs sm:text-sm md:text-base text-white/60 px-4 sm:px-6 md:px-8 max-w-md mx-auto leading-relaxed" style={{ fontFamily: 'var(--font-inter)' }}>
             Создавайте шары желаний, украшайте ёлку вместе с друзьями
           </p>
         </div>
