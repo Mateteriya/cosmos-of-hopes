@@ -155,7 +155,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   // Во всех остальных случаях показываем кнопку
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-pulse">
+    <div className="fixed top-20 right-4 z-50 animate-pulse sm:top-24">
       <button
         onClick={handleSubscribe}
         disabled={isLoading}
