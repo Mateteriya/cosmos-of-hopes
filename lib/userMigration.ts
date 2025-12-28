@@ -27,7 +27,7 @@ export async function migrateAnonymousDataToUser(
         user_id: newUserId,
         author_tg_id: newUserId,
         author_user_id: newUserId 
-      })
+      } as never)
       .eq('user_id', anonymousUserId)
       .select('id');
     
@@ -43,7 +43,7 @@ export async function migrateAnonymousDataToUser(
       .update({ 
         creator_id: newUserId,
         creator_user_id: newUserId 
-      })
+      } as never)
       .eq('creator_id', anonymousUserId)
       .select('id');
     
@@ -56,7 +56,7 @@ export async function migrateAnonymousDataToUser(
     // 3. Миграция участников комнат (room_members)
     const { data: membersData, error: membersError } = await supabase
       .from('room_members')
-      .update({ user_id: newUserId })
+      .update({ user_id: newUserId } as never)
       .eq('user_id', anonymousUserId)
       .select('id');
     
@@ -72,7 +72,7 @@ export async function migrateAnonymousDataToUser(
       .update({ 
         supporter_tg_id: newUserId,
         supporter_user_id: newUserId 
-      })
+      } as never)
       .eq('supporter_tg_id', anonymousUserId)
       .select('id');
     
@@ -94,7 +94,7 @@ export async function migrateAnonymousDataToUser(
       // Если подписки для нового пользователя нет, мигрируем
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('push_subscriptions')
-        .update({ user_id: newUserId })
+        .update({ user_id: newUserId } as never)
         .eq('user_id', anonymousUserId)
         .select('id');
       
