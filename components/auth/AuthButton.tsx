@@ -15,6 +15,9 @@ export default function AuthButton() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'signin' | 'signup'>('signup');
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -29,6 +32,34 @@ export default function AuthButton() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Определяем мобильное устройство и таймер сворачивания
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // На мобильном сворачиваем через 3 секунды (только если не авторизован)
+    if (!isLoading && !user) {
+      const timer = setTimeout(() => {
+        if (isMobile) {
+          setIsCollapsed(true);
+        }
+      }, 3000);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', checkMobile);
+      };
+    }
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [isLoading, user, isMobile]);
 
   const checkAuth = async () => {
     try {
@@ -76,19 +107,34 @@ export default function AuthButton() {
   }
 
   // Пользователь не авторизован - показываем кнопку регистрации
+  const shouldShowFull = !isMobile || !isCollapsed || isHovered;
+
   return (
     <>
-      <div className="fixed top-4 right-4 z-50">
+      <div 
+        className="fixed top-4 right-4 z-50"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <button
           onClick={() => {
             setModalMode('signup');
             setShowModal(true);
           }}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-4 py-2.5 rounded-lg shadow-2xl transition-all transform hover:scale-105 text-sm sm:text-base backdrop-blur-md border-2 border-white/20 flex items-center gap-2"
+          className={`bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
+            shouldShowFull 
+              ? 'px-4 py-2.5 text-sm sm:text-base' 
+              : 'px-2 py-2 text-xl'
+          }`}
+          title={!shouldShowFull ? 'Регистрация' : undefined}
         >
           <span className="text-lg">🔐</span>
-          <span className="hidden sm:inline">Регистрация</span>
-          <span className="sm:hidden">🔐</span>
+          {shouldShowFull && (
+            <>
+              <span className="hidden sm:inline">Регистрация</span>
+              <span className="sm:hidden">Регистрация</span>
+            </>
+          )}
         </button>
       </div>
 

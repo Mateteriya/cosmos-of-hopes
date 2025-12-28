@@ -26,6 +26,9 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const [isLoading, setIsLoading] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -70,6 +73,34 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
     init();
   }, []);
+
+  // Определяем мобильное устройство и таймер сворачивания
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // На мобильном сворачиваем через 3.5 секунды
+    if (isInitialized && isSupported && !isSubscribed) {
+      const timer = setTimeout(() => {
+        if (isMobile) {
+          setIsCollapsed(true);
+        }
+      }, 3500);
+      
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', checkMobile);
+      };
+    }
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [isInitialized, isSupported, isSubscribed, isMobile]);
 
   const handleSubscribe = async () => {
     setIsLoading(true);
@@ -153,16 +184,31 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   }
 
   // Во всех остальных случаях показываем кнопку
+  const shouldShowFull = !isMobile || !isCollapsed || isHovered;
+  const showPulse = isMobile && !isCollapsed;
 
   return (
-    <div className="fixed top-20 right-4 z-50 animate-pulse sm:top-24">
+    <div 
+      className={`fixed top-20 right-4 z-50 sm:top-24 transition-all duration-300 ${
+        showPulse ? 'animate-pulse' : ''
+      } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <button
         onClick={handleSubscribe}
         disabled={isLoading}
-        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-4 py-2.5 rounded-lg shadow-2xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm sm:text-base backdrop-blur-md border-2 border-white/20 flex items-center gap-2"
+        className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none backdrop-blur-md border-2 border-white/20 flex items-center gap-2 ${
+          shouldShowFull 
+            ? 'px-4 py-2.5 text-sm sm:text-base' 
+            : 'px-2 py-2 text-xl'
+        }`}
+        title={!shouldShowFull ? 'Включить уведомления' : undefined}
       >
         <span className="text-lg">🔔</span>
-        <span>{isLoading ? 'Загрузка...' : 'Включить уведомления'}</span>
+        {shouldShowFull && (
+          <span>{isLoading ? 'Загрузка...' : 'Включить уведомления'}</span>
+        )}
       </button>
     </div>
   );
