@@ -23,8 +23,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Cosmos of Hopes - Новогодние комнаты",
-  description: "Совместное празднование Нового года онлайн",
+  title: "Вселенная Желаний - Новогодние комнаты",
+  description: "Совместное празднование Нового года онлайн. Создавайте шары желаний, украшайте ёлку вместе с друзьями",
 };
 
 export const viewport = {
