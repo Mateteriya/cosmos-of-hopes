@@ -238,8 +238,33 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       
       // Пытаемся запросить разрешение
       console.log('[NotificationPromptButton] Requesting notification permission...');
-      const permission = await requestNotificationPermission();
-      console.log('[NotificationPromptButton] Permission result:', permission);
+      let permission: NotificationPermission;
+      try {
+        permission = await requestNotificationPermission();
+        console.log('[NotificationPromptButton] Permission result:', permission);
+      } catch (error: any) {
+        console.error('[NotificationPromptButton] Error requesting permission:', error);
+        // Если разрешение уже было отклонено ранее
+        if (error.message && error.message.includes('отклонено')) {
+          setIsLoading(false);
+          setShowDeniedModal(true);
+          if (isMobile) {
+            setTimeout(() => {
+              setIsCollapsed(true);
+            }, 500);
+          }
+          return;
+        }
+        // Другая ошибка
+        alert('Ошибка при запросе разрешения: ' + (error.message || 'Неизвестная ошибка'));
+        setIsLoading(false);
+        if (isMobile) {
+          setTimeout(() => {
+            setIsCollapsed(true);
+          }, 500);
+        }
+        return;
+      }
       
       if (permission !== 'granted') {
         if (permission === 'denied') {
@@ -440,13 +465,13 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
             <div className="space-y-2">
               <button
-                onClick={async () => {
+                onClick={async (e) => {
                   console.log('[NotificationPromptButton] Confirmation modal: Connect button clicked');
+                  e.preventDefault();
                   setShowConfirmationModal(false);
-                  // Небольшая задержка, чтобы модалка успела закрыться
-                  setTimeout(async () => {
-                    await requestPermissionAndSubscribe();
-                  }, 100);
+                  // Вызываем сразу, без задержки, чтобы сохранить контекст пользовательского взаимодействия
+                  // Это важно для Edge и других браузеров
+                  await requestPermissionAndSubscribe();
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
