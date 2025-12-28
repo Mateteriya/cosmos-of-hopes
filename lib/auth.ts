@@ -13,9 +13,16 @@ export interface AuthUser {
  * Регистрация нового пользователя
  */
 export async function signUp(email: string, password: string) {
+  // Получаем URL приложения из переменных окружения или используем текущий домен
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
+    (typeof window !== 'undefined' ? window.location.origin : 'https://super2026.online');
+  
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: `${appUrl}/auth/callback`,
+    },
   });
 
   if (error) {
