@@ -300,13 +300,20 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
           onSubscribed();
         }
 
-        if (currentRegistration.showNotification) {
-          currentRegistration.showNotification('Вы подписались на уведомления!', {
-            body: 'Вы будете получать напоминания о волшебном моменте!',
-            icon: '/favicon.ico',
-            badge: '/favicon.ico',
-          });
-        }
+        // Показываем тестовое уведомление с небольшой задержкой для надежности
+        setTimeout(() => {
+          if (currentRegistration.showNotification) {
+            currentRegistration.showNotification('Вы подписались на уведомления!', {
+              body: 'Вы будете получать напоминания о волшебном моменте!',
+              icon: '/favicon.ico',
+              badge: '/favicon.ico',
+              tag: 'subscription-success',
+              requireInteraction: false,
+            }).catch((error) => {
+              console.warn('[NotificationPromptButton] Failed to show test notification:', error);
+            });
+          }
+        }, 500);
       } else {
         console.error('[NotificationPromptButton] Failed to create subscription');
       }
