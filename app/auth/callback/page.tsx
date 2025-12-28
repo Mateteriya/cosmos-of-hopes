@@ -16,13 +16,20 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Получаем токен из URL
+        console.log('[AuthCallback] Starting callback handling...');
+        console.log('[AuthCallback] Full URL:', window.location.href);
+        console.log('[AuthCallback] Hash:', window.location.hash);
+        console.log('[AuthCallback] Search:', window.location.search);
+
+        // Сначала проверяем hash параметры (стандартный формат Supabase)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
         const error = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
 
         if (error) {
+          console.error('[AuthCallback] Error in hash:', error, errorDescription);
           setStatus('error');
           setMessage(errorDescription || 'Ошибка при подтверждении email');
           setTimeout(() => {
@@ -31,11 +38,12 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (accessToken) {
+        if (accessToken && refreshToken) {
+          console.log('[AuthCallback] Found tokens in hash, setting session...');
           // Устанавливаем сессию
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: hashParams.get('refresh_token') || '',
+            refresh_token: refreshToken,
           });
 
           if (sessionError) {
@@ -43,23 +51,39 @@ export default function AuthCallbackPage() {
           }
 
           if (data.user) {
+            console.log('[AuthCallback] Session set successfully, user:', data.user.email);
+            
+            // Мигрируем данные анонимного пользователя к зарегистрированному
+            try {
+              const { migrateUserData } = await import('@/lib/userMigration');
+              await migrateUserData(data.user.id);
+              console.log('[AuthCallback] User data migrated successfully');
+            } catch (migrationError) {
+              console.error('[AuthCallback] Error migrating user data:', migrationError);
+              // Не прерываем процесс, даже если миграция не удалась
+            }
+            
             setStatus('success');
             setMessage('Email успешно подтвержден! Перенаправление...');
+            // Обновляем страницу, чтобы обновить состояние авторизации во всех компонентах
             setTimeout(() => {
-              router.push('/');
+              window.location.href = '/';
             }, 2000);
           } else {
             throw new Error('Не удалось получить данные пользователя');
           }
         } else {
-          // Проверяем, может быть токен уже в query параметрах
+          // Проверяем query параметры (альтернативный формат)
           const searchParams = new URLSearchParams(window.location.search);
           const token = searchParams.get('token');
           const type = searchParams.get('type');
 
+          console.log('[AuthCallback] Checking query params:', { token, type });
+
           if (token && type === 'signup') {
+            console.log('[AuthCallback] Verifying OTP token...');
             // Пытаемся подтвердить email через токен
-            const { error: verifyError } = await supabase.auth.verifyOtp({
+            const { data, error: verifyError } = await supabase.auth.verifyOtp({
               token_hash: token,
               type: 'signup',
             });
@@ -68,17 +92,47 @@ export default function AuthCallbackPage() {
               throw verifyError;
             }
 
-            setStatus('success');
-            setMessage('Email успешно подтвержден! Перенаправление...');
-            setTimeout(() => {
-              router.push('/');
-            }, 2000);
+            if (data.user) {
+              console.log('[AuthCallback] OTP verified successfully, user:', data.user.email);
+              
+              // Мигрируем данные анонимного пользователя к зарегистрированному
+              try {
+                const { migrateUserData } = await import('@/lib/userMigration');
+                await migrateUserData(data.user.id);
+                console.log('[AuthCallback] User data migrated successfully');
+              } catch (migrationError) {
+                console.error('[AuthCallback] Error migrating user data:', migrationError);
+                // Не прерываем процесс, даже если миграция не удалась
+              }
+              
+              setStatus('success');
+              setMessage('Email успешно подтвержден! Перенаправление...');
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 2000);
+            } else {
+              throw new Error('Не удалось получить данные пользователя после подтверждения');
+            }
           } else {
-            throw new Error('Токен не найден в URL');
+            // Пытаемся получить текущую сессию (может быть уже установлена)
+            console.log('[AuthCallback] No tokens found, checking existing session...');
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (session && session.user) {
+              console.log('[AuthCallback] Found existing session, user:', session.user.email);
+              setStatus('success');
+              setMessage('Вы уже авторизованы! Перенаправление...');
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 2000);
+            } else {
+              console.error('[AuthCallback] No session found and no tokens in URL');
+              throw new Error('Токен не найден в URL и сессия не установлена');
+            }
           }
         }
       } catch (error: any) {
-        console.error('Auth callback error:', error);
+        console.error('[AuthCallback] Error:', error);
         setStatus('error');
         setMessage(error.message || 'Ошибка при подтверждении email');
         setTimeout(() => {

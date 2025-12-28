@@ -2,20 +2,38 @@
 
 /**
  * Информационное сообщение о браузерной привязке данных
- * Показывается один раз при первом заходе
+ * Показывается один раз при первом заходе (только для неавторизованных пользователей)
  */
 
 import { useState, useEffect } from 'react';
+import { getCurrentUser } from '@/lib/auth';
 
 export default function BrowserBindingInfo() {
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    // Показываем только один раз
-    const hasSeenInfo = localStorage.getItem('cosmos_browser_binding_info_seen');
-    if (!hasSeenInfo) {
-      setShowInfo(true);
-    }
+    const checkAuthAndShowInfo = async () => {
+      if (typeof window === 'undefined') return;
+      
+      // Проверяем, авторизован ли пользователь
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          // Авторизованный пользователь - не показываем сообщение
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
+      }
+
+      // Показываем только один раз для неавторизованных
+      const hasSeenInfo = localStorage.getItem('cosmos_browser_binding_info_seen');
+      if (!hasSeenInfo) {
+        setShowInfo(true);
+      }
+    };
+
+    checkAuthAndShowInfo();
   }, []);
 
   const handleClose = () => {
