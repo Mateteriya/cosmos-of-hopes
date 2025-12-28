@@ -24,9 +24,13 @@ export default function CreatePage() {
   
   // Инициализация userId только на клиенте
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setUserId(getOrCreateUserId());
-    }
+    const initUserId = async () => {
+      if (typeof window !== 'undefined') {
+        const userId = await getOrCreateUserId();
+        setUserId(userId);
+      }
+    };
+    initUserId();
   }, []);
   
   // Функция для проверки существующего шара

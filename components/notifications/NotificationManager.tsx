@@ -28,7 +28,7 @@ export default function NotificationManager() {
         return;
       }
 
-      const userId = getOrCreateUserId();
+      const userId = await getOrCreateUserId();
       if (!userId) return;
 
       try {

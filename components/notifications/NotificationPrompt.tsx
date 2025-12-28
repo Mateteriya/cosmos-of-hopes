@@ -77,7 +77,7 @@ export default function NotificationPrompt({
       const subscription = await subscribeToPushNotifications(registration);
       
       if (subscription) {
-        const userId = getOrCreateUserId();
+        const userId = await getOrCreateUserId();
         await saveSubscriptionToServer(subscription, userId);
         
         setIsSubscribed(true);

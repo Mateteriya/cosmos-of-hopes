@@ -111,7 +111,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       const subscription = await subscribeToPushNotifications(currentRegistration);
       
       if (subscription) {
-        const userId = getOrCreateUserId();
+        const userId = await getOrCreateUserId();
         await saveSubscriptionToServer(subscription, userId);
         
         setIsSubscribed(true);

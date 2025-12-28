@@ -76,7 +76,7 @@ export default function PushNotificationButton() {
         
         if (subscription) {
           // Сохраняем подписку (localStorage + база данных)
-          const userId = getOrCreateUserId();
+          const userId = await getOrCreateUserId();
           await saveSubscriptionToServer(subscription, userId);
           
           setIsSubscribed(true);

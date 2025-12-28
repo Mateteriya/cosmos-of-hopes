@@ -53,10 +53,8 @@ export default function RoomsPage() {
 
   const handleRoomCreated = async (room: Room) => {
     setRooms(prev => [...prev, room]);
-    // Небольшая задержка перед переходом, чтобы комната успела сохраниться в БД
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // Сразу переходим на страницу комнаты после создания
-    router.push(`/room?room=${room.id}`);
+    // Комната создана, но не переходим автоматически
+    // Пользователь может сам выбрать когда войти в комнату
   };
 
   const handleRoomJoined = (room: Room) => {

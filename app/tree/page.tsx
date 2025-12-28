@@ -36,9 +36,13 @@ function TreePageContent() {
 
   // Инициализация userId
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setCurrentUserId(getOrCreateUserId());
-    }
+    const initUserId = async () => {
+      if (typeof window !== 'undefined') {
+        const userId = await getOrCreateUserId();
+        setCurrentUserId(userId);
+      }
+    };
+    initUserId();
   }, []);
 
   // Получаем roomId из URL параметров после монтирования

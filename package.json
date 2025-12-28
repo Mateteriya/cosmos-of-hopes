@@ -21,7 +21,9 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "three": "^0.182.0",
-    "web-push": "^3.6.6"
+    "web-push": "^3.6.6",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

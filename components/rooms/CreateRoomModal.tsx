@@ -8,6 +8,7 @@ import { useState } from 'react';
 import type { Room } from '@/types/room';
 import { createRoom } from '@/lib/rooms';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
+import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export default function CreateRoomModal({
   const [timezone, setTimezone] = useState('Europe/Moscow');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   if (!isOpen) return null;
 
@@ -60,7 +62,15 @@ export default function CreateRoomModal({
       onCreate(room);
       setName('');
       setTimezone('Europe/Moscow');
-      onClose();
+      
+      // Показываем запрос уведомлений после создания комнаты
+      const hasSeenNotificationPrompt = localStorage.getItem('has_seen_notification_prompt_after_room');
+      if (!hasSeenNotificationPrompt) {
+        setShowNotificationPrompt(true);
+        localStorage.setItem('has_seen_notification_prompt_after_room', 'shown');
+      } else {
+        onClose();
+      }
     } catch (err: any) {
       console.error('Ошибка создания комнаты:', err);
       setError(err.message || t('roomCreationError'));
@@ -132,6 +142,19 @@ export default function CreateRoomModal({
           </div>
         </form>
       </div>
+      
+      {/* Запрос уведомлений после создания комнаты */}
+      {showNotificationPrompt && (
+        <NotificationPrompt
+          title="Включить уведомления?"
+          message="Получайте напоминания о запуске вашей комнаты и важных событиях!"
+          onClose={() => {
+            setShowNotificationPrompt(false);
+            onClose();
+          }}
+          showCloseButton={true}
+        />
+      )}
     </div>
   );
 }

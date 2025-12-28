@@ -5,12 +5,86 @@
  */
 
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import NotificationPromptButton from '@/components/notifications/NotificationPromptButton';
+import {
+  isPushNotificationSupported,
+  getPushSubscription,
+  registerServiceWorker,
+} from '@/lib/pushNotifications';
 
 export default function Home() {
   const router = useRouter();
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+
+  // Проверяем, нужно ли показать запрос уведомлений (второй заход)
+  useEffect(() => {
+    const checkSecondVisit = async () => {
+      // Проверяем, был ли уже первый заход
+      const firstVisit = localStorage.getItem('cosmos_first_visit');
+      const hasSeenSecondVisitPrompt = localStorage.getItem('cosmos_second_visit_notification_prompt');
+      
+      if (firstVisit && !hasSeenSecondVisitPrompt) {
+        // Это второй заход - проверяем, подписаны ли на уведомления
+        if (isPushNotificationSupported()) {
+          const registration = await registerServiceWorker();
+          if (registration) {
+            const subscription = await getPushSubscription(registration);
+            if (!subscription) {
+              // Не подписаны - показываем запрос
+              setShowNotificationPrompt(true);
+              localStorage.setItem('cosmos_second_visit_notification_prompt', 'shown');
+            }
+          }
+        }
+      } else if (!firstVisit) {
+        // Первый заход - сохраняем метку
+        localStorage.setItem('cosmos_first_visit', Date.now().toString());
+      }
+    };
+
+    checkSecondVisit();
+  }, []);
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-4">
+    <div className="w-full min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-3 sm:p-4 relative">
+      {/* Кнопка уведомлений в правом верхнем углу */}
+      <NotificationPromptButton />
+      
+      {/* Модальное окно запроса уведомлений для второго захода */}
+      {showNotificationPrompt && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-4 sm:p-6">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🔔</div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                Включить уведомления?
+              </h2>
+              <p className="text-slate-300 text-xs sm:text-sm px-2">
+                Получайте напоминания о волшебном моменте и важных событиях!
+              </p>
+            </div>
+            <div className="space-y-2 sm:space-y-3">
+              <button
+                onClick={() => {
+                  // Открываем кнопку в правом углу для подписки
+                  setShowNotificationPrompt(false);
+                }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
+              >
+                Включить уведомления
+              </button>
+              <button
+                onClick={() => setShowNotificationPrompt(false)}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
+              >
+                Позже
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-4xl w-full">
         {/* Заголовок */}
         <div className="text-center mb-6 sm:mb-8 md:mb-12">
