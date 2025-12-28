@@ -332,32 +332,44 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 Разрешение на уведомления отклонено
               </h2>
               <p className="text-slate-300 text-sm mb-4">
-                Чтобы включить уведомления, откройте настройки браузера:
+                Чтобы включить уведомления, выполните <strong className="text-white">2 шага</strong>:
               </p>
             </div>
 
-            <div className="space-y-3 mb-4 text-sm text-slate-200 max-h-[300px] overflow-y-auto">
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-white">Chrome/Edge:</strong>
-                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+            <div className="space-y-4 mb-4 text-sm text-slate-200 max-h-[400px] overflow-y-auto">
+              {/* ШАГ 1 */}
+              <div>
+                <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-lg p-3 mb-2 border-2 border-blue-400/30">
+                  <strong className="text-blue-200 text-base">ШАГ 1: Включить уведомления в настройках браузера</strong>
+                </div>
+                <div className="space-y-2 ml-2">
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <strong className="text-white">Chrome/Edge:</strong>
+                    <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <strong className="text-white">Firefox:</strong>
+                    <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <strong className="text-white">Safari:</strong>
+                    <p className="mt-1 text-xs">Настройки → Сайты → Уведомления → Разрешить для этого сайта</p>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <strong className="text-white">Мобильные:</strong>
+                    <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
+                  </div>
+                </div>
               </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-white">Firefox:</strong>
-                <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-white">Safari:</strong>
-                <p className="mt-1 text-xs">Настройки → Сайты → Уведомления → Разрешить для этого сайта</p>
-              </div>
-              <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-white">Мобильные:</strong>
-                <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
-              </div>
-              
-              {/* Последний шаг */}
-              <div className="bg-gradient-to-r from-purple-700/50 to-pink-700/50 rounded-lg p-3 border-2 border-purple-400/30">
-                <strong className="text-purple-200">📌 Важно - последний шаг:</strong>
-                <p className="mt-1 text-xs text-white">После включения уведомлений в настройках браузера вернитесь на главную страницу и нажмите на кнопку 🔔 "Включить уведомления" в левом верхнем углу, чтобы подтвердить подключение.</p>
+
+              {/* ШАГ 2 */}
+              <div>
+                <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-lg p-3 mb-2 border-2 border-purple-400/30">
+                  <strong className="text-purple-200 text-base">ШАГ 2: Подтвердить подключение на сайте</strong>
+                </div>
+                <div className="bg-gradient-to-r from-purple-700/50 to-pink-700/50 rounded-lg p-3 ml-2 border-2 border-purple-400/30">
+                  <p className="text-xs text-white">Вернитесь на главную страницу и нажмите на кнопку 🔔 <strong>"Включить уведомления"</strong> в левом верхнем углу, чтобы подтвердить подключение.</p>
+                </div>
               </div>
             </div>
 
