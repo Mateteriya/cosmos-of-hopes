@@ -165,22 +165,26 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   };
 
   const requestPermissionAndSubscribe = async () => {
+    console.log('[NotificationPromptButton] requestPermissionAndSubscribe called');
     setIsLoading(true);
 
     // Если регистрации нет, попробуем зарегистрировать Service Worker
     let currentRegistration = registration;
     if (!currentRegistration) {
+      console.log('[NotificationPromptButton] No registration, registering Service Worker...');
       try {
         const swRegistration = await registerServiceWorker();
         if (!swRegistration) {
+          console.error('[NotificationPromptButton] Service Worker registration failed');
           alert('Не удалось зарегистрировать Service Worker. Убедитесь, что сайт открыт по HTTPS.');
           setIsLoading(false);
           return;
         }
         setRegistration(swRegistration);
         currentRegistration = swRegistration;
+        console.log('[NotificationPromptButton] Service Worker registered successfully');
       } catch (error: any) {
-        console.error('Error registering Service Worker:', error);
+        console.error('[NotificationPromptButton] Error registering Service Worker:', error);
         alert('Ошибка при регистрации Service Worker: ' + (error.message || 'Неизвестная ошибка'));
         setIsLoading(false);
         return;
@@ -188,6 +192,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
     }
 
     if (!currentRegistration) {
+      console.error('[NotificationPromptButton] No registration available');
       setIsLoading(false);
       return;
     }
@@ -196,9 +201,11 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       // Проверяем текущий статус разрешения перед запросом
       if (typeof window !== 'undefined' && 'Notification' in window) {
         const currentPermission = Notification.permission;
+        console.log('[NotificationPromptButton] Current permission:', currentPermission);
         
         if (currentPermission === 'denied') {
           // Разрешение было отклонено ранее - показываем модальное окно с инструкциями
+          console.log('[NotificationPromptButton] Permission already denied, showing instructions');
           setIsLoading(false);
           setShowDeniedModal(true);
           // На мобильном сворачиваем кнопку обратно
@@ -212,14 +219,18 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       }
       
       // Пытаемся запросить разрешение
+      console.log('[NotificationPromptButton] Requesting notification permission...');
       const permission = await requestNotificationPermission();
+      console.log('[NotificationPromptButton] Permission result:', permission);
       
       if (permission !== 'granted') {
         if (permission === 'denied') {
           // Пользователь только что отклонил - показываем модальное окно с инструкциями
+          console.log('[NotificationPromptButton] Permission denied, showing instructions');
           setShowDeniedModal(true);
         } else {
-          alert('Разрешение на уведомления не предоставлено');
+          console.log('[NotificationPromptButton] Permission not granted:', permission);
+          // Если пользователь просто закрыл диалог - просто закрываем модалку
         }
         setIsLoading(false);
         // На мобильном сворачиваем кнопку обратно после отказа
@@ -231,18 +242,21 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         return;
       }
 
+      console.log('[NotificationPromptButton] Permission granted, subscribing to push notifications...');
       const subscription = await subscribeToPushNotifications(currentRegistration);
+      console.log('[NotificationPromptButton] Subscription result:', subscription);
       
       if (subscription) {
         const userId = await getOrCreateUserId();
         await saveSubscriptionToServer(subscription, userId);
+        console.log('[NotificationPromptButton] Subscription saved to server');
         
         setIsSubscribed(true);
-        
+
         if (onSubscribed) {
           onSubscribed();
         }
-        
+
         if (currentRegistration.showNotification) {
           currentRegistration.showNotification('Вы подписались на уведомления!', {
             body: 'Вы будете получать напоминания о волшебном моменте!',
@@ -250,12 +264,15 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
             badge: '/favicon.ico',
           });
         }
+      } else {
+        console.error('[NotificationPromptButton] Failed to create subscription');
       }
     } catch (error: any) {
-      console.error('Error subscribing to notifications:', error);
+      console.error('[NotificationPromptButton] Error subscribing to notifications:', error);
       alert(error.message || 'Ошибка при подписке на уведомления');
     } finally {
       setIsLoading(false);
+      console.log('[NotificationPromptButton] requestPermissionAndSubscribe completed');
     }
   };
 
@@ -406,8 +423,12 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
             <div className="space-y-2">
               <button
                 onClick={async () => {
+                  console.log('[NotificationPromptButton] Confirmation modal: Connect button clicked');
                   setShowConfirmationModal(false);
-                  await requestPermissionAndSubscribe();
+                  // Небольшая задержка, чтобы модалка успела закрыться
+                  setTimeout(async () => {
+                    await requestPermissionAndSubscribe();
+                  }, 100);
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
