@@ -119,7 +119,7 @@ export default function RoomDesignSelector({
       >
         <div className="flex items-center gap-2 min-w-0 flex-1 text-left">
           <span className="text-lg sm:text-xl">{currentThemeData?.emoji}</span>
-          <span className="text-white font-semibold text-xs sm:text-sm truncate">{currentThemeData?.name}</span>
+          <span className="text-white font-semibold text-xs sm:text-sm truncate">{currentThemeData ? t(currentThemeData.nameKey as any) : ''}</span>
         </div>
         <span className="text-white/70 text-xs sm:text-sm flex-shrink-0 ml-2">{isOpen ? (openUpward ? '▼' : '▲') : '▼'}</span>
       </button>
