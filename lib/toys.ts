@@ -293,11 +293,13 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
     // Делаем это асинхронно, чтобы не блокировать основной поток
     try {
       // Получаем информацию о шаре и его владельце
-      const { data: toy, error: toyError } = await supabase
+      const { data: toyData, error: toyError } = await supabase
         .from('toys')
         .select('user_id')
         .eq('id', toyId)
         .maybeSingle();
+
+      const toy = toyData as { user_id: string } | null;
 
       if (!toyError && toy && toy.user_id && toy.user_id !== supporterId) {
         // Отправляем уведомление через Edge Function (не блокируем основной поток)
