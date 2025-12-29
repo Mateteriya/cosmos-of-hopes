@@ -64,7 +64,7 @@ export default function RoomChat({ roomId, currentUserId }: RoomChatProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg min-h-0">
+    <div className="flex flex-col h-full bg-slate-800/50 border-2 border-white/20 rounded-lg min-h-0">
       {/* Заголовок чата */}
       <div className="p-2 sm:p-3 border-b border-white/20 flex-shrink-0">
         <h3 className="text-white font-bold text-xs sm:text-sm">💬 Чат комнаты</h3>
