@@ -321,19 +321,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Тестовая кнопка */}
-      <div className="flex justify-center">
-        <button
-          onClick={() => setTestMode(!testMode)}
-          className="bg-yellow-600/80 hover:bg-yellow-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-md"
-          title="Тест: переключить режим Нового года"
-        >
-          {testMode ? '🔄 Тест: Новый год (выкл)' : '🧪 Тест: Новый год (вкл)'}
-        </button>
-      </div>
-      
-      <div className="flex items-center gap-3 sm:gap-4 md:gap-0">
+    <div className="flex items-center gap-3 sm:gap-4 md:gap-0">
         {/* Заголовок справа от панельки (только на ПК) */}
         <div className="hidden md:block text-white/90 text-base md:text-3xl lg:text-4xl font-semibold tracking-wide whitespace-nowrap bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 shadow-md" style={{ fontFamily: 'var(--font-playfair)' }}>
           {isNewYear ? t('timerNewYearTitle') : t('timerUntilNewYear')}
