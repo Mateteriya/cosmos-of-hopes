@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 
 interface VideoRoomProps {
   roomId: string;
@@ -14,8 +15,10 @@ interface VideoRoomProps {
 }
 
 export default function VideoRoom({ roomId, currentUserId, displayName }: VideoRoomProps) {
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Генерируем имя комнаты Jitsi на основе roomId
@@ -23,7 +26,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
   const jitsiRoomName = roomId.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
 
   // Имя пользователя для отображения в Jitsi
-  const userName = displayName || `Участник ${currentUserId.slice(-6)}`;
+  const userName = displayName || `${t('participant')} ${currentUserId.slice(-6)}`;
 
   // URL для Jitsi Meet (используем переменную окружения или публичный сервер по умолчанию)
   const jitsiServerUrl = process.env.NEXT_PUBLIC_JITSI_SERVER_URL || 'https://meet.jit.si';
@@ -46,19 +49,17 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
   if (error) {
     return (
       <div className="bg-red-900/50 backdrop-blur-md border-2 border-red-500/50 rounded-lg p-4">
-        <div className="text-red-200 font-bold text-sm mb-2">❌ Ошибка загрузки видеокомнаты</div>
+        <div className="text-red-200 font-bold text-sm mb-2">{t('videoRoomError')}</div>
         <div className="text-red-300 text-xs">{error}</div>
         <button
           onClick={() => window.location.reload()}
           className="mt-3 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs"
         >
-          Перезагрузить
+          {t('reload')}
         </button>
       </div>
     );
   }
-
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
     const container = document.querySelector('[data-videoroom-container]');
@@ -89,11 +90,11 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
     <div className="h-full flex flex-col">
       {/* Заголовок с кнопкой fullscreen */}
       <div className="flex items-center justify-between mb-2 flex-shrink-0">
-        <div className="text-white font-bold text-xs sm:text-sm">📹 Видеокомната</div>
+        <div className="text-white font-bold text-xs sm:text-sm">{t('videoRoom')}</div>
         <button
           onClick={toggleFullscreen}
           className="bg-slate-700/80 hover:bg-slate-600 text-white p-1.5 rounded transition-colors touch-manipulation"
-          title={isFullscreen ? "Выйти из полноэкранного режима" : "Во весь экран"}
+          title={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
         >
           {isFullscreen ? (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +118,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
           <div className="absolute inset-0 bg-slate-700/50 rounded-lg flex items-center justify-center z-10">
             <div className="text-center text-white/70">
               <div className="text-4xl mb-4 animate-pulse">📹</div>
-              <div className="text-sm">Загрузка видеокомнаты...</div>
+              <div className="text-sm">{t('loadingVideoRoom')}</div>
             </div>
           </div>
         )}
@@ -133,14 +134,14 @@ export default function VideoRoom({ roomId, currentUserId, displayName }: VideoR
           }}
           onError={(e) => {
             console.error('Ошибка загрузки iframe:', e);
-            setError('Не удалось загрузить видеокомнату. Проверьте подключение к интернету.');
+            setError(t('videoRoomLoadError'));
             setIsLoading(false);
           }}
         />
       </div>
 
       <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center flex-shrink-0">
-        Видеокомната Jitsi Meet
+        {t('jitsiVideoRoom')}
       </div>
     </div>
   );

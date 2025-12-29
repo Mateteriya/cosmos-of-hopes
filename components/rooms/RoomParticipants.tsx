@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { getRoomMembers } from '@/lib/rooms';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { RoomMember } from '@/types/room';
 
 interface RoomParticipantsProps {
@@ -14,6 +15,7 @@ interface RoomParticipantsProps {
 }
 
 export default function RoomParticipants({ roomId, currentUserId }: RoomParticipantsProps) {
+  const { t } = useLanguage();
   const [members, setMembers] = useState<RoomMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState<RoomMember | null>(null);
@@ -75,9 +77,9 @@ export default function RoomParticipants({ roomId, currentUserId }: RoomParticip
   // Получаем полное имя для отображения
   const getMemberName = (member: RoomMember): string => {
     if (member.user_id === currentUserId) {
-      return 'Вы';
+      return t('you');
     }
-    return `Участник ${member.user_id.slice(-4)}`;
+    return `${t('participant')} ${member.user_id.slice(-4)}`;
   };
 
   // Вычисляем размер кружков в зависимости от количества участников
@@ -119,11 +121,11 @@ export default function RoomParticipants({ roomId, currentUserId }: RoomParticip
   return (
     <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative">
       <div className="text-white font-bold text-xs sm:text-sm mb-2 flex items-center justify-between">
-        <span>👥 Участники ({members.length})</span>
+        <span>👥 {t('participants')} ({members.length})</span>
       </div>
 
       {isLoading ? (
-        <div className="text-white/50 text-xs sm:text-sm text-center py-3 sm:py-4">Загрузка...</div>
+        <div className="text-white/50 text-xs sm:text-sm text-center py-3 sm:py-4">{t('loading')}</div>
       ) : members.length === 0 ? (
         <div className="text-white/50 text-xs sm:text-sm text-center py-3 sm:py-4">Пока нет участников</div>
       ) : (

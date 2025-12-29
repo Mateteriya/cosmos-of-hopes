@@ -230,7 +230,7 @@ export default function CreatePage() {
           <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          Главная
+          {t('home')}
         </button>
         <button
           onClick={() => router.push('/tree')}
@@ -239,7 +239,7 @@ export default function CreatePage() {
           <svg className="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 1L8.5 7h7L12 1zm-4 8L6 13h12l-2-4H8zm-2 6L4 18h16l-2-3H6zm-1 4h16v1H5v-1z"/>
           </svg>
-          Ёлка
+          {t('tree')}
         </button>
         <button
           onClick={() => router.push('/rooms')}
@@ -248,17 +248,17 @@ export default function CreatePage() {
           <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          Комнаты
+          {t('rooms')}
         </button>
       </div>
 
       {showSuccess && (
         <div className="fixed top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg z-50 animate-fade-in flex items-center gap-2 sm:gap-3 max-w-[calc(100vw-1rem)] sm:max-w-md text-xs sm:text-sm">
-          <span>✅ Ваша игрушка заняла своё место на ёлке! 1 января она отправится в космос! 🌟</span>
+          <span>{t('ballHangedOnTree')}</span>
           <button
             onClick={() => setShowSuccess(false)}
             className="text-white hover:text-gray-200 font-bold text-lg sm:text-xl leading-none flex-shrink-0 touch-manipulation p-1"
-            aria-label="Закрыть"
+            aria-label={t('close')}
           >
             ×
           </button>

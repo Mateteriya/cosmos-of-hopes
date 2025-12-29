@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { DesignTheme } from '@/types/room';
 
 interface RoomDesignSelectorProps {
@@ -14,17 +15,18 @@ interface RoomDesignSelectorProps {
   isCreator: boolean;
 }
 
+// Темы дизайна будут переведены внутри компонента
 const designThemes: Array<{
   value: DesignTheme;
-  name: string;
   emoji: string;
-  description: string;
+  nameKey: string;
+  descKey: string;
 }> = [
-  { value: 'classic', name: 'Классический', emoji: '🎄', description: 'Традиционная ёлка, снег, гирлянды' },
-  { value: 'cosmic', name: 'Космический', emoji: '🌌', description: 'Звёздное небо, планеты, метеориты' },
-  { value: 'minimal', name: 'Минималистичный', emoji: '✨', description: 'Чистый дизайн, простые формы' },
-  { value: 'urban', name: 'Городской', emoji: '🏙️', description: 'Ночной город, огни окон, небоскрёбы' },
-  { value: 'custom', name: 'Кастомный', emoji: '🎨', description: 'Загрузите своё изображение' },
+  { value: 'classic', emoji: '🎄', nameKey: 'designClassic', descKey: 'designClassicDesc' },
+  { value: 'cosmic', emoji: '🌌', nameKey: 'designCosmic', descKey: 'designCosmicDesc' },
+  { value: 'minimal', emoji: '✨', nameKey: 'designMinimal', descKey: 'designMinimalDesc' },
+  { value: 'urban', emoji: '🏙️', nameKey: 'designUrban', descKey: 'designUrbanDesc' },
+  { value: 'custom', emoji: '🎨', nameKey: 'designCustom', descKey: 'designCustomDesc' },
 ];
 
 export default function RoomDesignSelector({
@@ -33,6 +35,7 @@ export default function RoomDesignSelector({
   onThemeChange,
   isCreator,
 }: RoomDesignSelectorProps) {
+  const { t } = useLanguage();
   const [selectedTheme, setSelectedTheme] = useState<DesignTheme>(currentTheme);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(currentCustomUrl || null);
   const [isOpen, setIsOpen] = useState(false);
@@ -77,9 +80,9 @@ export default function RoomDesignSelector({
     const theme = designThemes.find(t => t.value === currentTheme);
     return (
       <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4">
-        <div className="text-white font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎨 Дизайн комнаты</div>
+        <div className="text-white font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎨 {t('roomDesign')}</div>
         <div className="text-white/80 text-xs sm:text-sm">
-          {theme?.emoji} {theme?.name}
+          {theme?.emoji} {theme ? t(theme.nameKey as any) : ''}
         </div>
       </div>
     );
@@ -106,7 +109,7 @@ export default function RoomDesignSelector({
 
   return (
     <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-20" ref={dropdownRef}>
-      <div className="text-white font-bold text-xs sm:text-sm mb-2">🎨 Выбор дизайна комнаты</div>
+      <div className="text-white font-bold text-xs sm:text-sm mb-2">🎨 {t('selectRoomDesign')}</div>
       
       {/* Кнопка селектора */}
       <button
@@ -140,8 +143,8 @@ export default function RoomDesignSelector({
               >
                 <span className="text-lg sm:text-xl flex-shrink-0">{theme.emoji}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-white font-semibold text-xs sm:text-sm">{theme.name}</div>
-                  <div className="text-white/60 text-[10px] sm:text-xs mt-0.5">{theme.description}</div>
+                  <div className="text-white font-semibold text-xs sm:text-sm">{t(theme.nameKey as any)}</div>
+                  <div className="text-white/60 text-[10px] sm:text-xs mt-0.5">{t(theme.descKey as any)}</div>
                 </div>
               </button>
             ))}
@@ -153,7 +156,7 @@ export default function RoomDesignSelector({
       {selectedTheme === 'custom' && (
         <div className="mt-2 sm:mt-3">
           <label className="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-2 sm:px-3 py-1.5 sm:py-2 rounded text-[10px] sm:text-xs text-center cursor-pointer transition-all">
-            📁 Загрузить изображение фона
+            {t('uploadBackgroundImage')}
             <input
               type="file"
               accept="image/png,image/jpeg,image/jpg"

@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 
 interface InviteLinkProps {
   inviteCode: string;
@@ -12,6 +13,7 @@ interface InviteLinkProps {
 }
 
 export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -69,13 +71,13 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
   return (
     <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 backdrop-blur-md border-2 border-white/30 rounded-lg p-2 sm:p-3 lg:p-4">
       <div className="text-white font-bold text-xs sm:text-sm mb-2 sm:mb-3 flex items-center gap-2">
-        <span>🔗 Пригласить друзей</span>
+        <span>{t('inviteFriends')}</span>
       </div>
 
       <div className="space-y-2 sm:space-y-3">
         {/* Код приглашения */}
         <div>
-          <div className="text-white/70 text-[10px] sm:text-xs mb-1">Код приглашения:</div>
+          <div className="text-white/70 text-[10px] sm:text-xs mb-1">{t('inviteCode')}</div>
           <div className="flex flex-col gap-1.5 sm:gap-2">
             <div className="w-full bg-slate-700/50 text-white font-mono text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-white/20 break-all text-center overflow-hidden">
               {inviteCode}
@@ -110,14 +112,14 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {copied ? '✓ Скопировано!' : '📋 Копировать код'}
+              {copied ? t('copied') : t('copyCode')}
             </button>
           </div>
         </div>
 
         {/* Полная ссылка */}
         <div>
-          <div className="text-white/70 text-[10px] sm:text-xs mb-1">Или отправьте ссылку:</div>
+          <div className="text-white/70 text-[10px] sm:text-xs mb-1">{t('orSendLink') || 'Или отправьте ссылку:'}</div>
           <div className="flex flex-col gap-1.5 sm:gap-2">
             <input
               type="text"
@@ -155,9 +157,9 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
                   ? 'bg-green-600 text-white'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
-              title="Скопировать ссылку"
+              title={t('copyLink')}
             >
-              {copiedLink ? '✓ Скопировано!' : '📋 Копировать ссылку'}
+              {copiedLink ? t('copied') : t('copyLink')}
             </button>
           </div>
         </div>
@@ -175,9 +177,9 @@ export default function InviteLink({ inviteCode, roomId }: InviteLinkProps) {
         )}
         
         <div className="text-white/50 text-[10px] sm:text-xs text-center pt-1.5 sm:pt-2 border-t border-white/20">
-          <div className="mb-1">Поделитесь кодом или ссылкой с друзьями, чтобы они присоединились к комнате</div>
+          <div className="mb-1">{t('shareInviteInfo')}</div>
           <div className="text-[9px] sm:text-[10px] text-white/60 mt-1">
-            💡 Вы можете пригласить целых 40 человек! Комната действует до 15 января 2026 года
+            {t('inviteLimitInfo')}
           </div>
         </div>
       </div>

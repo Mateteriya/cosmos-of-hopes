@@ -9,6 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getRoomMembers } from '@/lib/rooms';
 import { sendWebRTCSignal, subscribeToWebRTCSignals, cleanupOldSignals } from '@/lib/webrtcSignaling';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { RoomMember } from '@/types/room';
 
 interface VoiceChatProps {
@@ -32,6 +33,7 @@ const ICE_SERVERS: RTCConfiguration = {
 };
 
 export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
+  const { t } = useLanguage();
   const [isMuted, setIsMuted] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState<Set<string>>(new Set());
@@ -294,9 +296,9 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
     } catch (err: any) {
       console.error('Ошибка запуска голосового чата:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        alert('Не удалось получить доступ к микрофону. Пожалуйста, разрешите доступ к микрофону в настройках браузера.');
+        alert(t('microphoneAccessError'));
       } else {
-        alert(`Ошибка запуска голосового чата: ${err.message}`);
+        alert(`${t('voiceChatStartError')}: ${err.message}`);
       }
     }
   };
@@ -383,7 +385,7 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
               }`}
             >
-              {isMuted ? '🔇 Включить звук' : '🔊 Выключить звук'}
+              {isMuted ? t('unmute') : t('mute')}
             </button>
             <button
               onClick={stopVoiceChat}

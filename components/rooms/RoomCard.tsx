@@ -121,8 +121,8 @@ export default function RoomCard({
           </div>
         )}
 
-        <div className="flex items-center text-white/80 text-xs sm:text-sm" title={`Часовой пояс комнаты: ${room.timezone}. Полночь наступает в ${new Date(room.midnight_utc).toLocaleString('ru-RU', { timeZone: room.timezone, dateStyle: 'long', timeStyle: 'short' })}`}>
-          <span className="mr-1.5 sm:mr-2" title="Часовой пояс">🌍</span>
+        <div className="flex items-center text-white/80 text-xs sm:text-sm" title={`${t('timezoneTooltip')}: ${room.timezone}. Полночь наступает в ${new Date(room.midnight_utc).toLocaleString('ru-RU', { timeZone: room.timezone, dateStyle: 'long', timeStyle: 'short' })}`}>
+          <span className="mr-1.5 sm:mr-2" title={t('timezone')}>🌍</span>
           <span className="truncate">{room.timezone}</span>
         </div>
       </div>

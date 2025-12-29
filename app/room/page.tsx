@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getRoomById, updateRoomDesign, updateRoomProgram } from '@/lib/rooms';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { Room, DesignTheme, EventProgram } from '@/types/room';
 import RoomChat from '@/components/rooms/RoomChat';
 import NewYearTimer from '@/components/rooms/NewYearTimer';
@@ -30,6 +31,7 @@ const getTempUserId = (): string => {
 
 export default function RoomPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [roomId, setRoomId] = useState<string | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,7 @@ export default function RoomPage() {
   if (loading) {
     return (
       <div className="w-full h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl font-bold">Загрузка комнаты...</div>
+        <div className="text-white text-2xl font-bold">{t('loadingRoom')}</div>
       </div>
     );
   }
@@ -150,7 +152,7 @@ export default function RoomPage() {
           onClick={() => router.push('/rooms')}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg"
         >
-          Вернуться к списку комнат
+          {t('backToRoomsList')}
         </button>
       </div>
     );

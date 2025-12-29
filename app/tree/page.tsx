@@ -32,7 +32,6 @@ function TreePageContent() {
   const [treeModel] = useState<string>('/placewithtree.obj');
 
   // Тестовый "Новый год" для проверки анимации (пока выключен)
-  const [isTestNewYear, setIsTestNewYear] = useState(false);
 
   // Инициализация userId
   useEffect(() => {
@@ -211,7 +210,7 @@ function TreePageContent() {
   if (loading) {
     return (
       <div className="w-full h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl font-bold">Загрузка ёлки...</div>
+        <div className="text-white text-2xl font-bold">{t('loadingTree')}</div>
       </div>
     );
   }
@@ -235,7 +234,7 @@ function TreePageContent() {
           <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          Главная
+          {t('home')}
         </button>
         {/* Кнопка создания игрушки показывается только для общей ёлки, не для комнат */}
         {!currentRoom && (
@@ -256,17 +255,7 @@ function TreePageContent() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <span className="hidden sm:inline">Комнаты</span>
-        </button>
-        {/* Кнопка тестирования новогодней анимации (временно для разработки) */}
-        <button
-          onClick={() => setIsTestNewYear(!isTestNewYear)}
-          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-          <span className="hidden sm:inline">{isTestNewYear ? 'Остановить' : 'Тест Новый Год'}</span>
+          <span className="hidden sm:inline">{t('rooms')}</span>
         </button>
       </div>
 
@@ -283,7 +272,7 @@ function TreePageContent() {
             <button
               onClick={() => router.push('/tree')}
               className="text-blue-200 hover:text-white transition-colors text-xs sm:text-sm touch-manipulation flex-shrink-0"
-              title="Вернуться к общей ёлке"
+              title={t('backToTree')}
             >
               ✕
             </button>
@@ -310,8 +299,8 @@ function TreePageContent() {
           isRoom={!!currentRoom}
           treeType={treeType}
           treeModel={treeModel}
-          isNewYearAnimation={isTestNewYear}
-          onAnimationComplete={() => setIsTestNewYear(false)}
+          isNewYearAnimation={false}
+          onAnimationComplete={() => {}}
         />
       )}
 

@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import NotificationPromptButton from '@/components/notifications/NotificationPromptButton';
 import LanguageSwitcher from '@/components/language/LanguageSwitcher';
 import { AutoTranslator } from '@/components/constructor/AutoTranslator';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import {
   isPushNotificationSupported,
   getPushSubscription,
@@ -17,6 +18,7 @@ import {
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   // Проверяем, нужно ли показать запрос уведомлений (второй заход)
@@ -152,8 +154,8 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Комнаты</div>
-            <div className="text-xs sm:text-sm opacity-90">Создайте комнату для друзей</div>
+            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">{t('rooms')}</div>
+            <div className="text-xs sm:text-sm opacity-90">{t('createRoomForFriends')}</div>
             <div className="absolute inset-0 bg-white/0 group-active:bg-white/10 rounded-xl sm:rounded-2xl transition-all" />
           </button>
 

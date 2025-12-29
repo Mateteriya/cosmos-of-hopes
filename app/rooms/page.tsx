@@ -11,6 +11,7 @@ import CreateRoomModal from '@/components/rooms/CreateRoomModal';
 import JoinRoomModal from '@/components/rooms/JoinRoomModal';
 import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 import { getUserRooms, createRoom, joinRoomByInviteCode } from '@/lib/rooms';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { Room } from '@/types/room';
 
 // Временный userId для тестирования (позже будет из Telegram)
@@ -26,6 +27,7 @@ const getTempUserId = (): string => {
 
 export default function RoomsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +96,7 @@ export default function RoomsPage() {
   if (loading) {
     return (
       <div className="w-full h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-2xl font-bold">Загрузка комнат...</div>
+        <div className="text-white text-2xl font-bold">{t('loadingRooms')}</div>
       </div>
     );
   }
@@ -104,7 +106,7 @@ export default function RoomsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Заголовок */}
         <div className="mb-6">
-          <h1 className="text-white text-4xl font-bold mb-2">Мои комнаты</h1>
+          <h1 className="text-white text-4xl font-bold mb-2">{t('myRooms')}</h1>
           <p className="text-white/70">
             Создайте комнату для семьи или друзей, чтобы вместе украшать ёлку
           </p>
@@ -164,7 +166,7 @@ export default function RoomsPage() {
             onClick={() => router.push('/tree')}
             className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition-all"
           >
-            ← Вернуться к общей ёлке
+            {t('backToTree')}
           </button>
         </div>
       </div>
@@ -188,7 +190,7 @@ export default function RoomsPage() {
       {showNotificationPrompt && (
         <NotificationPrompt
           title="Включить уведомления?"
-          message="Получайте напоминания о запуске вашей комнаты и важных событиях!"
+          message={t('enableNotificationsMessage')}
           onClose={() => setShowNotificationPrompt(false)}
           showCloseButton={true}
         />
