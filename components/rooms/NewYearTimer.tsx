@@ -168,7 +168,6 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
   } | null>(null);
   const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [testMode, setTestMode] = useState<boolean>(false);
   const [stars, setStars] = useState<Array<{ id: number; x: number; y: number; delay: number; duration: number; moveType: number }>>([]);
 
   // ОНЛАЙН СИНХРОНИЗАЦИЯ: каждые 5 минут проверяем точное время в интернете
@@ -287,7 +286,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
   // Инициализация звездочек для режима Нового года (должен быть до условного возврата)
   useEffect(() => {
     if (!timeLeft) return;
-    const isNewYear = testMode || (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0);
+    const isNewYear = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
     if (isNewYear && stars.length === 0) {
       const newStars = Array.from({ length: 8 }, (_, i) => ({
         id: i,
@@ -299,7 +298,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
       }));
       setStars(newStars);
     }
-  }, [timeLeft, testMode, stars.length]);
+  }, [timeLeft, stars.length]);
 
   if (!timeLeft) {
     return (
@@ -312,7 +311,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
     );
   }
 
-  const isNewYear = testMode || (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0);
+  const isNewYear = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
 
   const timezones = getTimezones(language);
   const getTimezoneLabel = (tz: string) => {
@@ -418,7 +417,6 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
             </select>
           </div>
         )}
-      </div>
       </div>
     </div>
   );
