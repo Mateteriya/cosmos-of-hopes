@@ -228,41 +228,41 @@ export default function RoomPage() {
           </div>
         </div>
 
-        {/* Основной контент - две колонки */}
-        <div className="flex-1 flex gap-3 sm:gap-4 p-3 sm:p-4 pb-20 overflow-y-auto overflow-x-hidden">
-          {/* Левая колонка (2/3): Видеочат + селекторы */}
-          <div className="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0">
+        {/* Основной контент - три колонки */}
+        <div className="flex-1 flex p-3 sm:p-4 pb-20 overflow-y-auto overflow-x-hidden">
+          {/* Левая колонка (уменьшена в 1.4 раза): Видеочат */}
+          <div className="flex-[0.71] flex flex-col gap-2.5 sm:gap-3 min-w-0 mr-3 sm:mr-4">
             {/* Переключатель видео/голоса */}
-            <div className="bg-slate-800/60 backdrop-blur-md border border-white/20 rounded-lg p-3 flex-shrink-0">
-              <div className="text-white font-bold text-sm mb-3 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <div className="bg-slate-800/60 backdrop-blur-md border border-white/20 rounded-lg p-2 sm:p-2.5 flex-shrink-0">
+              <div className="text-white font-bold text-xs sm:text-sm mb-2 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 Коммуникация
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={() => setVideoChatEnabled(false)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-all touch-manipulation ${
+                  className={`flex-1 px-3 py-1.5 rounded-lg font-bold text-xs transition-all touch-manipulation ${
                     !videoChatEnabled
                       ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg'
                       : 'bg-slate-700/80 hover:bg-slate-600 active:bg-slate-500 text-white/70'
                   }`}
                 >
-                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                   </svg>
                   Голос
                 </button>
                 <button
                   onClick={() => setVideoChatEnabled(true)}
-                  className={`flex-1 px-4 py-2 rounded-lg font-bold text-sm transition-all touch-manipulation ${
+                  className={`flex-1 px-3 py-1.5 rounded-lg font-bold text-xs transition-all touch-manipulation ${
                     videoChatEnabled
                       ? 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-lg'
                       : 'bg-slate-700/80 hover:bg-slate-600 active:bg-slate-500 text-white/70'
                   }`}
                 >
-                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <svg className="w-3.5 h-3.5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                   Видео
@@ -270,18 +270,26 @@ export default function RoomPage() {
               </div>
             </div>
 
-            {/* Видеочат (увеличенный) */}
-            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[400px] sm:min-h-[500px]">
+            {/* Видеочат (уменьшенный) */}
+            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[333px] sm:min-h-[417px]">
               {videoChatEnabled ? (
                 <VideoRoom roomId={room.id} currentUserId={tempUserId} />
               ) : (
                 <VoiceChat roomId={room.id} currentUserId={tempUserId} />
               )}
             </div>
+          </div>
+
+          {/* Средняя колонка: Приглашение + Селекторы (только для создателя) */}
+          <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[246px] sm:w-[295px] mr-1.5 sm:mr-2 overflow-visible">
+            {/* Приглашение */}
+            <div className="flex-shrink-0">
+              <InviteLink inviteCode={room.invite_code} roomId={room.id} />
+            </div>
 
             {/* Селекторы (только для создателя) */}
             {isCreator && (
-              <div className="flex-shrink-0 space-y-3">
+              <>
                 <RoomDesignSelector
                   currentTheme={room.design_theme || 'classic'}
                   currentCustomUrl={room.custom_background_url}
@@ -293,17 +301,12 @@ export default function RoomPage() {
                   onProgramChange={handleProgramChange}
                   isCreator={true}
                 />
-              </div>
+              </>
             )}
           </div>
 
-          {/* Правая колонка (1/3): Компактный чат + панельки */}
-          <div className="w-80 sm:w-96 flex flex-col gap-3 sm:gap-4 min-w-0">
-            {/* Приглашение */}
-            <div className="flex-shrink-0">
-              <InviteLink inviteCode={room.invite_code} roomId={room.id} />
-            </div>
-
+          {/* Правая колонка: Компактный чат + панельки */}
+          <div className="w-[246px] sm:w-[295px] flex flex-col gap-3 sm:gap-4 min-w-0 mr-2 sm:mr-4">
             {/* Участники */}
             <div className="flex-shrink-0">
               <RoomParticipants roomId={room.id} currentUserId={tempUserId} />

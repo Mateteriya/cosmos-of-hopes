@@ -128,7 +128,7 @@ export default function EventProgramSelector({
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-0" ref={dropdownRef}>
+    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-20" ref={dropdownRef}>
       <div className="text-white font-bold text-xs sm:text-sm mb-2">🎮 Выбор программы мероприятия</div>
       
       {/* Кнопка селектора */}
@@ -156,7 +156,7 @@ export default function EventProgramSelector({
       {isOpen && (
         <div 
           ref={menuRef}
-          className={`absolute z-[55] w-full bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden ${
+          className={`absolute z-[100] w-full bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden ${
             openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
           }`}
         >
@@ -165,9 +165,9 @@ export default function EventProgramSelector({
               <button
                 key={program.value}
                 onClick={() => handleProgramSelect(program.value)}
-                className={`w-full p-2 sm:p-3 flex items-center justify-between gap-2 hover:bg-slate-700/50 transition-all text-left ${
+                className={`w-full p-2 sm:p-3 flex items-center justify-between gap-2 transition-all text-left ${
                   selectedProgram === program.value ? 'bg-blue-500/20' : ''
-                }`}
+                } hover:bg-blue-600/60 hover:border-l-4 hover:border-blue-400`}
               >
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="text-lg sm:text-xl flex-shrink-0">{program.emoji}</span>

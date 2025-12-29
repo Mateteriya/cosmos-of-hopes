@@ -36,7 +36,10 @@ export default function RoomDesignSelector({
   const [selectedTheme, setSelectedTheme] = useState<DesignTheme>(currentTheme);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(currentCustomUrl || null);
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Синхронизируем selectedTheme с currentTheme при изменении пропсов
   useEffect(() => {
@@ -47,6 +50,13 @@ export default function RoomDesignSelector({
   useEffect(() => {
     setCustomImageUrl(currentCustomUrl || null);
   }, [currentCustomUrl]);
+
+  // Всегда открываем меню вверх
+  useEffect(() => {
+    if (isOpen) {
+      setOpenUpward(true);
+    }
+  }, [isOpen]);
 
   // Закрываем dropdown при клике вне его
   useEffect(() => {
@@ -95,11 +105,12 @@ export default function RoomDesignSelector({
   const currentThemeData = designThemes.find(t => t.value === selectedTheme);
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-10" ref={dropdownRef}>
+    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-20" ref={dropdownRef}>
       <div className="text-white font-bold text-xs sm:text-sm mb-2">🎨 Выбор дизайна комнаты</div>
       
       {/* Кнопка селектора */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="w-full bg-slate-700/50 hover:bg-slate-700/70 border-2 border-white/20 rounded-lg p-2 sm:p-3 flex items-center justify-between transition-all"
       >
@@ -107,20 +118,25 @@ export default function RoomDesignSelector({
           <span className="text-lg sm:text-xl">{currentThemeData?.emoji}</span>
           <span className="text-white font-semibold text-xs sm:text-sm truncate">{currentThemeData?.name}</span>
         </div>
-        <span className="text-white/70 text-xs sm:text-sm flex-shrink-0 ml-2">{isOpen ? '▲' : '▼'}</span>
+        <span className="text-white/70 text-xs sm:text-sm flex-shrink-0 ml-2">{isOpen ? (openUpward ? '▼' : '▲') : '▼'}</span>
       </button>
 
       {/* Dropdown меню */}
       {isOpen && (
-        <div className="absolute z-[60] w-full mt-2 bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden">
+        <div 
+          ref={menuRef}
+          className={`absolute z-[100] w-full bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden ${
+            openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
+        >
           <div className="max-h-60 overflow-y-auto">
             {designThemes.map((theme) => (
               <button
                 key={theme.value}
                 onClick={() => handleThemeSelect(theme.value)}
-                className={`w-full p-2 sm:p-3 flex items-start gap-2 hover:bg-slate-700/50 transition-all text-left ${
+                className={`w-full p-2 sm:p-3 flex items-start gap-2 transition-all text-left ${
                   selectedTheme === theme.value ? 'bg-blue-500/20' : ''
-                }`}
+                } hover:bg-blue-600/60 hover:border-l-4 hover:border-blue-400`}
               >
                 <span className="text-lg sm:text-xl flex-shrink-0">{theme.emoji}</span>
                 <div className="min-w-0 flex-1">

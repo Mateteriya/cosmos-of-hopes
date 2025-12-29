@@ -344,8 +344,8 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4">
-      <div className="text-white font-bold text-xs sm:text-sm mb-2 sm:mb-3">🎤 Голосовой чат</div>
+    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-1.5 sm:p-2 lg:p-2.5">
+      <div className="text-white font-bold text-[10px] sm:text-xs mb-1.5 sm:mb-2">🎤 Голосовой чат</div>
       
       {/* Скрытые аудио элементы для удаленных потоков */}
       {Array.from(remoteStreamsRef.current.keys()).map((userId) => (
@@ -368,16 +368,16 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
       {!isConnected ? (
         <button
           onClick={startVoiceChat}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-xs sm:text-sm"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors text-[10px] sm:text-xs"
         >
           🎤 Включить голосовой чат
         </button>
       ) : (
-        <div className="space-y-2">
-          <div className="flex gap-2">
+        <div className="space-y-1.5">
+          <div className="flex gap-1.5">
             <button
               onClick={toggleMute}
-              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm transition-colors ${
+              className={`flex-1 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs transition-colors ${
                 isMuted
                   ? 'bg-red-600 hover:bg-red-700 text-white'
                   : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -387,27 +387,27 @@ export default function VoiceChat({ roomId, currentUserId }: VoiceChatProps) {
             </button>
             <button
               onClick={stopVoiceChat}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-xs sm:text-sm"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors text-[10px] sm:text-xs"
             >
               ❌ Отключиться
             </button>
           </div>
           
           {connectionStatus && (
-            <div className="text-white/70 text-[10px] sm:text-xs text-center">
+            <div className="text-white/70 text-[9px] sm:text-[10px] text-center">
               {connectionStatus}
             </div>
           )}
           
           {connectedUsers.size > 0 && (
-            <div className="text-white/60 text-[9px] sm:text-[10px] text-center">
+            <div className="text-white/60 text-[8px] sm:text-[9px] text-center">
               🔊 Слушаете: {connectedUsers.size} {connectedUsers.size === 1 ? 'участника' : 'участников'}
             </div>
           )}
         </div>
       )}
 
-      <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center">
+      <div className="mt-1.5 text-white/50 text-[8px] sm:text-[9px] text-center">
         Профессиональное качество связи
       </div>
     </div>
