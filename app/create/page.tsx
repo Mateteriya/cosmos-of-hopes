@@ -253,15 +253,17 @@ export default function CreatePage() {
       </div>
 
       {showSuccess && (
-        <div className="fixed top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg z-50 animate-fade-in flex items-center gap-2 sm:gap-3 max-w-[calc(100vw-1rem)] sm:max-w-md text-xs sm:text-sm">
-          <span>{t('ballHangedOnTree')}</span>
-          <button
-            onClick={() => setShowSuccess(false)}
-            className="text-white hover:text-gray-200 font-bold text-lg sm:text-xl leading-none flex-shrink-0 touch-manipulation p-1"
-            aria-label={t('close')}
-          >
-            ×
-          </button>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-green-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg animate-fade-in flex items-center gap-2 sm:gap-3 max-w-[calc(100vw-1rem)] sm:max-w-md text-xs sm:text-sm pointer-events-auto">
+            <span>{t('ballHangedOnTree')}</span>
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="text-white hover:text-gray-200 font-bold text-lg sm:text-xl leading-none flex-shrink-0 touch-manipulation p-1"
+              aria-label={t('close')}
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
 

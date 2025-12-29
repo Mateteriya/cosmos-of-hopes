@@ -40,8 +40,8 @@ export default function LikeNotification({ likesCount, onClose, toyId }: LikeNot
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-fade-in">
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400/50 max-w-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl shadow-2xl border-2 border-purple-400/50 max-w-sm pointer-events-auto animate-fade-in">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="text-3xl">✨</div>

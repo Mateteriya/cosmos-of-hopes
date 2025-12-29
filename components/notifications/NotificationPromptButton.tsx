@@ -34,6 +34,11 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false); // Промежуточная модалка перед системным диалогом
   const [showDeniedModal, setShowDeniedModal] = useState(false);
+  const [showEdgeWarning, setShowEdgeWarning] = useState(false);
+  
+  // Определяем, является ли браузер Edge
+  const isEdgeBrowser = typeof window !== 'undefined' && 
+    (navigator.userAgent.includes('Edg/') || navigator.userAgent.includes('Edge/'));
 
   useEffect(() => {
     const init = async () => {
@@ -318,10 +323,28 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         }, 500);
       } else {
         console.error('[NotificationPromptButton] Failed to create subscription');
+        
+        // Если это Edge и ошибка подписки - показываем предупреждение
+        if (isEdgeBrowser) {
+          setShowEdgeWarning(true);
+          // Автоматически скрываем через 8 секунд
+          setTimeout(() => {
+            setShowEdgeWarning(false);
+          }, 8000);
+        }
       }
     } catch (error: any) {
       console.error('[NotificationPromptButton] Error subscribing to notifications:', error);
-      alert(error.message || t('subscriptionError'));
+      
+      // Если это Edge и ошибка "push service error" - показываем предупреждение
+      if (isEdgeBrowser && error?.message?.includes('push service error')) {
+        setShowEdgeWarning(true);
+        setTimeout(() => {
+          setShowEdgeWarning(false);
+        }, 8000);
+      } else {
+        alert(error.message || t('subscriptionError'));
+      }
     } finally {
       setIsLoading(false);
       console.log('[NotificationPromptButton] requestPermissionAndSubscribe completed');
@@ -351,6 +374,37 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
 
   return (
     <>
+      {/* Ненавязчивое уведомление для Edge браузера */}
+      {showEdgeWarning && (
+        <div 
+          className="fixed top-20 right-4 z-[101] bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-lg max-w-sm animate-slide-in-right"
+        >
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium">
+                Edge браузер может не поддерживать уведомления
+              </p>
+              <p className="mt-1 text-sm text-blue-600">
+                Рекомендуем использовать Chrome или Firefox для получения уведомлений
+              </p>
+            </div>
+            <button
+              onClick={() => setShowEdgeWarning(false)}
+              className="ml-4 flex-shrink-0 text-blue-400 hover:text-blue-600"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div 
         className={`fixed top-4 left-4 z-[100] transition-all duration-300 ${
           showPulse ? 'animate-pulse' : ''
