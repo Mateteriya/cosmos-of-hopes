@@ -65,11 +65,11 @@ body {
 .chat-messages-area {
   background-color: #000000 !important;
   background-image: 
-    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-    radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px) !important;
-  background-size: 400px 400px, 300px 300px, 200px 200px, 150px 150px !important;
-  background-position: 0 0, 40px 60px, 130px 270px, 70px 100px !important;
+    radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.3) 0.5px, transparent 0.5px) !important;
+  background-size: 200px 200px, 150px 150px, 100px 100px, 80px 80px !important;
+  background-position: 0 0, 50px 50px, 25px 25px, 75px 75px !important;
   background-repeat: repeat !important;
 }

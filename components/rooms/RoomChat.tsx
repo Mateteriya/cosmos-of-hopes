@@ -73,18 +73,6 @@ export default function RoomChat({ roomId, currentUserId }: RoomChatProps) {
       {/* Сообщения */}
       <div 
         className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-0 relative chat-messages-area"
-        style={{
-          backgroundColor: '#000000',
-          backgroundImage: `
-            radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-            radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px)
-          `,
-          backgroundSize: '400px 400px, 300px 300px, 200px 200px, 150px 150px',
-          backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px',
-          backgroundRepeat: 'repeat'
-        }}
       >
         {isLoading ? (
           <div className="text-white/50 text-xs sm:text-sm text-center">Загрузка сообщений...</div>
