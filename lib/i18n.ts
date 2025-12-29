@@ -586,6 +586,8 @@ export const translations = {
         pleaseSelectImageFile: 'Please select an image file (JPG, PNG, GIF, BMP)',
         pleaseEnterValidEmail: 'Please enter a valid email address',
         notificationPermissionDenied: 'Notification permission denied',
+        yourBallGotLike: 'Your ball got {count} like!',
+        someoneLikedYourBall: 'Someone supported your wish ball',
         
         // Home page
         appTitle: '✨ Cosmos of Hopes ✨',
