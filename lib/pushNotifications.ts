@@ -47,6 +47,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 /**
  * Регистрирует Service Worker
+ * С таймаутом, чтобы не блокировать загрузку страницы
  */
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -54,18 +55,40 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 
   try {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/',
+    // Создаем таймаут на 3 секунды, чтобы не блокировать загрузку
+    const timeoutPromise = new Promise<null>((resolve) => {
+      setTimeout(() => {
+        console.warn('[Push Notifications] Service Worker registration timeout');
+        resolve(null);
+      }, 3000);
     });
 
-    console.log('[Push Notifications] Service Worker registered:', registration);
-    
-    // Ждем, пока Service Worker активируется
-    await navigator.serviceWorker.ready;
-    
-    return registration;
+    const registrationPromise = navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+    }).then(async (registration) => {
+      console.log('[Push Notifications] Service Worker registered:', registration);
+      
+      // Ждем, пока Service Worker активируется, но с таймаутом
+      try {
+        await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
+        ]);
+      } catch (e) {
+        console.warn('[Push Notifications] Service Worker ready timeout, but registration successful');
+      }
+      
+      return registration;
+    }).catch((error) => {
+      console.error('[Push Notifications] Service Worker registration failed:', error);
+      return null;
+    });
+
+    // Ждем либо регистрацию, либо таймаут
+    const result = await Promise.race([registrationPromise, timeoutPromise]);
+    return result;
   } catch (error) {
-    console.error('[Push Notifications] Service Worker registration failed:', error);
+    console.error('[Push Notifications] Service Worker registration error:', error);
     return null;
   }
 }

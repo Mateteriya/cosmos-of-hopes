@@ -33,20 +33,24 @@ export default function Home() {
         
         if (firstVisit && !hasSeenSecondVisitPrompt) {
           // Это второй заход - проверяем, подписаны ли на уведомления
+          // Откладываем регистрацию Service Worker, чтобы не блокировать загрузку
           if (isPushNotificationSupported()) {
-            try {
-              const registration = await registerServiceWorker();
-              if (registration) {
-                const subscription = await getPushSubscription(registration);
-                if (!subscription) {
-                  // Не подписаны - показываем запрос
-                  setShowNotificationPrompt(true);
-                  localStorage.setItem('cosmos_second_visit_notification_prompt', 'shown');
+            // Запускаем асинхронно, не блокируя загрузку
+            setTimeout(async () => {
+              try {
+                const registration = await registerServiceWorker();
+                if (registration) {
+                  const subscription = await getPushSubscription(registration);
+                  if (!subscription) {
+                    // Не подписаны - показываем запрос
+                    setShowNotificationPrompt(true);
+                    localStorage.setItem('cosmos_second_visit_notification_prompt', 'shown');
+                  }
                 }
+              } catch (error) {
+                console.error('Error checking notification subscription:', error);
               }
-            } catch (error) {
-              console.error('Error checking notification subscription:', error);
-            }
+            }, 1000); // Задержка 1 секунда после загрузки
           }
         } else if (!firstVisit) {
           // Первый заход - сохраняем метку
