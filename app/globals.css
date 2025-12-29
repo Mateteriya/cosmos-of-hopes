@@ -73,3 +73,80 @@ body {
   background-position: 0 0, 50px 50px, 25px 25px, 75px 75px !important;
   background-repeat: repeat !important;
 }
+
+/* Анимации для панельки Нового года */
+@keyframes glow-border {
+  0% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 0 40px rgba(255, 192, 203, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 192, 203, 0.5);
+  }
+}
+
+@keyframes star-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes star-move-1 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(8px, -10px); }
+  50% { transform: translate(-6px, 8px); }
+  75% { transform: translate(-10px, -4px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes star-move-2 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-12px, 6px); }
+  50% { transform: translate(10px, -8px); }
+  75% { transform: translate(5px, 12px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes star-move-3 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(6px, 10px); }
+  50% { transform: translate(-8px, -6px); }
+  75% { transform: translate(12px, 4px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes star-move-4 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-8px, -12px); }
+  50% { transform: translate(12px, 4px); }
+  75% { transform: translate(-4px, 10px); }
+  100% { transform: translate(0, 0); }
+}
+
+.new-year-panel-glow {
+  animation: glow-border 3s ease-in-out infinite alternate;
+}
+
+.star-pulse {
+  animation: star-pulse 2s ease-in-out infinite;
+}
+
+.star-move-1 {
+  animation: star-move-1 18s ease-in-out infinite;
+}
+
+.star-move-2 {
+  animation: star-move-2 22s ease-in-out infinite;
+}
+
+.star-move-3 {
+  animation: star-move-3 20s ease-in-out infinite;
+}
+
+.star-move-4 {
+  animation: star-move-4 25s ease-in-out infinite;
+}

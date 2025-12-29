@@ -168,6 +168,8 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
   } | null>(null);
   const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [testMode, setTestMode] = useState<boolean>(false);
+  const [stars, setStars] = useState<Array<{ id: number; x: number; y: number; delay: number; duration: number; moveType: number }>>([]);
 
   // ОНЛАЙН СИНХРОНИЗАЦИЯ: каждые 5 минут проверяем точное время в интернете
   useEffect(() => {
@@ -282,6 +284,23 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
     return () => clearInterval(interval);
   }, [selectedTimezone, serverTimeOffset]);
 
+  // Инициализация звездочек для режима Нового года (должен быть до условного возврата)
+  useEffect(() => {
+    if (!timeLeft) return;
+    const isNewYear = testMode || (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0);
+    if (isNewYear && stars.length === 0) {
+      const newStars = Array.from({ length: 8 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 15 + Math.random() * 10, // 15-25 секунд для медленного движения
+        moveType: (i % 4) + 1, // Чередуем типы движения 1-4
+      }));
+      setStars(newStars);
+    }
+  }, [timeLeft, testMode, stars.length]);
+
   if (!timeLeft) {
     return (
       <div className="text-white text-center">
@@ -293,7 +312,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
     );
   }
 
-  const isNewYear = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
+  const isNewYear = testMode || (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0);
 
   const timezones = getTimezones(language);
   const getTimezoneLabel = (tz: string) => {
@@ -302,22 +321,70 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
   };
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 md:gap-0">
-      {/* Заголовок справа от панельки (только на ПК) */}
-      <div className="hidden md:block text-white/90 text-base md:text-3xl lg:text-4xl font-semibold tracking-wide whitespace-nowrap bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 shadow-md" style={{ fontFamily: 'var(--font-playfair)' }}>
-        {t('timerUntilNewYear')}
+    <div className="flex flex-col gap-2">
+      {/* Тестовая кнопка */}
+      <div className="flex justify-center">
+        <button
+          onClick={() => setTestMode(!testMode)}
+          className="bg-yellow-600/80 hover:bg-yellow-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-md"
+          title="Тест: переключить режим Нового года"
+        >
+          {testMode ? '🔄 Тест: Новый год (выкл)' : '🧪 Тест: Новый год (вкл)'}
+        </button>
       </div>
       
+      <div className="flex items-center gap-3 sm:gap-4 md:gap-0">
+        {/* Заголовок справа от панельки (только на ПК) */}
+        <div className="hidden md:block text-white/90 text-base md:text-3xl lg:text-4xl font-semibold tracking-wide whitespace-nowrap bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 sm:px-4 md:px-6 lg:px-8 py-1.5 sm:py-2 shadow-md" style={{ fontFamily: 'var(--font-playfair)' }}>
+          {isNewYear ? t('timerNewYearTitle') : t('timerUntilNewYear')}
+        </div>
+      
       {/* Панелька с таймером */}
-      <div className="bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-purple-600/40 backdrop-blur-md border border-white/30 rounded-lg p-2 sm:p-2.5 md:p-3 text-center shadow-lg relative w-full max-w-[1200px]">
+      <div 
+        className={`bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-purple-600/40 backdrop-blur-md border border-white/30 rounded-lg p-2 sm:p-2.5 md:p-3 text-center shadow-lg relative min-h-[60px] sm:min-h-[70px] md:min-h-[80px] flex items-center justify-center overflow-hidden ${isNewYear ? 'w-full md:w-auto md:max-w-[450px] md:mx-auto new-year-panel-glow' : 'w-full max-w-[1200px]'}`}
+      >
+        {/* Звездочки на фоне (только для режима Нового года) */}
+        {isNewYear && stars.map((star) => {
+          const moveClasses = ['star-move-1', 'star-move-2', 'star-move-3', 'star-move-4'];
+          return (
+            <div
+              key={star.id}
+              className={`absolute w-1 h-1 bg-white/60 rounded-full star-pulse ${moveClasses[star.moveType - 1] || 'star-move-1'}`}
+              style={{
+                left: `${star.x}%`,
+                top: `${star.y}%`,
+                animationDelay: `${star.delay}s`,
+              }}
+            />
+          );
+        })}
         {isSyncing && (
           <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Синхронизация времени"></div>
         )}
         {isNewYear ? (
-          <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl">🎉</div>
-            <div className="text-sm sm:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{t('timerNewYear')}</div>
-            <div className="text-xs text-white/80">✨</div>
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            {/* Иконка звезды слева */}
+            <svg 
+              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-300 flex-shrink-0" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            
+            {/* Текст пожелания */}
+            <div className="text-sm sm:text-base md:text-lg font-semibold text-white" style={{ fontFamily: 'var(--font-inter)' }}>
+              {t('timerNewYearWish')}
+            </div>
+            
+            {/* Иконка звезды справа */}
+            <svg 
+              className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-yellow-300 flex-shrink-0" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
           </div>
         ) : (
           <div className="flex items-center justify-center gap-2 sm:gap-2.5 md:gap-3">
@@ -363,6 +430,7 @@ export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }:
             </select>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

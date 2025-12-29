@@ -127,7 +127,9 @@ export const translations = {
         // Таймер
         timerLoading: 'Загрузка...',
         timerUntilNewYear: 'До Нового - 2026 - года осталось:',
+        timerNewYearTitle: 'С Новым годом! Наступил 2026!',
         timerNewYear: 'С НОВЫМ ГОДОМ!',
+        timerNewYearWish: 'Исполнения самых мощнейших и светлейших желаний и мечт!)',
         timerDay: 'д',
         timerHour: 'ч',
         timerMinute: 'м',
@@ -263,7 +265,9 @@ export const translations = {
         // Timer
         timerLoading: 'Loading...',
         timerUntilNewYear: 'Until New Year - 2026 - remaining:',
+        timerNewYearTitle: 'Happy New Year! 2026 has arrived!',
         timerNewYear: 'HAPPY NEW YEAR!',
+        timerNewYearWish: 'Fulfillment of the most powerful and brightest wishes and dreams!)',
         timerDay: 'd',
         timerHour: 'h',
         timerMinute: 'm',
