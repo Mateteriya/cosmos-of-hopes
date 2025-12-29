@@ -37,7 +37,7 @@ export default function GuestContactsModal({
 
     // Валидация email
     if (currentType === 'email' && !currentValue.includes('@')) {
-      alert('Пожалуйста, введите корректный email адрес');
+      alert(t('pleaseEnterValidEmail') || 'Пожалуйста, введите корректный email адрес');
       return;
     }
 

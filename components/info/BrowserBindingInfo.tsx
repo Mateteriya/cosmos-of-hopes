@@ -7,8 +7,10 @@
 
 import { useState, useEffect } from 'react';
 import { getCurrentUser } from '@/lib/auth';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 
 export default function BrowserBindingInfo() {
+  const { t } = useLanguage();
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
@@ -50,25 +52,25 @@ export default function BrowserBindingInfo() {
           <div className="text-3xl flex-shrink-0">💡</div>
           <div className="flex-1">
             <h3 className="text-white font-bold text-sm sm:text-base mb-2">
-              Важная информация
+              {t('importantInfo') || 'Важная информация'}
             </h3>
             <p className="text-white/90 text-xs sm:text-sm mb-3 leading-relaxed">
-              Ваши шары на ёлке и комнаты доступны <strong>только в этом браузере</strong>.
+              {t('browserOnlyAccess') || 'Ваши шары на ёлке и комнаты доступны только в этом браузере.'}
             </p>
             <p className="text-white/80 text-xs leading-relaxed mb-4">
-              Для доступа с другого устройства или браузера потребуется <strong>регистрация</strong>.
+              {t('registrationRequired')}
             </p>
             <button
               onClick={handleClose}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all text-xs sm:text-sm"
             >
-              Понятно
+              {t('gotIt') || 'Понятно'}
             </button>
           </div>
           <button
             onClick={handleClose}
             className="text-white/70 hover:text-white transition-colors text-xl flex-shrink-0"
-            aria-label="Закрыть"
+            aria-label={t('close')}
           >
             ×
           </button>

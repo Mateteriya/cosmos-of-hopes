@@ -8,9 +8,11 @@
 import { useState, useEffect } from 'react';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import AuthModal from './AuthModal';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 import type { AuthUser } from '@/lib/auth';
 
 export default function AuthButton() {
+  const { t } = useLanguage();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -105,7 +107,7 @@ export default function AuthButton() {
       await signOut();
       setUser(null);
     } catch (error: any) {
-      alert(error.message || 'Ошибка при выходе');
+      alert(error.message || t('signOutError'));
     }
   };
 
@@ -140,13 +142,13 @@ export default function AuthButton() {
               ? 'px-4 py-2.5 text-sm sm:text-base' 
               : 'px-2 py-2 text-xl'
           }`}
-          title="Выполнен вход в аккаунт"
+          title={t('signedIn')}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           {shouldShowFull && (
-            <span className="hidden sm:inline">{user.email || 'Авторизован'}</span>
+            <span className="hidden sm:inline">{user.email || t('authorized')}</span>
           )}
         </div>
       </div>
@@ -183,9 +185,9 @@ export default function AuthButton() {
                 setShowModal(true);
               }}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-3 py-2.5 text-xs sm:text-sm"
-              title="Регистрация"
+              title={t('signUp')}
             >
-              Регистрация
+              {t('signUp')}
             </button>
             <button
               onClick={() => {
@@ -193,9 +195,9 @@ export default function AuthButton() {
                 setShowModal(true);
               }}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-3 py-2.5 text-xs sm:text-sm"
-              title="Войти"
+              title={t('signInToAccount')}
             >
-              Войти
+              {t('signInToAccount')}
             </button>
           </div>
         ) : (
@@ -211,7 +213,7 @@ export default function AuthButton() {
               }, 3000);
             }}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-2 py-2 text-xl"
-            title="Регистрация / Войти"
+            title={`${t('signUp')} / ${t('signInToAccount')}`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />

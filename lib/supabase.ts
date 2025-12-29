@@ -29,7 +29,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.error('   1. Создайте файл .env.local в папке cosmos-of-hopes/');
     console.error('   2. Добавьте следующие строки:');
     console.error('      NEXT_PUBLIC_SUPABASE_URL=https://pjvbiblalapcbgwpojvm.supabase.co');
-    console.error('      NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_rbnfTQkofSYumZsNKRUklg_isgW42ZP');
+    console.error('      NEXT_PUBLIC_SUPABASE_ANON_KEY=ваш_anon_key_здесь');
     console.error('   3. Перезапустите dev сервер (npm run dev)');
   }
 }

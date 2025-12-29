@@ -15,12 +15,14 @@ import {
   saveSubscriptionToServer,
 } from '@/lib/pushNotifications';
 import { getOrCreateUserId } from '@/lib/userId';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
 
 interface NotificationPromptButtonProps {
   onSubscribed?: () => void;
 }
 
 export default function NotificationPromptButton({ onSubscribed }: NotificationPromptButtonProps) {
+  const { t } = useLanguage();
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -194,7 +196,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         const swRegistration = await registerServiceWorker();
         if (!swRegistration) {
           console.error('[NotificationPromptButton] Service Worker registration failed');
-          alert('Не удалось зарегистрировать Service Worker. Убедитесь, что сайт открыт по HTTPS.');
+          alert(t('serviceWorkerRegistrationError'));
           setIsLoading(false);
           return;
         }
@@ -203,7 +205,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
         console.log('[NotificationPromptButton] Service Worker registered successfully');
       } catch (error: any) {
         console.error('[NotificationPromptButton] Error registering Service Worker:', error);
-        alert('Ошибка при регистрации Service Worker: ' + (error.message || 'Неизвестная ошибка'));
+        alert(t('serviceWorkerError') + (error.message || t('unknownError')));
         setIsLoading(false);
         return;
       }
@@ -256,7 +258,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
           return;
         }
         // Другая ошибка
-        alert('Ошибка при запросе разрешения: ' + (error.message || 'Неизвестная ошибка'));
+        alert(t('permissionRequestError') + (error.message || t('unknownError')));
         setIsLoading(false);
         if (isMobile) {
           setTimeout(() => {
@@ -319,7 +321,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
       }
     } catch (error: any) {
       console.error('[NotificationPromptButton] Error subscribing to notifications:', error);
-      alert(error.message || 'Ошибка при подписке на уведомления');
+      alert(error.message || t('subscriptionError'));
     } finally {
       setIsLoading(false);
       console.log('[NotificationPromptButton] requestPermissionAndSubscribe completed');
@@ -375,11 +377,11 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
               ? 'px-4 py-2.5 text-sm sm:text-base' 
               : 'px-2 py-2 text-xl'
           }`}
-          title={!shouldShowFull ? 'Включить уведомления' : undefined}
+          title={!shouldShowFull ? t('enableNotificationsButton') : undefined}
         >
           <span className="text-lg">🔔</span>
           {shouldShowFull && (
-            <span>{isLoading ? 'Загрузка...' : 'Включить уведомления'}</span>
+            <span>{isLoading ? t('loading') : t('enableNotificationsButton')}</span>
           )}
         </button>
       </div>
@@ -391,22 +393,22 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
             <div className="text-center mb-4">
               <div className="text-4xl mb-3">🔔</div>
               <h2 className="text-xl font-bold text-white mb-3">
-                Зачем нужны уведомления?
+                {t('whyNotifications')}
               </h2>
             </div>
 
             <div className="space-y-3 mb-6 text-sm text-slate-200">
               <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-purple-300">31 декабря в 23:57</strong>
-                <p className="mt-1 text-xs">Напоминание о том, что ваш шар желаний отправляется в космос! Вы сможете увидеть это волшебство.</p>
+                <strong className="text-purple-300">{t('notificationReminder1')}</strong>
+                <p className="mt-1 text-xs">{t('notificationReminder1Desc')}</p>
               </div>
               <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-purple-300">31 декабря в 22:50</strong>
-                <p className="mt-1 text-xs">Напоминание для создателей комнат: пора запускать празднование и приглашать гостей!</p>
+                <strong className="text-purple-300">{t('notificationReminder2')}</strong>
+                <p className="mt-1 text-xs">{t('notificationReminder2Desc')}</p>
               </div>
               <div className="bg-slate-700/50 rounded-lg p-3">
-                <strong className="text-purple-300">Новые лайки</strong>
-                <p className="mt-1 text-xs">Уведомления о том, что кто-то поддержал ваш шар желаний.</p>
+                <strong className="text-purple-300">{t('newLikes')}</strong>
+                <p className="mt-1 text-xs">{t('newLikesDesc')}</p>
               </div>
             </div>
 
@@ -422,7 +424,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
-                Подключить уведомления
+                {t('connectNotifications')}
               </button>
               <button
                 onClick={() => {
@@ -433,7 +435,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 }}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
               >
-                Позже
+                {t('later')}
               </button>
             </div>
           </div>
@@ -447,25 +449,24 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
             <div className="text-center mb-4">
               <div className="text-4xl mb-3">🔔</div>
               <h2 className="text-xl font-bold text-white mb-3">
-                Подтвердите подключение уведомлений
+                {t('confirmNotificationConnection')}
               </h2>
             </div>
 
             <div className="space-y-3 mb-6 text-sm text-slate-200">
               <div className="bg-gradient-to-r from-purple-700/30 to-pink-700/30 rounded-lg p-3 border border-purple-400/20">
-                <p className="text-white font-semibold mb-2">✨ Что вы получите:</p>
+                <p className="text-white font-semibold mb-2">{t('whatYouGet')}</p>
                 <ul className="space-y-1.5 text-xs text-slate-200">
-                  <li>• <strong>31 декабря в 23:57</strong> — напоминание о запуске вашего шара желаний в космос</li>
-                  <li>• <strong>31 декабря в 22:50</strong> — напоминание для создателей комнат о начале празднования</li>
-                  <li>• <strong>Новые лайки</strong> — уведомления о поддержке вашего шара</li>
+                  <li>• <strong>{t('reminder1')}</strong> {t('reminder1Text')}</li>
+                  <li>• <strong>{t('reminder2')}</strong> {t('reminder2Text')}</li>
+                  <li>• <strong>{t('newLikes')}</strong> {t('newLikesText')}</li>
                 </ul>
               </div>
 
               <div className="bg-gradient-to-r from-amber-700/30 to-orange-700/30 rounded-lg p-3 border border-amber-400/20">
-                <p className="text-amber-200 font-semibold mb-2">⚠️ Важно:</p>
+                <p className="text-amber-200 font-semibold mb-2">{t('notificationImportant')}</p>
                 <p className="text-xs text-slate-200">
-                  После нажатия "Подключить" браузер покажет системный диалог с вариантами "Разрешить" или "Блокировать". 
-                  Если вы выберете "Блокировать", то в дальнейшем подключить уведомления можно будет только через настройки браузера.
+                  {t('notificationAfterConnect')}
                 </p>
               </div>
             </div>
@@ -482,7 +483,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
-                Подключить уведомления
+                {t('connectNotifications')}
               </button>
               <button
                 onClick={() => {
@@ -495,7 +496,7 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 }}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
               >
-                Позже
+                {t('later')}
               </button>
             </div>
           </div>
@@ -509,10 +510,10 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
             <div className="text-center mb-4">
               <div className="text-4xl mb-3">🔔</div>
               <h2 className="text-xl font-bold text-white mb-2">
-                Разрешение на уведомления отклонено
+                {t('notificationDenied')}
               </h2>
               <p className="text-slate-300 text-sm mb-4">
-                Чтобы включить уведомления, выполните <strong className="text-white">2 шага</strong>:
+                {t('notificationDeniedSteps').replace('{count}', '2')}
               </p>
             </div>
 
@@ -520,24 +521,24 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
               {/* ШАГ 1 */}
               <div>
                 <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 rounded-lg p-3 mb-2 border-2 border-blue-400/30">
-                  <strong className="text-blue-200 text-base">ШАГ 1: Включить уведомления в настройках браузера</strong>
+                  <strong className="text-blue-200 text-base">{t('notificationStep1')}</strong>
                 </div>
                 <div className="space-y-2 ml-2">
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <strong className="text-white">Chrome/Edge:</strong>
-                    <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+                    <strong className="text-white">{t('chromeEdge')}</strong>
+                    <p className="mt-1 text-xs">{t('browserSettingsPath')}</p>
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <strong className="text-white">Firefox:</strong>
-                    <p className="mt-1 text-xs">Настройки → Конфиденциальность → Уведомления → Разрешить для этого сайта</p>
+                    <strong className="text-white">{t('firefox')}</strong>
+                    <p className="mt-1 text-xs">{t('browserSettingsPath')}</p>
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <strong className="text-white">Safari:</strong>
-                    <p className="mt-1 text-xs">Настройки → Сайты → Уведомления → Разрешить для этого сайта</p>
+                    <strong className="text-white">{t('safari')}</strong>
+                    <p className="mt-1 text-xs">{t('safariSettingsPath')}</p>
                   </div>
                   <div className="bg-slate-700/50 rounded-lg p-3">
-                    <strong className="text-white">Мобильные:</strong>
-                    <p className="mt-1 text-xs">Настройки браузера → Уведомления → Разрешить для этого сайта</p>
+                    <strong className="text-white">{t('mobile')}</strong>
+                    <p className="mt-1 text-xs">{t('mobileSettingsPath')}</p>
                   </div>
                 </div>
               </div>
@@ -545,10 +546,10 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
               {/* ШАГ 2 */}
               <div>
                 <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-lg p-3 mb-2 border-2 border-purple-400/30">
-                  <strong className="text-purple-200 text-base">ШАГ 2: Подтвердить подключение на сайте</strong>
+                  <strong className="text-purple-200 text-base">{t('notificationStep2Confirm')}</strong>
                 </div>
                 <div className="bg-gradient-to-r from-purple-700/50 to-pink-700/50 rounded-lg p-3 ml-2 border-2 border-purple-400/30">
-                  <p className="text-xs text-white">Вернитесь на главную страницу и нажмите на кнопку 🔔 <strong>"Включить уведомления"</strong> в левом верхнем углу, чтобы подтвердить подключение.</p>
+                  <p className="text-xs text-white">{t('notificationStep2Desc')}</p>
                 </div>
               </div>
             </div>
@@ -562,13 +563,13 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:scale-105 shadow-lg"
               >
-                Я включил уведомления в настройках
+                {t('iEnabledNotifications')}
               </button>
               <button
                 onClick={() => setShowDeniedModal(false)}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-all text-sm"
               >
-                Понятно, закрыть
+                {t('gotItClose')}
               </button>
             </div>
           </div>

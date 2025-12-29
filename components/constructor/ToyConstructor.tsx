@@ -600,7 +600,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       reader.readAsDataURL(file);
     } else if (file) {
       console.warn('Файл не является изображением:', file.type);
-      alert('Пожалуйста, выберите файл изображения (JPG, PNG, GIF, BMP)');
+      alert(t('pleaseSelectImageFile'));
     }
   };
 
@@ -638,7 +638,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       reader.readAsDataURL(file);
     } else if (file) {
       console.warn('Файл не является изображением:', file.type);
-      alert('Пожалуйста, выберите файл изображения (JPG, PNG, GIF, BMP)');
+      alert(t('pleaseSelectImageFile'));
     }
   };
 

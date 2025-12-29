@@ -93,7 +93,7 @@ export default function PushNotificationButton() {
       }
     } catch (error: any) {
       console.error('Error toggling push subscription:', error);
-      alert(error.message || 'Ошибка при подписке на уведомления');
+      alert(error.message || t('subscriptionError'));
     } finally {
       setIsLoading(false);
     }

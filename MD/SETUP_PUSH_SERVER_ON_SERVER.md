@@ -47,13 +47,13 @@ nano .env.local
 
 Добавьте (используйте ваши ключи):
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://pjvbiblalapcbgwpojvm.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_rbnfTQkofSYumZsNKRUklg_isgW42ZP
-NEXT_PUBLIC_VAPID_PUBLIC_KEY=BKQO-oVx2u2Dnz38U7RwbRvOnxNGb9QI6JP9_PmWZZ94D4q5NpdqLXmwEFYlH9IpJiP1eZEZfvV84iIjN7smOnA
-VAPID_PRIVATE_KEY=okPEY6b0ljhnrJ9bhc79FaIGSddOzdRHb2yqrWaNRro
-VAPID_PUBLIC_KEY=BKQO-oVx2u2Dnz38U7RwbRvOnxNGb9QI6JP9_PmWZZ94D4q5NpdqLXmwEFYlH9IpJiP1eZEZfvV84iIjN7smOnA
-VAPID_EMAIL=mailto:mateteriya@gmail.com
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_DpdPMwDSyhm3aapXV984_g_XAXO6g5J
+NEXT_PUBLIC_SUPABASE_URL=ваш_supabase_url_здесь
+NEXT_PUBLIC_SUPABASE_ANON_KEY=ваш_supabase_anon_key_здесь
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=ваш_public_ключ_здесь
+VAPID_PRIVATE_KEY=ваш_private_ключ_здесь
+VAPID_PUBLIC_KEY=ваш_public_ключ_здесь
+VAPID_EMAIL=mailto:your-email@example.com
+SUPABASE_SERVICE_ROLE_KEY=ваш_service_role_key_здесь
 ```
 
 Сохраните (Ctrl+O, Enter, Ctrl+X).
