@@ -112,6 +112,17 @@ export const translations = {
         step3: 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик',
         step4: 'Повесь его на мировую ёлку',
         optionalHint: '(можно добавить своё фото, имя или никнейм, а также дополнительное пожелание для кого угодно или сразу для всех)',
+        
+        // Комнаты
+        createRoom: 'Создать комнату',
+        roomName: 'Название комнаты',
+        roomNameExample: 'Например: Семья Ивановых',
+        roomNameRequired: 'Пожалуйста, введите название комнаты',
+        selectTimezone: 'Выберите часовой пояс',
+        roomCreationError: 'Ошибка создания комнаты',
+        creating: 'Создание...',
+        create: 'Создать',
+        cancel: 'Отмена',
       },
   en: {
     // General
@@ -224,6 +235,17 @@ export const translations = {
         step3: 'Press the "magic wand" to turn it into a real Christmas ball',
         step4: 'Hang it on the world tree',
         optionalHint: '(you can add your photo, name or nickname, as well as an additional wish for anyone or for everyone)',
+        
+        // Rooms
+        createRoom: 'Create Room',
+        roomName: 'Room Name',
+        roomNameExample: 'For example: The Smith Family',
+        roomNameRequired: 'Please enter room name',
+        selectTimezone: 'Select Timezone',
+        roomCreationError: 'Room creation error',
+        creating: 'Creating...',
+        create: 'Create',
+        cancel: 'Cancel',
       },
 } as const;
 

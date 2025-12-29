@@ -9,49 +9,53 @@ import type { Room, RoomMember } from '@/types/room';
 /**
  * Вычисляет время полночи в UTC для заданного timezone
  * Для 1 января следующего года
+ * 
+ * Правильный метод: используем простой и надежный итеративный поиск
  */
 function calculateMidnightUTC(timezone: string): Date {
   const now = new Date();
   const nextYear = now.getFullYear() + 1;
   
-  // Создаём дату 1 января следующего года в локальном времени
-  const jan1Local = new Date(nextYear, 0, 1, 0, 0, 0, 0);
+  // Правильный метод: ищем UTC время, которое при форматировании в нужном timezone
+  // даст 00:00:00 1 января следующего года
   
-  // Получаем строку этой даты в нужном timezone
-  const tzString = jan1Local.toLocaleString('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
+  // Начинаем с предположения: 1 января 00:00:00 UTC
+  let candidateUTC = new Date(Date.UTC(nextYear, 0, 1, 0, 0, 0, 0));
   
-  // Парсим строку (формат: "MM/DD/YYYY, HH:MM:SS")
-  const [datePart, timePart] = tzString.split(', ');
-  const [month, day, year] = datePart.split('/');
-  const [hour, minute, second] = timePart.split(':');
+  // Итеративно корректируем до получения правильного результата
+  for (let i = 0; i < 10; i++) {
+    // Получаем представление этой даты в нужном timezone
+    const tzString = candidateUTC.toLocaleString('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    
+    // Парсим строку (формат: "MM/DD/YYYY, HH:MM:SS")
+    const [datePart, timePart] = tzString.split(', ');
+    const [month, day, year] = datePart.split('/');
+    const [hour, minute, second] = timePart.split(':');
+    
+    // Проверяем, достигли ли мы полночи 1 января в нужном timezone
+    if (hour === '00' && minute === '00' && second === '00' && 
+        month === '01' && day === '01' && year === String(nextYear)) {
+      return candidateUTC;
+    }
+    
+    // Вычисляем, на сколько нужно сдвинуть UTC
+    // Если час в нужном timezone > 0, значит UTC должно быть раньше
+    const hourDiff = parseInt(hour);
+    
+    // Корректируем UTC время: вычитаем разницу в часах
+    candidateUTC = new Date(candidateUTC.getTime() - hourDiff * 60 * 60 * 1000);
+  }
   
-  // Создаём дату в UTC, которая соответствует этой дате/времени в нужном timezone
-  // Используем простой метод: создаём дату и вычисляем смещение
-  const utcNow = new Date();
-  const tzNow = new Date(utcNow.toLocaleString('en-US', { timeZone: timezone }));
-  const offset = utcNow.getTime() - tzNow.getTime();
-  
-  // Создаём дату полночи в нужном timezone
-  const midnightInTz = new Date(
-    parseInt(year),
-    parseInt(month) - 1,
-    parseInt(day),
-    parseInt(hour),
-    parseInt(minute),
-    parseInt(second)
-  );
-  
-  // Конвертируем в UTC
-  return new Date(midnightInTz.getTime() - offset);
+  return candidateUTC;
 }
 
 /**
@@ -77,6 +81,21 @@ export async function createRoom(
 ): Promise<Room> {
   // Вычисляем полночь в UTC для заданного timezone
   const midnightUTC = calculateMidnightUTC(timezone);
+  
+  // Отладочная информация
+  console.log('Создание комнаты:', {
+    timezone,
+    midnightUTC: midnightUTC.toISOString(),
+    midnightInTZ: midnightUTC.toLocaleString('ru-RU', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }),
+  });
   
   // Генерируем уникальный invite code
   let inviteCode = generateInviteCode();

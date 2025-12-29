@@ -17,18 +17,114 @@ interface CreateRoomModalProps {
   currentUserId: string;
 }
 
-const TIMEZONES = [
-  { value: 'Europe/Moscow', label: 'Москва (UTC+3)' },
-  { value: 'Europe/Kiev', label: 'Киев (UTC+2)' },
-  { value: 'Europe/Minsk', label: 'Минск (UTC+3)' },
-  { value: 'Asia/Almaty', label: 'Алматы (UTC+6)' },
-  { value: 'Asia/Tashkent', label: 'Ташкент (UTC+5)' },
-  { value: 'Europe/London', label: 'Лондон (UTC+0)' },
-  { value: 'America/New_York', label: 'Нью-Йорк (UTC-5)' },
-  { value: 'America/Los_Angeles', label: 'Лос-Анджелес (UTC-8)' },
-  { value: 'Asia/Tokyo', label: 'Токио (UTC+9)' },
-  { value: 'Asia/Shanghai', label: 'Шанхай (UTC+8)' },
-];
+// Расширенный список часовых поясов с переводами
+const getTimezones = (language: 'ru' | 'en') => {
+  const tz = {
+    ru: {
+      'Europe/Moscow': 'Москва (UTC+3)',
+      'Europe/Kiev': 'Киев (UTC+2)',
+      'Europe/Minsk': 'Минск (UTC+3)',
+      'Europe/Kaliningrad': 'Калининград (UTC+2)',
+      'Europe/Samara': 'Самара (UTC+4)',
+      'Asia/Yekaterinburg': 'Екатеринбург (UTC+5)',
+      'Asia/Omsk': 'Омск (UTC+6)',
+      'Asia/Krasnoyarsk': 'Красноярск (UTC+7)',
+      'Asia/Irkutsk': 'Иркутск (UTC+8)',
+      'Asia/Yakutsk': 'Якутск (UTC+9)',
+      'Asia/Vladivostok': 'Владивосток (UTC+10)',
+      'Asia/Magadan': 'Магадан (UTC+11)',
+      'Asia/Kamchatka': 'Камчатка (UTC+12)',
+      'Asia/Almaty': 'Алматы (UTC+6)',
+      'Asia/Tashkent': 'Ташкент (UTC+5)',
+      'Asia/Baku': 'Баку (UTC+4)',
+      'Asia/Tbilisi': 'Тбилиси (UTC+4)',
+      'Asia/Yerevan': 'Ереван (UTC+4)',
+      'Europe/London': 'Лондон (UTC+0)',
+      'Europe/Paris': 'Париж (UTC+1)',
+      'Europe/Berlin': 'Берлин (UTC+1)',
+      'Europe/Rome': 'Рим (UTC+1)',
+      'Europe/Madrid': 'Мадрид (UTC+1)',
+      'Europe/Athens': 'Афины (UTC+2)',
+      'Europe/Istanbul': 'Стамбул (UTC+3)',
+      'America/New_York': 'Нью-Йорк (UTC-5)',
+      'America/Chicago': 'Чикаго (UTC-6)',
+      'America/Denver': 'Денвер (UTC-7)',
+      'America/Los_Angeles': 'Лос-Анджелес (UTC-8)',
+      'America/Toronto': 'Торонто (UTC-5)',
+      'America/Mexico_City': 'Мехико (UTC-6)',
+      'America/Sao_Paulo': 'Сан-Паулу (UTC-3)',
+      'America/Buenos_Aires': 'Буэнос-Айрес (UTC-3)',
+      'Asia/Dubai': 'Дубай (UTC+4)',
+      'Asia/Riyadh': 'Эр-Рияд (UTC+3)',
+      'Asia/Tehran': 'Тегеран (UTC+3:30)',
+      'Asia/Karachi': 'Карачи (UTC+5)',
+      'Asia/Dhaka': 'Дакка (UTC+6)',
+      'Asia/Bangkok': 'Бангкок (UTC+7)',
+      'Asia/Singapore': 'Сингапур (UTC+8)',
+      'Asia/Hong_Kong': 'Гонконг (UTC+8)',
+      'Asia/Shanghai': 'Шанхай (UTC+8)',
+      'Asia/Seoul': 'Сеул (UTC+9)',
+      'Asia/Tokyo': 'Токио (UTC+9)',
+      'Australia/Sydney': 'Сидней (UTC+10)',
+      'Australia/Melbourne': 'Мельбурн (UTC+10)',
+      'Pacific/Auckland': 'Окленд (UTC+12)',
+    },
+    en: {
+      'Europe/Moscow': 'Moscow (UTC+3)',
+      'Europe/Kiev': 'Kiev (UTC+2)',
+      'Europe/Minsk': 'Minsk (UTC+3)',
+      'Europe/Kaliningrad': 'Kaliningrad (UTC+2)',
+      'Europe/Samara': 'Samara (UTC+4)',
+      'Asia/Yekaterinburg': 'Yekaterinburg (UTC+5)',
+      'Asia/Omsk': 'Omsk (UTC+6)',
+      'Asia/Krasnoyarsk': 'Krasnoyarsk (UTC+7)',
+      'Asia/Irkutsk': 'Irkutsk (UTC+8)',
+      'Asia/Yakutsk': 'Yakutsk (UTC+9)',
+      'Asia/Vladivostok': 'Vladivostok (UTC+10)',
+      'Asia/Magadan': 'Magadan (UTC+11)',
+      'Asia/Kamchatka': 'Kamchatka (UTC+12)',
+      'Asia/Almaty': 'Almaty (UTC+6)',
+      'Asia/Tashkent': 'Tashkent (UTC+5)',
+      'Asia/Baku': 'Baku (UTC+4)',
+      'Asia/Tbilisi': 'Tbilisi (UTC+4)',
+      'Asia/Yerevan': 'Yerevan (UTC+4)',
+      'Europe/London': 'London (UTC+0)',
+      'Europe/Paris': 'Paris (UTC+1)',
+      'Europe/Berlin': 'Berlin (UTC+1)',
+      'Europe/Rome': 'Rome (UTC+1)',
+      'Europe/Madrid': 'Madrid (UTC+1)',
+      'Europe/Athens': 'Athens (UTC+2)',
+      'Europe/Istanbul': 'Istanbul (UTC+3)',
+      'America/New_York': 'New York (UTC-5)',
+      'America/Chicago': 'Chicago (UTC-6)',
+      'America/Denver': 'Denver (UTC-7)',
+      'America/Los_Angeles': 'Los Angeles (UTC-8)',
+      'America/Toronto': 'Toronto (UTC-5)',
+      'America/Mexico_City': 'Mexico City (UTC-6)',
+      'America/Sao_Paulo': 'Sao Paulo (UTC-3)',
+      'America/Buenos_Aires': 'Buenos Aires (UTC-3)',
+      'Asia/Dubai': 'Dubai (UTC+4)',
+      'Asia/Riyadh': 'Riyadh (UTC+3)',
+      'Asia/Tehran': 'Tehran (UTC+3:30)',
+      'Asia/Karachi': 'Karachi (UTC+5)',
+      'Asia/Dhaka': 'Dhaka (UTC+6)',
+      'Asia/Bangkok': 'Bangkok (UTC+7)',
+      'Asia/Singapore': 'Singapore (UTC+8)',
+      'Asia/Hong_Kong': 'Hong Kong (UTC+8)',
+      'Asia/Shanghai': 'Shanghai (UTC+8)',
+      'Asia/Seoul': 'Seoul (UTC+9)',
+      'Asia/Tokyo': 'Tokyo (UTC+9)',
+      'Australia/Sydney': 'Sydney (UTC+10)',
+      'Australia/Melbourne': 'Melbourne (UTC+10)',
+      'Pacific/Auckland': 'Auckland (UTC+12)',
+    },
+  };
+  
+  return Object.entries(tz[language]).map(([value, label]) => ({
+    value,
+    label,
+  }));
+};
 
 export default function CreateRoomModal({
   isOpen,
@@ -36,12 +132,14 @@ export default function CreateRoomModal({
   onCreate,
   currentUserId,
 }: CreateRoomModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [name, setName] = useState('');
   const [timezone, setTimezone] = useState('Europe/Moscow');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  
+  const TIMEZONES = getTimezones(language);
 
   if (!isOpen) return null;
 

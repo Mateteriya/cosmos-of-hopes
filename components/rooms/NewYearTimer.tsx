@@ -22,37 +22,101 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
   const [serverTimeOffset, setServerTimeOffset] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Синхронизация с сервером каждые 5 минут
+  // ОНЛАЙН СИНХРОНИЗАЦИЯ: каждые 5 минут проверяем точное время в интернете
   useEffect(() => {
-    const syncWithServer = async () => {
+    const syncWithInternet = async () => {
       try {
         setIsSyncing(true);
+        const localTimeBefore = Date.now(); // Системное время устройства ДО запроса
+        
         const response = await fetch('/api/time');
+        
+        const localTimeAfter = Date.now(); // Системное время устройства ПОСЛЕ запроса
+        const localTimeAvg = (localTimeBefore + localTimeAfter) / 2; // Среднее время для компенсации задержки сети
+        
         if (response.ok) {
           const data = await response.json();
-          const serverTime = new Date(data.timestamp).getTime();
-          const localTime = Date.now();
-          setServerTimeOffset(serverTime - localTime);
+          const internetTime = new Date(data.timestamp).getTime(); // Точное время из интернета
+          
+          // Вычисляем offset: разница между временем из интернета и системным временем устройства
+          // Если internetTime > localTime, значит устройство отстает, offset положительный
+          // Если internetTime < localTime, значит устройство спешит, offset отрицательный
+          const offset = internetTime - localTimeAvg;
+          
+          // Отладочная информация
+          console.log('Синхронизация времени:', {
+            internetTime: new Date(internetTime).toISOString(),
+            localTimeAvg: new Date(localTimeAvg).toISOString(),
+            offset,
+            offsetSeconds: offset / 1000,
+          });
+          
+          setServerTimeOffset(offset);
         }
       } catch (error) {
-        console.warn('Не удалось синхронизировать время с сервером:', error);
+        console.error('Ошибка синхронизации времени с интернетом:', error);
+        // В онлайн приложении это не должно происходить, но на всякий случай оставляем offset = 0
+        setServerTimeOffset(0);
       } finally {
         setIsSyncing(false);
       }
     };
 
-    syncWithServer();
-    const syncInterval = setInterval(syncWithServer, 5 * 60 * 1000); // Каждые 5 минут
+    // Синхронизируем сразу при загрузке
+    syncWithInternet();
+    
+    // Затем каждые 5 минут
+    const syncInterval = setInterval(syncWithInternet, 5 * 60 * 1000);
 
     return () => clearInterval(syncInterval);
   }, []);
 
   useEffect(() => {
     const updateTimer = () => {
-      // Используем серверное время с offset или локальное как fallback
-      const now = new Date(Date.now() + serverTimeOffset);
-      const midnight = new Date(midnightUTC);
-      const diff = midnight.getTime() - now.getTime();
+      // ОНЛАЙН ПОДХОД:
+      // 1. Используем системное время устройства (Date.now())
+      // 2. Корректируем его на offset, полученный из интернета (serverTimeOffset)
+      // 3. Каждые 5 минут синхронизируемся с интернетом для точности
+      // 4. ВАЖНО: сравниваем время в нужном часовом поясе!
+      
+      const systemTime = Date.now(); // Системное время устройства (UTC timestamp)
+      const correctedTime = systemTime + serverTimeOffset; // Время с коррекцией из интернета (UTC timestamp)
+      
+      // Полночь в нужном timezone (уже в UTC)
+      // ВАЖНО: убеждаемся, что парсим как UTC (добавляем Z если его нет)
+      const midnightUTCString = midnightUTC.endsWith('Z') ? midnightUTC : midnightUTC + 'Z';
+      const midnight = new Date(midnightUTCString);
+      
+      // ПРАВИЛЬНЫЙ ПОДХОД: вычисляем разницу напрямую в UTC
+      // midnight - это полночь 1 января в нужном timezone, но в UTC
+      // correctedTime - это текущее время в UTC
+      // Разница между ними - это правильное время до Нового года
+      const diff = midnight.getTime() - correctedTime;
+      
+      // Отладочная информация (только при первой загрузке и периодически)
+      if (typeof window !== 'undefined') {
+        const now = Date.now();
+        if (!(window as any).__timerDebugShown) {
+          (window as any).__timerDebugShown = true;
+          console.log('🔍 Таймер отладка (первая загрузка):', {
+            midnightUTC,
+            midnightTime: midnight.toISOString(),
+            midnightInTZ: midnight.toLocaleString('ru-RU', { timeZone: timezone }),
+            systemTime: new Date(systemTime).toISOString(),
+            systemTimeInTZ: new Date(systemTime).toLocaleString('ru-RU', { timeZone: timezone }),
+            serverTimeOffset,
+            serverTimeOffsetSeconds: serverTimeOffset / 1000,
+            correctedTime: new Date(correctedTime).toISOString(),
+            correctedTimeInTZ: new Date(correctedTime).toLocaleString('ru-RU', { timeZone: timezone }),
+            diff,
+            diffHours: diff / (1000 * 60 * 60),
+            timezone,
+            days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+            minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          });
+        }
+      }
 
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
