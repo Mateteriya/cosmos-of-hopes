@@ -560,12 +560,23 @@ const DEVELOPER_USER_ID = 'developer_auto_like';
 
 /**
  * Проверяет и добавляет автоматический лайк разработчика к шару пользователя
+ * Лайк добавляется минимум через 1 час после создания шара
  */
 export async function checkAndAddDeveloperLikes(userId: string): Promise<void> {
   try {
     // Получаем шар пользователя
     const userToy = await getUserToy(userId);
     if (!userToy) return;
+
+    // Проверяем время создания шара - лайк добавляем минимум через 1 час
+    const createdAt = new Date(userToy.created_at);
+    const now = new Date();
+    const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    
+    // Если прошло меньше 1 часа - не добавляем лайк
+    if (hoursSinceCreation < 1) {
+      return;
+    }
 
     // Проверяем, лайкнул ли разработчик этот шар
     const hasLiked = await hasUserLikedToy(userToy.id, DEVELOPER_USER_ID);
