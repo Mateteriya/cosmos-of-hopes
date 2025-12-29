@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/components/constructor/LanguageProvider";
 import NotificationManager from "@/components/notifications/NotificationManager";
 import BrowserBindingInfo from "@/components/info/BrowserBindingInfo";
-import AuthButton from "@/components/auth/AuthButton";
+import ConditionalAuthButton from "@/components/auth/ConditionalAuthButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +18,12 @@ const geistMono = Geist_Mono({
 
 const inter = Inter({
   variable: "--font-inter",
+  subsets: ["latin", "cyrillic"],
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin", "cyrillic"],
   display: "swap",
 });
@@ -41,13 +47,13 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${playfairDisplay.variable} antialiased`}
         suppressHydrationWarning
       >
         <LanguageProvider>
           <NotificationManager />
           <BrowserBindingInfo />
-          <AuthButton />
+          <ConditionalAuthButton />
           {children}
         </LanguageProvider>
       </body>

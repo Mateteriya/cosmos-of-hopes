@@ -192,30 +192,38 @@ export default function RoomPage() {
 
       {/* Контент */}
       <div className="relative z-10 w-full h-screen flex flex-col">
-        {/* Заголовок */}
-        <div className="flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button
-              onClick={() => router.push('/rooms')}
-              className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg transition-all text-sm whitespace-nowrap flex-shrink-0"
-            >
-              ←
-            </button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-white text-lg sm:text-xl lg:text-2xl font-bold truncate flex items-center gap-2">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                {room.name}
-              </h1>
-              <p className="text-white/70 text-xs">Код: {room.invite_code}</p>
+        {/* Заголовок с таймером */}
+        <div className="flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 relative">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            {/* Левая часть: кнопка назад и название комнаты */}
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <button
+                onClick={() => router.push('/rooms')}
+                className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg transition-all text-sm whitespace-nowrap flex-shrink-0"
+              >
+                ←
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-white text-lg sm:text-xl lg:text-2xl font-bold truncate flex items-center gap-2">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  {room.name}
+                </h1>
+                <p className="text-white/70 text-xs">Код: {room.invite_code}</p>
+              </div>
+            </div>
+            
+            {/* Правая часть: таймер (только на ПК) */}
+            <div className="hidden md:flex justify-end items-center mr-2 sm:mr-4">
+              <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
             </div>
           </div>
         </div>
 
-        {/* Таймер в центре страницы */}
-        <div className="flex-shrink-0 flex justify-center items-center p-4 z-20">
-          <div className="max-w-md w-full">
+        {/* Таймер в центре страницы (только на мобильных) */}
+        <div className="flex-shrink-0 flex md:hidden justify-center items-center p-4 z-20">
+          <div className="w-full max-w-md px-4">
             <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
           </div>
         </div>

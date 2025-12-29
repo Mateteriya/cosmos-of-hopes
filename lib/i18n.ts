@@ -123,6 +123,19 @@ export const translations = {
         creating: 'Создание...',
         create: 'Создать',
         cancel: 'Отмена',
+        
+        // Таймер
+        timerLoading: 'Загрузка...',
+        timerUntilNewYear: 'До Нового - 2026 - года осталось:',
+        timerNewYear: 'С НОВЫМ ГОДОМ!',
+        timerDay: 'д',
+        timerHour: 'ч',
+        timerMinute: 'м',
+        timerSecond: 'с',
+        timerDayFull: 'День',
+        timerHourFull: 'Час',
+        timerMinuteFull: 'Минуты',
+        timerSecondFull: 'Секунды',
       },
   en: {
     // General
@@ -246,6 +259,19 @@ export const translations = {
         creating: 'Creating...',
         create: 'Create',
         cancel: 'Cancel',
+        
+        // Timer
+        timerLoading: 'Loading...',
+        timerUntilNewYear: 'Until New Year - 2026 - remaining:',
+        timerNewYear: 'HAPPY NEW YEAR!',
+        timerDay: 'd',
+        timerHour: 'h',
+        timerMinute: 'm',
+        timerSecond: 's',
+        timerDayFull: 'Day',
+        timerHourFull: 'Hour',
+        timerMinuteFull: 'Minutes',
+        timerSecondFull: 'Seconds',
       },
 } as const;
 

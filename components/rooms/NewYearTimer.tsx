@@ -6,13 +6,160 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/components/constructor/LanguageProvider';
+import { translations } from '@/lib/i18n';
 
 interface NewYearTimerProps {
   midnightUTC: string; // ISO timestamp полночи в UTC
   timezone: string; // Часовой пояс комнаты
 }
 
-export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProps) {
+// Функция для получения списка часовых поясов (из CreateRoomModal)
+const getTimezones = (language: 'ru' | 'en') => {
+  const tz = {
+    ru: {
+      'Europe/Moscow': 'Москва',
+      'Europe/Kiev': 'Киев',
+      'Europe/Minsk': 'Минск',
+      'Europe/Kaliningrad': 'Калининград',
+      'Europe/Samara': 'Самара',
+      'Asia/Yekaterinburg': 'Екатеринбург',
+      'Asia/Omsk': 'Омск',
+      'Asia/Krasnoyarsk': 'Красноярск',
+      'Asia/Irkutsk': 'Иркутск',
+      'Asia/Yakutsk': 'Якутск',
+      'Asia/Vladivostok': 'Владивосток',
+      'Asia/Magadan': 'Магадан',
+      'Asia/Kamchatka': 'Камчатка',
+      'Asia/Almaty': 'Алматы',
+      'Asia/Tashkent': 'Ташкент',
+      'Asia/Baku': 'Баку',
+      'Asia/Tbilisi': 'Тбилиси',
+      'Asia/Yerevan': 'Ереван',
+      'Europe/London': 'Лондон',
+      'Europe/Paris': 'Париж',
+      'Europe/Berlin': 'Берлин',
+      'Europe/Rome': 'Рим',
+      'Europe/Madrid': 'Мадрид',
+      'Europe/Athens': 'Афины',
+      'Europe/Istanbul': 'Стамбул',
+      'America/New_York': 'Нью-Йорк',
+      'America/Chicago': 'Чикаго',
+      'America/Denver': 'Денвер',
+      'America/Los_Angeles': 'Лос-Анджелес',
+      'America/Toronto': 'Торонто',
+      'America/Mexico_City': 'Мехико',
+      'America/Sao_Paulo': 'Сан-Паулу',
+      'America/Buenos_Aires': 'Буэнос-Айрес',
+      'Asia/Dubai': 'Дубай',
+      'Asia/Riyadh': 'Эр-Рияд',
+      'Asia/Tehran': 'Тегеран',
+      'Asia/Karachi': 'Карачи',
+      'Asia/Dhaka': 'Дакка',
+      'Asia/Bangkok': 'Бангкок',
+      'Asia/Singapore': 'Сингапур',
+      'Asia/Hong_Kong': 'Гонконг',
+      'Asia/Shanghai': 'Шанхай',
+      'Asia/Seoul': 'Сеул',
+      'Asia/Tokyo': 'Токио',
+      'Australia/Sydney': 'Сидней',
+      'Australia/Melbourne': 'Мельбурн',
+      'Pacific/Auckland': 'Окленд',
+    },
+    en: {
+      'Europe/Moscow': 'Moscow',
+      'Europe/Kiev': 'Kiev',
+      'Europe/Minsk': 'Minsk',
+      'Europe/Kaliningrad': 'Kaliningrad',
+      'Europe/Samara': 'Samara',
+      'Asia/Yekaterinburg': 'Yekaterinburg',
+      'Asia/Omsk': 'Omsk',
+      'Asia/Krasnoyarsk': 'Krasnoyarsk',
+      'Asia/Irkutsk': 'Irkutsk',
+      'Asia/Yakutsk': 'Yakutsk',
+      'Asia/Vladivostok': 'Vladivostok',
+      'Asia/Magadan': 'Magadan',
+      'Asia/Kamchatka': 'Kamchatka',
+      'Asia/Almaty': 'Almaty',
+      'Asia/Tashkent': 'Tashkent',
+      'Asia/Baku': 'Baku',
+      'Asia/Tbilisi': 'Tbilisi',
+      'Asia/Yerevan': 'Yerevan',
+      'Europe/London': 'London',
+      'Europe/Paris': 'Paris',
+      'Europe/Berlin': 'Berlin',
+      'Europe/Rome': 'Rome',
+      'Europe/Madrid': 'Madrid',
+      'Europe/Athens': 'Athens',
+      'Europe/Istanbul': 'Istanbul',
+      'America/New_York': 'New York',
+      'America/Chicago': 'Chicago',
+      'America/Denver': 'Denver',
+      'America/Los_Angeles': 'Los Angeles',
+      'America/Toronto': 'Toronto',
+      'America/Mexico_City': 'Mexico City',
+      'America/Sao_Paulo': 'Sao Paulo',
+      'America/Buenos_Aires': 'Buenos Aires',
+      'Asia/Dubai': 'Dubai',
+      'Asia/Riyadh': 'Riyadh',
+      'Asia/Tehran': 'Tehran',
+      'Asia/Karachi': 'Karachi',
+      'Asia/Dhaka': 'Dhaka',
+      'Asia/Bangkok': 'Bangkok',
+      'Asia/Singapore': 'Singapore',
+      'Asia/Hong_Kong': 'Hong Kong',
+      'Asia/Shanghai': 'Shanghai',
+      'Asia/Seoul': 'Seoul',
+      'Asia/Tokyo': 'Tokyo',
+      'Australia/Sydney': 'Sydney',
+      'Australia/Melbourne': 'Melbourne',
+      'Pacific/Auckland': 'Auckland',
+    },
+  };
+  
+  return Object.entries(tz[language]).map(([value, label]) => ({ value, label }));
+};
+
+// Функция для вычисления полночи 1 января следующего года в указанном часовом поясе
+function calculateMidnightUTCForTimezone(timezone: string): Date {
+  const now = new Date();
+  const nextYear = now.getFullYear() + 1;
+  
+  let candidateUTC = new Date(Date.UTC(nextYear, 0, 1, 0, 0, 0, 0));
+  
+  for (let i = 0; i < 10; i++) {
+    const tzString = candidateUTC.toLocaleString('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    });
+    
+    const [datePart, timePart] = tzString.split(', ');
+    const [month, day, year] = datePart.split('/');
+    const [hour, minute, second] = timePart.split(':');
+    
+    if (hour === '00' && minute === '00' && second === '00' && 
+        month === '01' && day === '01' && year === String(nextYear)) {
+      return candidateUTC;
+    }
+    
+    const hourDiff = parseInt(hour);
+    candidateUTC = new Date(candidateUTC.getTime() - hourDiff * 60 * 60 * 1000);
+  }
+  
+  return candidateUTC;
+}
+
+export default function NewYearTimer({ midnightUTC, timezone: initialTimezone }: NewYearTimerProps) {
+  const { language } = useLanguage();
+  const t = (key: keyof typeof translations.ru) => translations[language]?.[key] || translations.ru[key];
+  
+  const [selectedTimezone, setSelectedTimezone] = useState<string>(initialTimezone);
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
     hours: number;
@@ -82,13 +229,11 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
       const systemTime = Date.now(); // Системное время устройства (UTC timestamp)
       const correctedTime = systemTime + serverTimeOffset; // Время с коррекцией из интернета (UTC timestamp)
       
-      // Полночь в нужном timezone (уже в UTC)
-      // ВАЖНО: убеждаемся, что парсим как UTC (добавляем Z если его нет)
-      const midnightUTCString = midnightUTC.endsWith('Z') ? midnightUTC : midnightUTC + 'Z';
-      const midnight = new Date(midnightUTCString);
+      // Вычисляем полночь для выбранного часового пояса
+      const midnight = calculateMidnightUTCForTimezone(selectedTimezone);
       
       // ПРАВИЛЬНЫЙ ПОДХОД: вычисляем разницу напрямую в UTC
-      // midnight - это полночь 1 января в нужном timezone, но в UTC
+      // midnight - это полночь 1 января в выбранном timezone, но в UTC
       // correctedTime - это текущее время в UTC
       // Разница между ними - это правильное время до Нового года
       const diff = midnight.getTime() - correctedTime;
@@ -101,16 +246,16 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
           console.log('🔍 Таймер отладка (первая загрузка):', {
             midnightUTC,
             midnightTime: midnight.toISOString(),
-            midnightInTZ: midnight.toLocaleString('ru-RU', { timeZone: timezone }),
+            midnightInTZ: midnight.toLocaleString('ru-RU', { timeZone: selectedTimezone }),
             systemTime: new Date(systemTime).toISOString(),
-            systemTimeInTZ: new Date(systemTime).toLocaleString('ru-RU', { timeZone: timezone }),
+            systemTimeInTZ: new Date(systemTime).toLocaleString('ru-RU', { timeZone: selectedTimezone }),
             serverTimeOffset,
             serverTimeOffsetSeconds: serverTimeOffset / 1000,
             correctedTime: new Date(correctedTime).toISOString(),
-            correctedTimeInTZ: new Date(correctedTime).toLocaleString('ru-RU', { timeZone: timezone }),
+            correctedTimeInTZ: new Date(correctedTime).toLocaleString('ru-RU', { timeZone: selectedTimezone }),
             diff,
             diffHours: diff / (1000 * 60 * 60),
-            timezone,
+            selectedTimezone,
             days: Math.floor(diff / (1000 * 60 * 60 * 24)),
             hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
             minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
@@ -135,14 +280,14 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [midnightUTC, serverTimeOffset]);
+  }, [selectedTimezone, serverTimeOffset]);
 
   if (!timeLeft) {
     return (
       <div className="text-white text-center">
         <div className="text-sm font-bold flex items-center justify-center gap-2">
           <div className="animate-spin w-3 h-3 border border-white/30 border-t-white rounded-full"></div>
-          Загрузка...
+          {t('timerLoading')}
         </div>
       </div>
     );
@@ -150,45 +295,75 @@ export default function NewYearTimer({ midnightUTC, timezone }: NewYearTimerProp
 
   const isNewYear = timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0;
 
+  const timezones = getTimezones(language);
+  const getTimezoneLabel = (tz: string) => {
+    const found = timezones.find(t => t.value === tz);
+    return found ? found.label : tz;
+  };
+
   return (
-    <div className="bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-purple-600/40 backdrop-blur-md border border-white/30 rounded-lg p-2 text-center shadow-lg relative">
-      {isSyncing && (
-        <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Синхронизация времени"></div>
-      )}
-      {isNewYear ? (
-        <div className="space-y-1">
-          <div className="text-2xl sm:text-3xl">🎉</div>
-          <div className="text-sm sm:text-base font-bold text-white">С НОВЫМ ГОДОМ!</div>
-          <div className="text-xs text-white/80">✨</div>
-        </div>
-      ) : (
-        <div className="space-y-1">
-          <div className="text-white/90 text-[10px] sm:text-xs uppercase tracking-wider font-medium">
-            До Нового года
+    <div className="flex items-center gap-3 sm:gap-4">
+      {/* Заголовок справа от панельки (только на ПК) */}
+      <div className="hidden md:block text-white/90 text-base md:text-lg lg:text-xl font-semibold tracking-wide whitespace-nowrap bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-sm border border-white/20 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 shadow-md" style={{ fontFamily: 'var(--font-playfair)' }}>
+        {t('timerUntilNewYear')}
+      </div>
+      
+      {/* Панелька с таймером */}
+      <div className="bg-gradient-to-r from-purple-600/40 via-pink-600/40 to-purple-600/40 backdrop-blur-md border border-white/30 rounded-lg p-2 sm:p-2.5 md:p-3 text-center shadow-lg relative w-full max-w-[1200px]">
+        {isSyncing && (
+          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Синхронизация времени"></div>
+        )}
+        {isNewYear ? (
+          <div className="space-y-1">
+            <div className="text-2xl sm:text-3xl">🎉</div>
+            <div className="text-sm sm:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{t('timerNewYear')}</div>
+            <div className="text-xs text-white/80">✨</div>
           </div>
-          <div className="grid grid-cols-4 gap-1">
-            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
-              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.days}</div>
-              <div className="text-[8px] text-white/70 uppercase">Дней</div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 sm:gap-2.5 md:gap-3">
+            <div 
+              className="bg-white/15 backdrop-blur-sm rounded-lg px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 border border-white/20 flex items-center gap-1 sm:gap-1.5 min-w-[55px] sm:min-w-[60px] md:min-w-[65px] justify-center cursor-default"
+              title={t('timerDayFull')}
+            >
+              <span className="text-xs sm:text-sm md:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{timeLeft.days}</span>
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] text-white/70 font-medium" style={{ fontFamily: 'var(--font-inter)' }}>{t('timerDay')}</span>
             </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
-              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.hours}</div>
-              <div className="text-[8px] text-white/70 uppercase">Часов</div>
+            <div 
+              className="bg-white/15 backdrop-blur-sm rounded-lg px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 border border-white/20 flex items-center gap-1 sm:gap-1.5 min-w-[55px] sm:min-w-[60px] md:min-w-[65px] justify-center cursor-default"
+              title={t('timerHourFull')}
+            >
+              <span className="text-xs sm:text-sm md:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{timeLeft.hours}</span>
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] text-white/70 font-medium" style={{ fontFamily: 'var(--font-inter)' }}>{t('timerHour')}</span>
             </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
-              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.minutes}</div>
-              <div className="text-[8px] text-white/70 uppercase">Минут</div>
+            <div 
+              className="bg-white/15 backdrop-blur-sm rounded-lg px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 border border-white/20 flex items-center gap-1 sm:gap-1.5 min-w-[55px] sm:min-w-[60px] md:min-w-[65px] justify-center cursor-default"
+              title={t('timerMinuteFull')}
+            >
+              <span className="text-xs sm:text-sm md:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{timeLeft.minutes}</span>
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] text-white/70 font-medium" style={{ fontFamily: 'var(--font-inter)' }}>{t('timerMinute')}</span>
             </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded p-1 border border-white/20 min-w-0">
-              <div className="text-xs sm:text-sm font-bold text-white leading-tight">{timeLeft.seconds}</div>
-              <div className="text-[8px] text-white/70 uppercase">Секунд</div>
+            <div 
+              className="bg-white/15 backdrop-blur-sm rounded-lg px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 border border-white/20 flex items-center gap-1 sm:gap-1.5 min-w-[55px] sm:min-w-[60px] md:min-w-[65px] justify-center cursor-default"
+              title={t('timerSecondFull')}
+            >
+              <span className="text-xs sm:text-sm md:text-base font-bold text-white" style={{ fontFamily: 'var(--font-playfair)' }}>{timeLeft.seconds}</span>
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] text-white/70 font-medium" style={{ fontFamily: 'var(--font-inter)' }}>{t('timerSecond')}</span>
             </div>
+            <select
+              value={selectedTimezone}
+              onChange={(e) => setSelectedTimezone(e.target.value)}
+              className="bg-white/15 backdrop-blur-sm rounded-lg px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 border border-white/20 text-white/90 text-[8px] sm:text-[9px] md:text-[10px] font-medium ml-1 sm:ml-2 cursor-pointer hover:bg-white/20 transition-colors"
+              style={{ fontFamily: 'var(--font-inter)' }}
+            >
+              {timezones.map(tz => (
+                <option key={tz.value} value={tz.value} className="bg-slate-800">
+                  {tz.label}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="text-white/60 text-[9px]">
-            {timezone}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
