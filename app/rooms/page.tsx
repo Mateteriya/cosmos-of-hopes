@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import RoomCard from '@/components/rooms/RoomCard';
 import CreateRoomModal from '@/components/rooms/CreateRoomModal';
 import JoinRoomModal from '@/components/rooms/JoinRoomModal';
+import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 import { getUserRooms, createRoom, joinRoomByInviteCode } from '@/lib/rooms';
 import type { Room } from '@/types/room';
 
@@ -30,6 +31,7 @@ export default function RoomsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [tempUserId] = useState<string>(() => getTempUserId());
 
   useEffect(() => {
@@ -55,6 +57,15 @@ export default function RoomsPage() {
     setRooms(prev => [...prev, room]);
     // Комната создана, но не переходим автоматически
     // Пользователь может сам выбрать когда войти в комнату
+    
+    // Показываем запрос уведомлений после создания комнаты
+    const hasSeenNotificationPrompt = localStorage.getItem('has_seen_notification_prompt_after_room');
+    if (!hasSeenNotificationPrompt) {
+      setTimeout(() => {
+        setShowNotificationPrompt(true);
+        localStorage.setItem('has_seen_notification_prompt_after_room', 'shown');
+      }, 300);
+    }
   };
 
   const handleRoomJoined = (room: Room) => {
@@ -172,6 +183,16 @@ export default function RoomsPage() {
         onJoin={handleRoomJoined}
         currentUserId={tempUserId}
       />
+
+      {/* Запрос уведомлений после создания комнаты */}
+      {showNotificationPrompt && (
+        <NotificationPrompt
+          title="Включить уведомления?"
+          message="Получайте напоминания о запуске вашей комнаты и важных событиях!"
+          onClose={() => setShowNotificationPrompt(false)}
+          showCloseButton={true}
+        />
+      )}
     </div>
   );
 }
