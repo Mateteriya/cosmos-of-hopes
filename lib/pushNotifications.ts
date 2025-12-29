@@ -71,19 +71,35 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 }
 
 /**
- * Конвертирует base64 VAPID ключ в Uint8Array
+ * Конвертирует base64url VAPID ключ в Uint8Array
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  try {
+    // Убираем возможные пробелы и переносы строк
+    const cleanKey = base64String.trim();
+    
+    // Добавляем padding если нужно
+    const padding = '='.repeat((4 - (cleanKey.length % 4)) % 4);
+    
+    // Конвертируем base64url в base64
+    const base64 = (cleanKey + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
 
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+    // Декодируем base64
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    
+    console.log('[Push Notifications] Key converted, length:', outputArray.length, 'bytes');
+    return outputArray;
+  } catch (error: any) {
+    console.error('[Push Notifications] Key conversion error:', error);
+    throw new Error(`Failed to convert VAPID key: ${error.message}`);
   }
-  return outputArray;
 }
 
 /**
@@ -100,20 +116,58 @@ export async function subscribeToPushNotifications(
       return existingSubscription;
     }
 
+    // Проверяем VAPID ключ
+    console.log('[Push Notifications] VAPID_PUBLIC_KEY:', VAPID_PUBLIC_KEY ? `${VAPID_PUBLIC_KEY.substring(0, 20)}...` : 'НЕ НАЙДЕН');
+    
     if (!VAPID_PUBLIC_KEY) {
-      console.warn('[Push Notifications] VAPID public key not configured');
+      console.error('[Push Notifications] VAPID public key not configured!');
+      console.error('[Push Notifications] Check NEXT_PUBLIC_VAPID_PUBLIC_KEY in .env.local');
+      alert('Ошибка: VAPID ключ не настроен. Проверьте конфигурацию.');
       return null;
     }
 
+    // Проверяем формат ключа (должен быть base64url)
+    if (VAPID_PUBLIC_KEY.length < 80) {
+      console.error('[Push Notifications] VAPID key seems too short:', VAPID_PUBLIC_KEY.length);
+      alert('Ошибка: VAPID ключ имеет неверный формат.');
+      return null;
+    }
+
+    console.log('[Push Notifications] Attempting to subscribe with VAPID key...');
+    console.log('[Push Notifications] Key length:', VAPID_PUBLIC_KEY.length);
+    
+    // Конвертируем ключ
+    let applicationServerKey: Uint8Array;
+    try {
+      applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      console.log('[Push Notifications] Key converted successfully, size:', applicationServerKey.length);
+    } catch (conversionError: any) {
+      console.error('[Push Notifications] Key conversion failed:', conversionError);
+      alert('Ошибка конвертации VAPID ключа: ' + conversionError.message);
+      return null;
+    }
+    
+    // Пытаемся подписаться
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as unknown as BufferSource,
+      applicationServerKey: applicationServerKey as unknown as BufferSource,
     });
 
     console.log('[Push Notifications] Subscribed:', subscription);
     return subscription;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Push Notifications] Subscription failed:', error);
+    console.error('[Push Notifications] Error details:', {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+    });
+    
+    // Более информативное сообщение об ошибке
+    if (error?.message?.includes('push service error')) {
+      alert('Ошибка push-сервиса. Возможные причины:\n1. VAPID ключ неверный\n2. Сайт не на HTTPS\n3. Проблема с браузером');
+    }
+    
     return null;
   }
 }

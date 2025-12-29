@@ -308,6 +308,7 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
           },
           body: JSON.stringify({
             toyOwnerId: toy.user_id,
