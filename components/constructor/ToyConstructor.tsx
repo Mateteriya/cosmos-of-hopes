@@ -750,20 +750,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
 
   return (
     <div className="min-h-screen relative p-2 sm:p-3 md:p-4 overflow-hidden">
-      {/* Селектор языка в левом верхнем углу */}
-      <div className="fixed top-12 left-2 sm:top-4 sm:left-4 z-50">
-        <div className="relative">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value as 'ru' | 'en')}
-            className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-white font-bold text-xs sm:text-sm cursor-pointer active:border-white/50 transition-colors shadow-xl touch-manipulation"
-          >
-            <option value="ru">🇷🇺 Русский</option>
-            <option value="en">🇺🇸 English</option>
-          </select>
-        </div>
-      </div>
-
       {/* Автоматический переводчик в правом верхнем углу */}
       <AutoTranslator />
       

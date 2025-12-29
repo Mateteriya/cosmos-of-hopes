@@ -18,7 +18,7 @@ import {
 
 export default function Home() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
 
   // Проверяем, нужно ли показать запрос уведомлений (второй заход)
@@ -66,7 +66,7 @@ export default function Home() {
       <NotificationPromptButton />
       
       {/* Кнопки переключения языков по центру сверху */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3">
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3" key={language}>
         <LanguageSwitcher />
         <AutoTranslator />
       </div>
@@ -78,10 +78,10 @@ export default function Home() {
             <div className="text-center mb-4 sm:mb-6">
               <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">🔔</div>
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-                Включить уведомления?
+                {t('enableNotifications')}
               </h2>
               <p className="text-slate-300 text-xs sm:text-sm px-2">
-                Получайте напоминания о волшебном моменте и важных событиях!
+                {t('enableNotificationsDesc')}
               </p>
             </div>
             <div className="space-y-2 sm:space-y-3">
@@ -92,13 +92,13 @@ export default function Home() {
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
               >
-                Включить уведомления
+                {t('enableNotificationsButton')}
               </button>
               <button
                 onClick={() => setShowNotificationPrompt(false)}
                 className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
               >
-                Позже
+                {t('later')}
               </button>
             </div>
           </div>
@@ -110,18 +110,18 @@ export default function Home() {
         <div className="text-center mb-6 sm:mb-8 md:mb-12 pt-16 sm:pt-4">
           {/* Русское название приложения */}
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent leading-tight px-6 sm:px-2" style={{ fontFamily: 'var(--font-inter)' }}>
-            ✨ Вселенная Желаний ✨
+            {t('appTitle')}
           </h1>
           {/* Английское название (меньше, под русским) */}
           <p className="text-xs sm:text-sm md:text-base text-white/50 mb-4 sm:mb-6 font-light italic px-6 sm:px-2" style={{ fontFamily: 'var(--font-inter)' }}>
-            Cosmos of Hopes
+            {t('appSubtitle')}
           </p>
           {/* Описание - улучшенные стили для мобильных */}
           <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/80 mb-2 sm:mb-3 px-6 sm:px-6 md:px-8 max-w-xs sm:max-w-lg mx-auto leading-relaxed" style={{ fontFamily: 'var(--font-inter)' }}>
-            Совместное празднование Нового года онлайн
+            {t('appDescription')}
           </p>
           <p className="text-xs sm:text-sm md:text-base text-white/60 px-6 sm:px-6 md:px-8 max-w-xs sm:max-w-md mx-auto leading-relaxed" style={{ fontFamily: 'var(--font-inter)' }}>
-            Создавайте шары желаний, украшайте ёлку вместе с друзьями
+            {t('appDescription2')}
           </p>
         </div>
 
@@ -138,8 +138,8 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Создать шар</div>
-            <div className="text-xs sm:text-sm opacity-90">Украсьте ёлку своим желанием</div>
+            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">{t('createBall')}</div>
+            <div className="text-xs sm:text-sm opacity-90">{t('decorateTreeWithWish')}</div>
             <div className="absolute inset-0 bg-white/0 group-active:bg-white/10 rounded-xl sm:rounded-2xl transition-all" />
           </button>
 
@@ -170,8 +170,8 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">Общая ёлка</div>
-            <div className="text-xs sm:text-sm opacity-90">Посмотрите все желания</div>
+            <div className="text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">{t('commonTree')}</div>
+            <div className="text-xs sm:text-sm opacity-90">{t('viewAllWishes')}</div>
             <div className="absolute inset-0 bg-white/0 group-active:bg-white/10 rounded-xl sm:rounded-2xl transition-all" />
           </button>
         </div>
@@ -179,7 +179,7 @@ export default function Home() {
         {/* Описание приложения */}
         <div className="bg-gradient-to-br from-slate-800/80 via-purple-900/30 to-slate-800/80 backdrop-blur-md border-2 border-purple-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 text-center bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-300 bg-clip-text text-transparent">
-            ✨ Что мы предлагаем
+            {t('whatWeOffer')}
           </h2>
           <div className="space-y-3 sm:space-y-4 text-left">
             <div className="flex items-start gap-3">
@@ -189,8 +189,8 @@ export default function Home() {
                 </svg>
               </span>
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Создайте уникальный шар желаний</h3>
-                <p className="text-xs sm:text-sm text-white/80">Нарисуйте свой шар, выберите цвета, эффекты и фильтры. Каждый шар неповторим, как ваше желание.</p>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">{t('createUniqueBall')}</h3>
+                <p className="text-xs sm:text-sm text-white/80">{t('createUniqueBallDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -200,8 +200,8 @@ export default function Home() {
                 </svg>
               </span>
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Украсьте общую ёлку</h3>
-                <p className="text-xs sm:text-sm text-white/80">Ваш шар появится на виртуальной ёлке вместе с шарами других людей. Поддерживайте чужие мечты лайками!</p>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">{t('decorateCommonTree')}</h3>
+                <p className="text-xs sm:text-sm text-white/80">{t('decorateCommonTreeDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -211,8 +211,8 @@ export default function Home() {
                 </svg>
               </span>
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Празднуйте вместе в комнатах</h3>
-                <p className="text-xs sm:text-sm text-white/80">Создавайте комнаты для друзей и близких. Встречайте Новый год вместе, даже находясь далеко друг от друга.</p>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">{t('celebrateTogether')}</h3>
+                <p className="text-xs sm:text-sm text-white/80">{t('celebrateTogetherDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -222,8 +222,8 @@ export default function Home() {
                 </svg>
               </span>
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-white mb-1">Загадайте желание</h3>
-                <p className="text-xs sm:text-sm text-white/80">Напишите ваше самое заветное желание. Пусть оно станет частью магии Нового года!</p>
+                <h3 className="text-sm sm:text-base font-bold text-white mb-1">{t('makeAWish')}</h3>
+                <p className="text-xs sm:text-sm text-white/80">{t('makeAWishDesc')}</p>
               </div>
             </div>
           </div>
@@ -232,10 +232,10 @@ export default function Home() {
         {/* Дополнительная информация */}
         <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
           <p className="text-white/70 text-xs sm:text-sm mb-2">
-            💫 Присоединяйтесь к тысячам людей, которые уже украсили нашу виртуальную ёлку
+            {t('joinThousands')}
           </p>
           <p className="text-white/50 text-[10px] sm:text-xs">
-            Каждый шар — это чьё-то желание, мечта или надежда на новый год
+            {t('everyBallIsWish')}
           </p>
         </div>
       </div>
