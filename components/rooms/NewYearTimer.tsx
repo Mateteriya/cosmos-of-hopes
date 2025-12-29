@@ -120,12 +120,11 @@ const getTimezones = (language: 'ru' | 'en') => {
   return Object.entries(tz[language]).map(([value, label]) => ({ value, label }));
 };
 
-// Функция для вычисления полночи 1 января следующего года в указанном часовом поясе
+// Функция для вычисления полночи 1 января 2026 года в указанном часовом поясе
 function calculateMidnightUTCForTimezone(timezone: string): Date {
-  const now = new Date();
-  const nextYear = now.getFullYear() + 1;
+  const targetYear = 2026; // Всегда 2026 год
   
-  let candidateUTC = new Date(Date.UTC(nextYear, 0, 1, 0, 0, 0, 0));
+  let candidateUTC = new Date(Date.UTC(targetYear, 0, 1, 0, 0, 0, 0));
   
   for (let i = 0; i < 10; i++) {
     const tzString = candidateUTC.toLocaleString('en-US', {
@@ -144,7 +143,7 @@ function calculateMidnightUTCForTimezone(timezone: string): Date {
     const [hour, minute, second] = timePart.split(':');
     
     if (hour === '00' && minute === '00' && second === '00' && 
-        month === '01' && day === '01' && year === String(nextYear)) {
+        month === '01' && day === '01' && year === String(targetYear)) {
       return candidateUTC;
     }
     
