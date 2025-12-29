@@ -286,6 +286,7 @@ export const translations = {
         serviceWorkerRegistrationError: 'Не удалось зарегистрировать Service Worker. Убедитесь, что сайт открыт по HTTPS.',
         serviceWorkerError: 'Ошибка при регистрации Service Worker: ',
         unknownError: 'Неизвестная ошибка',
+        pleaseEnterValidEmail: 'Пожалуйста, введите корректный email адрес',
       },
   en: {
     // General

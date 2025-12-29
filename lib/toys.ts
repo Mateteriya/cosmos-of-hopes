@@ -288,6 +288,42 @@ export async function addSupport(toyId: string, supporterId: string): Promise<vo
       }
       throw new Error(`Ошибка добавления поддержки: ${error.message}`);
     }
+
+    // После успешного добавления лайка отправляем push-уведомление владельцу шара
+    // Делаем это асинхронно, чтобы не блокировать основной поток
+    try {
+      // Получаем информацию о шаре и его владельце
+      const { data: toy } = await supabase
+        .from('toys')
+        .select('user_id')
+        .eq('id', toyId)
+        .single();
+
+      if (toy && toy.user_id && toy.user_id !== supporterId) {
+        // Отправляем уведомление через Edge Function (не блокируем основной поток)
+        fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-like-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            toyOwnerId: toy.user_id,
+            toyId: toyId,
+          }),
+        }).catch((err) => {
+          // Игнорируем ошибки отправки уведомлений, чтобы не блокировать добавление лайка
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Ошибка отправки push-уведомления о лайке:', err);
+          }
+        });
+      }
+    } catch (notifError) {
+      // Игнорируем ошибки отправки уведомлений
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Ошибка при попытке отправить уведомление о лайке:', notifError);
+      }
+    }
   } catch (err: any) {
     // Если таблица не существует, просто игнорируем
     const isTableNotFound = 
