@@ -72,12 +72,22 @@ export default function RoomPage() {
     }
   }, [roomId]);
 
-  // Прокрутка вверх при загрузке страницы
+  // Прокрутка вверх при загрузке страницы - более надежный способ
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo(0, 0);
+      // Используем несколько попыток для надежности
+      const scrollToTop = () => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      };
+      scrollToTop();
+      // Повторяем через небольшие задержки
+      setTimeout(scrollToTop, 100);
+      setTimeout(scrollToTop, 300);
+      setTimeout(scrollToTop, 500);
     }
-  }, []);
+  }, [room]);
 
   // Отладка для проверки isCreator (должен быть до условных возвратов!)
   useEffect(() => {
@@ -296,10 +306,10 @@ export default function RoomPage() {
                 {designSelectorOpen && (
                   <>
                     <div
-                      className="fixed inset-0 z-[9998]"
+                      className="fixed inset-0 z-[99998]"
                       onClick={() => setDesignSelectorOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px]">
+                    <div className="absolute right-0 bottom-full mb-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px] max-h-[80vh] overflow-y-auto">
                       <RoomDesignSelector
                         currentTheme={room.design_theme || 'classic'}
                         currentCustomUrl={room.custom_background_url}
@@ -452,9 +462,9 @@ export default function RoomPage() {
         <div className="md:hidden flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-3 py-3 gap-3">
           {/* Чат текстовый */}
           <div className="flex-shrink-0 relative">
-            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col" style={{ minHeight: '400px', maxHeight: '500px' }}>
+            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col" style={{ height: '450px' }}>
               {/* Участники внутри чата */}
-              <div className="flex-shrink-0 px-3 pt-2 pb-1">
+              <div className="flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10">
                 <CompactParticipants 
                   roomId={room.id} 
                   currentUserId={tempUserId} 
