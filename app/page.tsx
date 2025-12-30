@@ -65,8 +65,8 @@ export default function Home() {
       {/* Кнопка уведомлений в левом верхнем углу */}
       <NotificationPromptButton />
       
-      {/* Кнопки переключения языков по центру сверху */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3" key={language}>
+      {/* Кнопки переключения языков - по центру на мобильных, в левом углу на ПК */}
+      <div className="fixed top-4 left-1/2 md:left-4 transform md:transform-none -translate-x-1/2 md:translate-x-0 z-50 flex items-center gap-2 sm:gap-3" key={language}>
         <LanguageSwitcher />
         <AutoTranslator />
       </div>
