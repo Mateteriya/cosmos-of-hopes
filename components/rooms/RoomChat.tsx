@@ -21,6 +21,7 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Загружаем историю сообщений и подписываемся на новые
   useEffect(() => {
@@ -82,9 +83,12 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
     };
   }, [roomId]);
 
-  // Прокрутка вниз при новых сообщениях
+  // Прокрутка вниз при новых сообщениях (только внутри контейнера чата)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      // Прокручиваем только контейнер чата, а не всю страницу
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const loadMessages = async () => {
@@ -128,6 +132,7 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
 
       {/* Сообщения */}
       <div 
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-0 relative chat-messages-area"
         style={{ minHeight: 0 }}
       >

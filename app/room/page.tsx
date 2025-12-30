@@ -72,22 +72,21 @@ export default function RoomPage() {
     }
   }, [roomId]);
 
-  // Прокрутка вверх при загрузке страницы - более надежный способ
+  // Прокрутка вверх при загрузке страницы - только один раз при монтировании
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Используем несколько попыток для надежности
+    if (typeof window !== 'undefined' && room) {
+      // Прокручиваем только один раз при первой загрузке комнаты
       const scrollToTop = () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
       };
       scrollToTop();
-      // Повторяем через небольшие задержки
-      setTimeout(scrollToTop, 100);
-      setTimeout(scrollToTop, 300);
-      setTimeout(scrollToTop, 500);
+      // Одна дополнительная попытка через небольшую задержку
+      const timeoutId = setTimeout(scrollToTop, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [room]);
+  }, [room?.id]); // Только при изменении ID комнаты, а не при каждом изменении room
 
   // Отладка для проверки isCreator (должен быть до условных возвратов!)
   useEffect(() => {
