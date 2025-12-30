@@ -4,10 +4,12 @@
  * Страница, показываемая когда шар пользователя уже на ёлке и имеет лайки
  */
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from './LanguageProvider';
 import type { Toy } from '@/types/toy';
 import Ball3DPreview from './Ball3DPreview';
+import { getOrCreateUserId } from '@/lib/userId';
 
 interface BallAlreadyOnTreePageProps {
   ball: Toy;
@@ -22,12 +24,41 @@ export default function BallAlreadyOnTreePage({
 }: BallAlreadyOnTreePageProps) {
   const router = useRouter();
   const { t } = useLanguage();
+  const [rating, setRating] = useState<number | null>(null);
+  const [hoveredRating, setHoveredRating] = useState<number | null>(null);
+  const [hasRated, setHasRated] = useState(false);
 
   const handleGoToTree = () => {
     if (roomId) {
       router.push(`/tree?room=${roomId}`);
     } else {
       router.push('/tree');
+    }
+  };
+
+  const handleRatingClick = async (stars: number) => {
+    if (hasRated) return;
+    
+    setRating(stars);
+    
+    try {
+      const userId = await getOrCreateUserId();
+      const response = await fetch('/api/rate-app', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          rating: stars,
+        }),
+      });
+
+      if (response.ok) {
+        setHasRated(true);
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении оценки:', error);
     }
   };
 
@@ -40,7 +71,7 @@ export default function BallAlreadyOnTreePage({
             {t('yourBallOnTree')}
           </h1>
           <p className="text-white/80 text-base sm:text-lg mb-2">
-            {t('ballHasLikes')}
+            {t('ballHasLikesShort')}
           </p>
         </div>
 
@@ -75,13 +106,46 @@ export default function BallAlreadyOnTreePage({
         </div>
 
         {/* Кнопка перехода к ёлке */}
-        <div className="text-center">
+        <div className="text-center mb-6 sm:mb-8">
           <button
             onClick={handleGoToTree}
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-xl transition-all transform hover:scale-105 text-base sm:text-lg"
           >
             {t('viewYourBall')}
           </button>
+        </div>
+
+        {/* Оценка приложения */}
+        <div className="text-center">
+          <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-xl p-4 sm:p-6">
+            <h3 className="text-white font-bold text-lg sm:text-xl mb-4">
+              {t('rateApp')}
+            </h3>
+            {hasRated ? (
+              <p className="text-green-400 font-semibold text-base sm:text-lg">
+                {t('thankYouForRating')}
+              </p>
+            ) : (
+              <div className="flex justify-center items-center gap-2 sm:gap-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => handleRatingClick(star)}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(null)}
+                    className="text-3xl sm:text-4xl transition-all transform hover:scale-125 active:scale-95"
+                    style={{
+                      filter: (rating && star <= rating) || (hoveredRating && star <= hoveredRating)
+                        ? 'drop-shadow(0 0 8px #ffd700)'
+                        : 'grayscale(0.5) opacity(0.5)',
+                    }}
+                  >
+                    ⭐
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
