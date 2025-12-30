@@ -750,8 +750,10 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
 
   return (
     <div className="min-h-screen relative p-2 sm:p-3 md:p-4 overflow-hidden">
-      {/* Автоматический переводчик в правом верхнем углу */}
-      <AutoTranslator />
+      {/* Автоматический переводчик в правом верхнем углу с отступом в две иконки */}
+      <div className="fixed top-4 right-[80px] z-50">
+        <AutoTranslator />
+      </div>
       
       {/* Новогодний фон с анимацией */}
       {/* Новогодние элементы - всегда показываются, но с разным позиционированием для старых браузеров */}
