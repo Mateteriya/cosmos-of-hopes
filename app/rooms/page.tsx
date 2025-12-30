@@ -104,12 +104,29 @@ export default function RoomsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Заголовок */}
-        <div className="mb-6">
-          <h1 className="text-white text-4xl font-bold mb-2">{t('myRooms')}</h1>
-          <p className="text-white/70">
-            Создайте комнату для семьи или друзей, чтобы вместе украшать ёлку
-          </p>
+        {/* Заголовок и кнопки возврата */}
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-white text-4xl font-bold mb-2">{t('myRooms')}</h1>
+            <p className="text-white/70">
+              Создайте комнату для семьи или друзей, чтобы вместе украшать ёлку
+            </p>
+          </div>
+          {/* Кнопки возврата в правом верхнем углу */}
+          <div className="flex gap-2 flex-shrink-0">
+            <button
+              onClick={() => router.push('/')}
+              className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-lg transition-all text-sm"
+            >
+              {t('backToHome')}
+            </button>
+            <button
+              onClick={() => router.push('/tree')}
+              className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-lg transition-all text-sm"
+            >
+              {t('backToTree')}
+            </button>
+          </div>
         </div>
 
         {/* Кнопки действий */}
@@ -160,21 +177,6 @@ export default function RoomsPage() {
           </div>
         )}
 
-        {/* Кнопки возврата */}
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={() => router.push('/')}
-            className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition-all"
-          >
-            {t('backToHome')}
-          </button>
-          <button
-            onClick={() => router.push('/tree')}
-            className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition-all"
-          >
-            {t('backToTree')}
-          </button>
-        </div>
       </div>
 
       {/* Модальные окна */}
