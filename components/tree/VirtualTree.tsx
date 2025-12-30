@@ -12,7 +12,6 @@ import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 import type { Toy } from '@/types/toy';
-import { Snowflakes } from './Snowflakes';
 import { TreeSnowflakes } from './TreeSnowflakes';
 import { Fireworks } from './Fireworks';
 import { Confetti } from './Confetti';
@@ -41,6 +40,87 @@ class ErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode
     }
     return this.props.children;
   }
+}
+
+// Простой компонент падающего снега
+// Компонент падающего снега - ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп)
+function FallingSnow() {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const count = 200;
+  const positionsRef = useRef<Float32Array>(new Float32Array(count * 3));
+  
+  const geometry = useMemo(() => new THREE.SphereGeometry(0.15, 8, 8), []);
+  const material = useMemo(() => new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.9
+  }), []);
+  
+  // Инициализация позиций - равномерное распределение по всей области
+  // Инициализируем только один раз при монтировании
+  // Работает одинаково на всех устройствах - непрерывный поток снега
+  useEffect(() => {
+    const pos = positionsRef.current;
+    for (let i = 0; i < count; i++) {
+      // Равномерное распределение X и Z по всей области (от -50 до 50) - НЕ изменяются при падении
+      pos[i * 3] = (Math.random() - 0.5) * 100; // X - фиксированная позиция
+      // Равномерное распределение Y по всей высоте (от -50 до 150) - для непрерывного потока
+      pos[i * 3 + 1] = -50 + (i / count) * 200; // Y - равномерно распределены по высоте
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 100; // Z - фиксированная позиция
+    }
+    
+    // Инициализация матриц
+    if (meshRef.current) {
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+        const matrix = new THREE.Matrix4();
+        matrix.setPosition(pos[i3], pos[i3 + 1], pos[i3 + 2]);
+        meshRef.current.setMatrixAt(i, matrix);
+      }
+      meshRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, []);
+  
+  useFrame((state, delta) => {
+    if (!meshRef.current) return;
+    
+    const positions = positionsRef.current;
+    
+    // Обновление позиций - ТОЛЬКО вертикальное падение (Y координата)
+    // X и Z координаты НЕ ИЗМЕНЯЮТСЯ - снежинки падают строго вертикально по прямой линии
+    for (let i = 0; i < count; i++) {
+      const i3 = i * 3;
+      
+      // Падение строго вниз - изменяем ТОЛЬКО Y, X и Z остаются неизменными
+      positions[i3 + 1] -= 0.5 * delta * 60;
+      
+      // Если снежинка упала вниз, возвращаем её наверх с ТЕМИ ЖЕ X и Z
+      // Распределяем по высоте, чтобы избежать "порций" - каждая снежинка возвращается на свою уникальную высоту
+      if (positions[i3 + 1] < -50) {
+        // Возвращаем наверх, но на разную высоту для каждой снежинки (на основе индекса)
+        // Это предотвращает одновременный перезапуск всех снежинок
+        const offset = (i / count) * 200; // Распределение от 0 до 200
+        positions[i3 + 1] = 150 + offset; // Возвращаем на разную высоту
+        // X и Z НЕ ТРОГАЕМ - они остаются такими же, как были изначально
+      }
+      
+      const matrix = new THREE.Matrix4();
+      // Устанавливаем позицию: X и Z не изменяются (остаются как при инициализации), только Y
+      matrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+      meshRef.current.setMatrixAt(i, matrix);
+    }
+    
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  });
+  
+  return (
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, material, count]}
+      frustumCulled={false}
+      renderOrder={100}
+    />
+  );
 }
 
 interface VirtualTreeProps {
@@ -76,6 +156,7 @@ function BallOnTree({
   distance: number; // Расстояние от камеры для LOD
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const glowMeshRef = useRef<THREE.PointLight>(null);
   const glowMeshSecondLightRef = useRef<THREE.PointLight>(null);
   const glowMeshLayerRef = useRef<THREE.Mesh>(null);
@@ -109,12 +190,47 @@ function BallOnTree({
   }, [distance]);
 
   // Анимация вращения и пульсации
-  useFrame((state) => {
-    if (meshRef.current) {
-      // Всегда вращаем шар (даже если далеко)
-      meshRef.current.rotation.y += 0.01;
+  // ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп)
+  useFrame((state, delta) => {
+    const time = state.clock.elapsedTime;
+    const ballId = toy.id;
+    
+    // Уникальная скорость вращения для каждого шара (на основе ID)
+    const hash = ballId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    // Проверяем, является ли шар тестовым (ID начинается с "test-ball-")
+    const isTestBall = ballId.startsWith('test-ball-');
+    
+    // Новое вращение ТОЛЬКО для тестовых шаров
+    // Пользовательские шары вращаются как раньше (без этого нового вращения)
+    // Поведение одинаково для всех устройств
+    if (isTestBall && !isUserBall) {
+      // Для тестовых шаров - нормальная скорость
+      const speedX = 0.5 + (hash % 100) / 200; // От 0.5 до 1.0
+      const speedY = 0.8 + (hash % 150) / 200; // От 0.8 до 1.55
+      const speedZ = 0.6 + (hash % 120) / 200; // От 0.6 до 1.2
       
-      if (isUserBall) {
+      if (meshRef.current) {
+        meshRef.current.rotation.x += delta * speedX;
+        meshRef.current.rotation.y += delta * speedY;
+        meshRef.current.rotation.z += delta * speedZ;
+      }
+    }
+    // Для пользовательских шаров - убираем новое вращение, они вращаются как раньше
+    
+    // "Танец" - небольшое покачивание позиции mesh (не группы, чтобы шары не разлетались!)
+    if (meshRef.current) {
+      const danceAmplitude = 0.02; // Амплитуда покачивания (небольшая)
+      const danceSpeed = 1.5 + (hash % 50) / 100; // Уникальная скорость для каждого шара
+      const danceX = Math.sin(time * danceSpeed + hash) * danceAmplitude;
+      const danceY = Math.cos(time * danceSpeed * 1.3 + hash) * danceAmplitude;
+      const danceZ = Math.sin(time * danceSpeed * 0.7 + hash) * danceAmplitude;
+      
+      // Применяем покачивание к позиции mesh относительно группы (группа остается на месте с position prop)
+      meshRef.current.position.set(danceX, danceY, danceZ);
+    }
+    
+    if (meshRef.current && isUserBall) {
         // Для своего шара - пульсация всегда видна, независимо от расстояния
         const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
         meshRef.current.scale.setScalar(scale);
@@ -165,7 +281,6 @@ function BallOnTree({
           }
         }
       }
-    }
   });
 
   // Загрузка текстуры изображения шара будет через TextureLoader в useEffect
@@ -227,19 +342,24 @@ function BallOnTree({
   }), [texture, toy.color, toy.surface_type, isTopBall]);
 
   return (
-    <group>
+    <group renderOrder={1000}> {/* Выносим шары на передний план - рендерим поверх елки */}
       {/* Шар */}
-      <group position={position}>
+      <group ref={groupRef} position={position}>
         <mesh
           ref={meshRef}
           onClick={handleClick}
           onPointerOver={() => distance < 10 && setHovered(true)}
           onPointerOut={() => setHovered(false)}
           scale={hovered && distance < 10 ? 1.2 : 1}
-          frustumCulled={true} // Отключаем рендеринг вне видимости
+          frustumCulled={false} // ВСЕГДА рендерим все шары, даже если они вне видимости камеры
+          renderOrder={1000} // Рендерим поверх елки
         >
           <sphereGeometry args={[0.4 * (toy.ball_size || 1), segments, segments]} />
-          <meshStandardMaterial key={`material-${toy.id}-${texture ? 'with-texture' : 'no-texture'}`} {...materialProps} />
+          <meshStandardMaterial
+            key={`material-${toy.id}-${texture ? 'with-texture' : 'no-texture'}`} 
+            {...materialProps}
+            depthWrite={false} // Отключаем запись глубины, чтобы шары всегда были видны
+          />
         </mesh>
       
       {/* 3D подсветка для своего шара - PointLight для реального объемного освещения ВОКРУГ, но НЕ на сам шар */}
@@ -1162,7 +1282,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
         material.emissiveIntensity = originalIntensity; // Восстанавливаем исходную интенсивность
         const currentTreeOpacity = treeOpacityRef.current;
         material.opacity = 1.0 * currentTreeOpacity; // Применяем общую прозрачность елки
-        material.transparent = true; // Всегда включаем прозрачность для корректной работы
+        material.transparent = currentTreeOpacity < 1.0; // Включаем прозрачность если opacity < 1.0
         material.needsUpdate = true; // Важно: обновляем материал!
         if (material.map) material.map.needsUpdate = true; // Обновляем текстуру если есть
       });
@@ -1242,11 +1362,9 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
             material.emissiveIntensity = flashIntensity;
             const currentTreeOpacity = treeOpacityRef.current;
             material.opacity = 1.0 * currentTreeOpacity; // Применяем общую прозрачность елки
-            material.transparent = true; // Всегда включаем прозрачность для корректной работы
+            material.transparent = currentTreeOpacity < 1.0; // Включаем прозрачность если opacity < 1.0
             material.needsUpdate = true; // Важно: обновляем материал!
             if (material.map) material.map.needsUpdate = true; // Обновляем текстуру если есть
-            material.opacity = 1.0 * treeOpacity; // Применяем общую прозрачность елки
-            material.transparent = treeOpacity < 1.0; // Включаем прозрачность только если нужно
           } else if (glowEnabled && isStar) {
             // В режиме с подсветкой звезды переливаются цветами из палитры ёлки
             // НО с другой скоростью и смещением, чтобы переливаться независимо от ёлки
@@ -1477,15 +1595,6 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
             />
           )}
     </group>
-      )}
-      {/* Падающие снежинки (скрываем при новогодней анимации после 14 секунды) */}
-      {!isNewYearAnimation && (
-        <Snowflakes 
-          count={150} 
-          speed={0.4} 
-          size={0.08}
-          area={{ width: 60, height: 80, depth: 60 }}
-        />
       )}
     </>
   );
@@ -1964,17 +2073,60 @@ function NewYearAnimation({
 function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked, treeImageUrl, treeType, treeModel, isNewYearAnimation, onAnimationComplete, glowEnabled = false }: VirtualTreeProps) {
   const { camera, scene } = useThree();
   const [visibleToys, setVisibleToys] = useState<Toy[]>([]);
-  const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки для новогодней анимации
+  const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки - непрозрачная
   const controlsRef = useRef<any>(null);
   const [treePosition, setTreePosition] = useState<[number, number, number]>([0, -32, 0]); // Позиция елки (по умолчанию)
   const treeGroupRef = useRef<THREE.Group | null>(null);
+  const treeRotationGroupRef = useRef<THREE.Group | null>(null); // Ref для группы вращения елки
   const [isTreeLoaded, setIsTreeLoaded] = useState<boolean>(false); // Флаг загрузки елки
+  
+  // Создаем 200 тестовых шаров с фиксированными позициями
+  const testToys = useMemo(() => {
+    const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#FFC0CB', '#00CED1'];
+    return Array.from({ length: 200 }, (_, i) => ({
+      id: `test-ball-${i}`,
+      user_id: `test-user-${i}`,
+      shape: 'ball' as const,
+      color: colors[i % colors.length],
+      pattern: null,
+      sticker: undefined,
+      wish_text: `Тестовый шар ${i + 1}`,
+      wish_for_others: undefined,
+      image_url: undefined,
+      user_photo_url: undefined,
+      status: 'on_tree' as const,
+      room_id: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ball_size: 0.5 + (Math.random() * 0.5), // Размер от 0.5 до 1.0
+      surface_type: 'glossy' as const,
+      effects: undefined,
+      filters: undefined,
+      second_color: undefined,
+      user_name: undefined,
+      selected_country: undefined,
+      birth_year: undefined,
+      is_on_tree: true,
+      position: undefined,
+      support_count: 0,
+      author_tg_id: undefined,
+    } as Toy));
+  }, []);
+  
+  // Объединяем реальные шары с тестовыми
+  const allToys = useMemo(() => [...toys, ...testToys], [toys, testToys]);
   
   // Сбрасываем флаг загрузки при изменении модели елки
   useEffect(() => {
     setIsTreeLoaded(false);
     treeGroupRef.current = null;
   }, [treeModel]);
+  
+  // Логируем количество шаров на елке
+  useEffect(() => {
+    console.log(`[VirtualTree] Всего шаров на елке: ${allToys.length} (реальных: ${toys.length}, тестовых: ${testToys.length})`);
+    console.log(`[VirtualTree] Видимых шаров: ${visibleToys.length}`);
+  }, [allToys.length, toys.length, testToys.length, visibleToys.length]);
   
   // Получаем реальную позицию елки из сцены - улучшенный поиск
   useEffect(() => {
@@ -2018,59 +2170,67 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
   });
 
   useEffect(() => {
-    // Камера четко по центру для любого устройства
+    // Камера четко по центру для любого устройства (мобильные и десктоп)
+    // Позиционирование елки одинаково для всех устройств
     camera.position.set(0, 2, 18);
     camera.lookAt(0, 0, 0);
     
     // Принудительно устанавливаем target для OrbitControls
+    // Одинаково для всех устройств
     if (controlsRef.current) {
       controlsRef.current.target.set(0, 0, 0);
       controlsRef.current.update();
     }
   }, [camera]);
 
-  // Виртуализация: отображаем только видимые шары (в пределах frustum)
-  // Но для начала показываем все шары (пока их мало)
-  useFrame(() => {
-    // Если шаров мало (меньше 100), показываем все
-    if (toys.length < 100) {
-      setVisibleToys(toys);
-      return;
+  // Автоматическое вращение елки вправо-влево в пределах разрешенных градусов
+  // ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп)
+  useFrame((state, delta) => {
+    if (treeRotationGroupRef.current) {
+      // Базовый поворот: -48 градусов (было -46, добавили еще 2 градуса влево)
+      const baseRotation = -48 * (Math.PI / 180);
+      // Диапазон вращения: от -0.5 до 7 градусов (как разрешено для пользователей)
+      const minAngle = -0.5 * (Math.PI / 180);
+      const maxAngle = 7 * (Math.PI / 180);
+      const range = maxAngle - minAngle;
+      
+      // Плавное движение туда-сюда с периодом ~8 секунд
+      const time = state.clock.elapsedTime;
+      const oscillation = Math.sin(time * 0.5) * 0.5 + 0.5; // От 0 до 1
+      const currentOffset = minAngle + oscillation * range;
+      
+      // Применяем базовый поворот + текущее смещение
+      treeRotationGroupRef.current.rotation.y = baseRotation + currentOffset;
     }
-    
-    // Для большого количества шаров используем frustum culling
-    const frustum = new THREE.Frustum();
-    const matrix = new THREE.Matrix4().multiplyMatrices(
-      camera.projectionMatrix,
-      camera.matrixWorldInverse
-    );
-    frustum.setFromProjectionMatrix(matrix);
+  });
 
-    // Фильтруем шары, которые находятся в видимой области
-    // ВАЖНО: Всегда включаем шарик пользователя, даже если он не в видимой области
-    const visible: Array<{ toy: Toy; index: number; distance: number }> = [];
+  // Виртуализация: отображаем все шары на елке (отключен frustum culling, чтобы шары были видны со всех сторон)
+  useFrame(() => {
+    // Показываем все шары на елке, чтобы они были видны со всех сторон при повороте
+    // Ограничиваем только общее количество для производительности
+    const maxVisible = 500; // Максимум 500 шаров одновременно
+    
+    // Сортируем шары по расстоянию от камеры для оптимизации рендеринга
+    const toysWithDistance: Array<{ toy: Toy; index: number; distance: number }> = [];
     let userBall: { toy: Toy; index: number; distance: number } | null = null;
     
-    for (let i = 0; i < toys.length; i++) {
-      const toy = toys[i];
+    for (let i = 0; i < allToys.length; i++) {
+      const toy = allToys[i];
       const isUserBall = currentUserId && toy.user_id === currentUserId;
       const pos = getBallPosition(toy.id);
       const point = new THREE.Vector3(...pos);
-        const distance = camera.position.distanceTo(point);
+      const distance = camera.position.distanceTo(point);
       
       // Сохраняем шарик пользователя отдельно
       if (isUserBall) {
         userBall = { toy, index: i, distance };
       }
       
-      // Добавляем видимые шары (или шарик пользователя - всегда)
-      if (frustum.containsPoint(point) || isUserBall) {
-        visible.push({ toy, index: i, distance });
-      }
+      toysWithDistance.push({ toy, index: i, distance });
     }
 
     // Сортируем: шарик пользователя всегда первый, остальные по расстоянию
-    visible.sort((a, b) => {
+    toysWithDistance.sort((a, b) => {
       const aIsUser = currentUserId && a.toy.user_id === currentUserId;
       const bIsUser = currentUserId && b.toy.user_id === currentUserId;
       if (aIsUser && !bIsUser) return -1;
@@ -2079,17 +2239,16 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     });
     
     // Ограничиваем количество одновременно отображаемых шаров (для производительности)
-    const maxVisible = 500; // Максимум 500 шаров одновременно
     // Но всегда включаем шарик пользователя
-    const result = visible.slice(0, maxVisible);
+    const result = toysWithDistance.slice(0, maxVisible);
     if (userBall && !result.find(v => v.toy.id === userBall!.toy.id)) {
       result.unshift(userBall); // Добавляем шарик пользователя в начало
     }
     setVisibleToys(result.map(v => v.toy));
   });
 
-  // Используем РЕАЛЬНУЮ позицию елки и ПРОВЕРЕННЫЕ технологии размещения шаров
-  // Центр оси елки находится ВНИЗУ, у КОРНЯ елки
+  // ФИКСИРОВАННОЕ позиционирование: каждому шару - своя конкретная позиция на елке
+  // Позиция рассчитывается на основе индекса и формы елки (конус)
   const generateBaseBallPosition = (toyId: string, index: number = 0, totalCount: number = 1): [number, number, number] => {
     // Если параметры не переданы, используем значения по умолчанию
     if (totalCount === 1) {
@@ -2102,108 +2261,133 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       totalCount = 1000;
     }
     
-    // Равномерное распределение по высоте
-    const progress = index / Math.max(1, totalCount - 1); // От 0 до 1
+    // Параметры треугольника
+    const minY = -8.5;  // Низ треугольника (поднят, чтобы шары не свисали ниже елки)
+    const maxY = 8.5;   // Верх треугольника (вершина)
+    const maxWidth = 7.2; // Максимальная ширина треугольника внизу (увеличено в 1.6 раза)
     
-    // Высота: используем АБСОЛЮТНЫЕ значения, не зависящие от treePosition[1]
-    // Спираль начинается НИЖЕ верха елки и заканчивается выше низа
-    // Используем проверенные значения, которые работали раньше
-    const spiralStartY = 4.0;  // Начинаем ниже верха елки (абсолютное значение)
-    const spiralEndY = -2.0;   // Заканчиваем выше низа елки (абсолютное значение)
-    const heightRange = spiralStartY - spiralEndY; // Диапазон спирали (6.0 единиц)
-    const height = spiralStartY - progress * heightRange; // От начала спирали к концу
-    // НЕ добавляем treePosition[1] к высоте - используем абсолютные значения!
+    // ПЛОСКАЯ ТРЕУГОЛЬНАЯ ФИГУРА с вершиной ВВЕРХУ
+    // МЕНЬШЕ шаров ВВЕРХУ (вершина узкая), БОЛЬШЕ шаров ВНИЗУ (основание широкое)
     
-    // РАВНОМЕРНОЕ РАСПРЕДЕЛЕНИЕ ПО ВСЕМ СТОРОНАМ: используем только индекс для угла
-    // Каждый шар получает уникальный угол на основе его позиции в массиве
-    // Это гарантирует равномерное распределение по всей окружности (слева, справа, спереди, сзади)
-    const angle = (index / Math.max(1, totalCount)) * Math.PI * 2; // Равномерное распределение от 0 до 2π
+    // Индекс от 0 до totalCount-1
+    const normalizedIndex = index / Math.max(1, totalCount - 1); // От 0 до 1
     
-    // Радиус увеличивается от верха к низу - как конус елки
-    // УМЕНЬШАЕМ радиусы еще больше, чтобы шары НЕ вылезали из елки
-    const normalizedHeight = progress; // От 0 (верх) до 1 (низ)
-    const maxRadius = 0.2;  // ЕЩЕ УМЕНЬШЕННЫЙ максимальный радиус внизу (было 0.25) - чтобы шары не вылезали
-    const minRadius = 0.1;   // Минимальный радиус вверху - чтобы шары не были глубоко
-    const ballCenterRadius = minRadius + (maxRadius - minRadius) * normalizedHeight; // Радиус увеличивается к низу
+    // Высота: малые индексы -> ВВЕРХ (maxY), большие индексы -> ВНИЗ (minY)
+    const heightProgress = Math.sqrt(normalizedIndex); // От 0 до 1, концентрирует внизу
+    const baseHeight = maxY - heightProgress * (maxY - minY);
     
-    // Позиция: шар относительно РЕАЛЬНОЙ позиции елки
-    return [
-      treePosition[0] + Math.cos(angle) * ballCenterRadius,  // X: радиус от центра оси + смещение елки
-      height,                                                  // Y: высота относительно позиции елки
-      treePosition[2] + Math.sin(angle) * ballCenterRadius,  // Z: радиус от центра оси + смещение елки
-    ];
+    // Ширина треугольника: зависит от высоты (вверху узко, внизу широко)
+    // Увеличиваем угол вершины на 10%: вверху небольшая ширина вместо 0
+    let widthAtHeight = (heightProgress * 0.9 + 0.1) * maxWidth; // Вверху 10% от maxWidth, внизу maxWidth
+    
+    // Расширяем обе половины треугольника в ширину в 1.2 раза
+    const centerY = (maxY + minY) / 2; // Центр треугольника по вертикали
+    if (baseHeight < centerY) {
+      // Нижняя половина - увеличиваем ширину в 1.2 раза
+      widthAtHeight = widthAtHeight * 1.2;
+    } else if (baseHeight > centerY) {
+      // Верхняя половина - также увеличиваем ширину в 1.2 раза
+      widthAtHeight = widthAtHeight * 1.2;
+    }
+    
+    // ОБЪЕМНЫЙ ТРЕУГОЛЬНИК: распределяем шары по окружности вокруг елки
+    // Используем полярные координаты для создания объемного треугольника
+    
+    // Распределение по X: равномерное по ширине на данной высоте
+    const xProgress = (index * 0.618033988749895) % 1; // Золотое сечение
+    const normalizedX = (xProgress - 0.5) * 2; // От -1 (левый край) до 1 (правый край)
+    const baseX = normalizedX * widthAtHeight;
+    
+    // УСИЛЕННАЯ ВЫПУКЛОСТЬ в центре треугольника
+    // Центр выпирает сильнее, края заворачиваются назад
+    const absNormalizedX = Math.abs(normalizedX); // От 0 (центр) до 1 (край)
+    const convexity = 1 - absNormalizedX; // От 1 (центр) до 0 (край)
+    // УСИЛЕНО: эффект выпуклости увеличен для более заметного эффекта
+    const convexityEffect = Math.pow(convexity, 2) * 2.5; // УВЕЛИЧЕНО с 1.2 до 2.5
+    
+    // Базовое расстояние от центра елки (Z координата)
+    // Верхняя половина - ближе к елке, нижняя - дальше
+    let baseZ = 1.5;
+    if (baseHeight > centerY) {
+      // Верхняя половина - плавно приближаем к елке
+      const topHalfRange = maxY - centerY;
+      const distanceFromCenter = baseHeight - centerY;
+      const progressToTop = distanceFromCenter / topHalfRange;
+      baseZ = 1.0 - progressToTop * 0.7; // От 1.0 (центр) до 0.3 (верх)
+      
+      if (normalizedIndex < 0.015) {
+        baseZ = baseZ - 0.15; // Самые верхние шары еще ближе
+      }
+    } else if (baseHeight < centerY) {
+      // Нижняя половина - центральные шары дальше от елки
+      const absX = Math.abs(baseX);
+      const centerWidth = widthAtHeight * 0.4;
+      if (absX < centerWidth) {
+        const centerProgress = 1 - (absX / centerWidth);
+        baseZ = 1.5 + centerProgress * 1.2; // УСИЛЕНО: центр дальше на 1.2 (было 0.8)
+      }
+    }
+    
+    // Применяем выпуклость: центр выпирает СИЛЬНО вперед, края уходят назад
+    // УСИЛЕНО: центральные шары выпирают намного дальше от елки
+    baseZ = baseZ + convexityEffect * 1.5 - 0.3; // Центр +3.75, края -0.3 (было +0.96, -0.4)
+    
+    // ЭФФЕКТ ЗАВОРАЧИВАНИЯ К НИЗУ: нижние углы заворачиваются назад вокруг елки
+    let wrapAngle = 0; // Угол заворачивания (для распределения по окружности)
+    let wrapZOffset = 0; // Смещение по Z при заворачивании
+    let wrapYOffset = 0; // Смещение по Y при заворачивании
+    
+    if (baseHeight < centerY) {
+      // Нижняя половина - заворачиваем края
+      const bottomProgress = 1 - (baseHeight - minY) / (centerY - minY); // От 0 (центр) до 1 (низ)
+      const edgeProgress = absNormalizedX; // От 0 (центр) до 1 (край)
+      
+      // Чем ниже и ближе к краю, тем сильнее заворачивание
+      const wrapIntensity = bottomProgress * edgeProgress * edgeProgress; // Квадрат для плавности
+      
+      // Заворачиваем края назад (уменьшаем Z) и немного вниз
+      wrapZOffset = -wrapIntensity * 0.6; // УСИЛЕНО: заворачивание назад на 0.6
+      wrapYOffset = -wrapIntensity * 0.1; // Немного вниз
+      
+      // Распределяем по углу вокруг елки для объемного эффекта
+      // Левый край заворачивается влево, правый - вправо
+      wrapAngle = normalizedX * wrapIntensity * 0.3; // Угол заворачивания до ±0.3 радиан
+    }
+    
+    // Применяем заворачивание
+    baseZ = baseZ + wrapZOffset;
+    
+    // Преобразуем в декартовы координаты с учетом угла заворачивания
+    // Это создает объемный эффект - шары распределяются по окружности
+    const radius = Math.sqrt(baseX * baseX + baseZ * baseZ);
+    const angle = Math.atan2(baseZ, baseX) + wrapAngle;
+    const finalX = Math.cos(angle) * radius;
+    const finalZ = Math.sin(angle) * radius;
+    
+    // Добавляем небольшую рандомность на основе toyId (детерминированная)
+    const hash1 = toyId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hash2 = toyId.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
+    const hash3 = toyId.split('').reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 2), 0);
+    
+    const randomX = ((hash1 % 200) / 200 - 0.5) * 0.3; // ±0.15 случайного смещения по X
+    const randomY = ((hash2 % 200) / 200 - 0.5) * 0.2; // ±0.1 случайного смещения по Y
+    const randomZ = ((hash3 % 200) / 200 - 0.5) * 0.1; // ±0.05 случайного смещения по Z
+    
+    return [finalX + randomX, baseHeight + randomY + wrapYOffset, finalZ + randomZ];
   };
 
-  // Кэш позиций всех шаров с проверкой минимального расстояния
-  // ВАЖНО: Добавляем версию алгоритма в зависимости, чтобы принудительно пересчитать при изменениях
+  // ПРОСТОЙ кэш позиций: просто генерируем позиции по индексу
   const ballPositionsCache = useMemo(() => {
     const cache = new Map<string, [number, number, number]>();
-    const minDistance = 0.4 * 2.5 * 2; // Диаметр шара + запас, УВЕЛИЧЕНО В ДВА РАЗА (2.0 единицы)
     
-    // КРИТИЧЕСКИ ВАЖНО: НЕ сортируем шары! Используем исходный порядок
-    // Это гарантирует равномерное распределение по всей окружности
-    // Каждый шар получает уникальный угол на основе его позиции в массиве
-    
-    for (let i = 0; i < toys.length; i++) {
-      const toy = toys[i];
-      let pos = generateBaseBallPosition(toy.id, i, toys.length);
-      let attempts = 0;
-      const maxAttempts = 50; // Увеличиваем количество попыток
-      
-      // АГРЕССИВНАЯ проверка и корректировка позиции
-      while (attempts < maxAttempts) {
-        let tooClose = false;
-        let closestDistance = Infinity;
-        let closestPos: [number, number, number] | null = null;
-        
-        // Находим ближайший шар
-        for (const [otherId, otherPos] of cache.entries()) {
-          const dx = pos[0] - otherPos[0];
-          const dy = pos[1] - otherPos[1];
-          const dz = pos[2] - otherPos[2];
-          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          
-          if (distance < minDistance) {
-            tooClose = true;
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestPos = otherPos;
-            }
-          }
-        }
-        
-        if (tooClose && closestPos) {
-          // АГРЕССИВНО отталкиваем от ближайшего шара
-          const dx = pos[0] - closestPos[0];
-          const dy = pos[1] - closestPos[1];
-          const dz = pos[2] - closestPos[2];
-          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-          
-          if (distance > 0.001) {
-            // Отталкиваем на достаточное расстояние
-            const pushFactor = (minDistance - distance + 0.2) / distance;
-            pos[0] += dx * pushFactor * 1.2; // Увеличиваем силу отталкивания
-            pos[1] += dy * pushFactor * 0.8;
-            pos[2] += dz * pushFactor * 1.2;
-          } else {
-            // Если позиции совпадают, смещаем в случайном направлении
-            const randomAngle = (attempts * 137.508) % (Math.PI * 2); // Золотой угол для равномерности
-            const randomDist = minDistance * 1.5;
-            pos[0] += Math.cos(randomAngle) * randomDist;
-            pos[1] += (attempts % 3 - 1) * minDistance * 0.5;
-            pos[2] += Math.sin(randomAngle) * randomDist;
-          }
-          attempts++;
-        } else {
-          break; // Расстояние достаточное
-        }
-      }
-      
+    for (let i = 0; i < allToys.length; i++) {
+      const toy = allToys[i];
+      const pos = generateBaseBallPosition(toy.id, i, allToys.length);
       cache.set(toy.id, pos);
     }
     
     return cache;
-  }, [toys, treePosition]); // Кэш пересчитывается при изменении списка шаров или позиции елки
+  }, [allToys]);
 
   // Основная функция для получения позиции шара (использует кэш с проверкой расстояний)
   const getBallPosition = (toyId: string): [number, number, number] => {
@@ -2235,6 +2419,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
 
       {/* Ёлка - разные варианты (на мобильных используем без MTL для ускорения) */}
       {treeType === '3d' && treeModel && treeModel.endsWith('.obj') && (
+        <group ref={treeRotationGroupRef} rotation={[0, -48 * (Math.PI / 180), 0]}> {/* Базовый поворот налево на 48 градусов (было 46, добавили еще 2), автоматическое вращение добавляется в useFrame */}
         <Suspense fallback={null} key={`obj-${treeModel}`}>
           {/* На мобильных устройствах загружаем без MTL для ускорения */}
           {typeof window !== 'undefined' && window.innerWidth < 768 ? (
@@ -2253,20 +2438,11 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
             <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
           )}
         </Suspense>
+        </group>
       )}
 
-      {/* Новогодняя анимация (1 января) */}
-      {isNewYearAnimation && (
-        <NewYearAnimation 
-          toys={toys} 
-          onComplete={onAnimationComplete}
-          onTreeOpacityChange={(opacity) => {
-            setTreeOpacity(opacity);
-          }}
-        />
-      )}
-
-      {/* Шары на ёлке (только видимые) - скрываем во время новогодней анимации и до загрузки елки */}
+      {/* Шары на ПЕРЕДНЕМ ПЛАНЕ - ВНЕ группы елки, статично на экране */}
+      {/* Скрываем во время новогодней анимации и до загрузки елки */}
       {!isNewYearAnimation && isTreeLoaded && visibleToys.map((toy) => {
         const isUserBall = currentUserId && toy.user_id === currentUserId;
         const position = getBallPosition(toy.id);
@@ -2285,21 +2461,36 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
         );
       })}
 
+      {/* Новогодняя анимация (1 января) */}
+      {isNewYearAnimation && (
+        <NewYearAnimation 
+          toys={toys} 
+          onComplete={onAnimationComplete}
+          onTreeOpacityChange={(opacity) => {
+            setTreeOpacity(opacity);
+          }}
+        />
+      )}
+
       {/* Звёзды на фоне - скрываем во время новогодней анимации (будет черный космос) */}
       {!isNewYearAnimation && (
       <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
       )}
 
-      {/* Управление камерой - расширенные пределы для большой ёлки, четко по центру */}
+      {/* Падающий снег на фоне */}
+      <FallingSnow />
+
+      {/* Управление камерой - ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп) */}
+      {/* Строгие ограничения поворотов и наклонов одинаковы для всех устройств */}
       <OrbitControls
         ref={controlsRef}
         enablePan={false}
         minDistance={10}
         maxDistance={30}
-        minPolarAngle={Math.PI / 3 - 10 * (Math.PI / 180)} // Ограничение: небольшой наклон вниз-вверх на ±10 градусов
-        maxPolarAngle={Math.PI / 3 + 10 * (Math.PI / 180)} // Ограничение: небольшой наклон вниз-вверх на ±10 градусов
-        minAzimuthAngle={-20 * (Math.PI / 180)} // Ограничение: влево-вправо на ±20 градусов
-        maxAzimuthAngle={20 * (Math.PI / 180)}  // Ограничение: влево-вправо на ±20 градусов
+        minPolarAngle={Math.PI / 3} // Наклон вперед отключен (одинаково для всех устройств)
+        maxPolarAngle={Math.PI / 3 + 2 * (Math.PI / 180)} // Отклонение назад максимум на 2 градуса (одинаково для всех устройств)
+        minAzimuthAngle={-0.5 * (Math.PI / 180)} // Ограничение: влево максимум на 0.5 градуса (одинаково для всех устройств)
+        maxAzimuthAngle={7 * (Math.PI / 180)}  // Ограничение: вправо максимум на 7 градусов (одинаково для всех устройств)
         enableDamping={true}
         dampingFactor={0.05}
         target={[0, 0, 0]} // Четко центр для всех устройств

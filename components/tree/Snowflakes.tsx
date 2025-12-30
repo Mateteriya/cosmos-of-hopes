@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -20,6 +20,10 @@ export function Snowflakes({
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const particlesRef = useRef<Float32Array | null>(null);
   const velocitiesRef = useRef<Float32Array | null>(null);
+  const countRef = useRef(count);
+
+  // Обновляем countRef при изменении count
+  countRef.current = count;
 
   // Создаем массив позиций и скоростей для снежинок
   const { positions, velocities } = useMemo(() => {
@@ -53,9 +57,9 @@ export function Snowflakes({
     return new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0xffffff,
-      emissiveIntensity: 0.3,
+      emissiveIntensity: 1.0,
       transparent: true,
-      opacity: 0.8,
+      opacity: 1.0,
       roughness: 0.1,
       metalness: 0.0,
     });
@@ -67,9 +71,10 @@ export function Snowflakes({
     
     const positions = particlesRef.current;
     const velocities = velocitiesRef.current;
+    const currentCount = countRef.current;
     
     // Обновляем позиции снежинок
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < currentCount; i++) {
       const i3 = i * 3;
       
       // Падение вниз
@@ -100,11 +105,26 @@ export function Snowflakes({
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
+  // Инициализируем матрицы при монтировании
+  useEffect(() => {
+    if (meshRef.current && particlesRef.current) {
+      const positions = particlesRef.current;
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+        const matrix = new THREE.Matrix4();
+        matrix.setPosition(positions[i3], positions[i3 + 1], positions[i3 + 2]);
+        meshRef.current.setMatrixAt(i, matrix);
+      }
+      meshRef.current.instanceMatrix.needsUpdate = true;
+    }
+  }, [count, positions]);
+
   return (
     <instancedMesh
       ref={meshRef}
       args={[snowflakeGeometry, material, count]}
       frustumCulled={false}
+      renderOrder={100}
     />
   );
 }
