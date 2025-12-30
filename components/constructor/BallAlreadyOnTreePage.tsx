@@ -70,7 +70,7 @@ export default function BallAlreadyOnTreePage({
             {likesCount} {t('supports')}
           </div>
           <p className="text-white/70 text-sm sm:text-base">
-            {t('ballHasLikes')}
+            {t('ballHasLikes').replace('{count}', likesCount.toString())}
           </p>
         </div>
 
