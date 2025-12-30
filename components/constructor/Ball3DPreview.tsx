@@ -56,9 +56,17 @@ function Toy3DPreview({
           backgroundColor = '#FFFFFF';
         }
 
+        // Заливаем фоном
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Переворачиваем координаты canvas для правильной ориентации изображения на сфере
+        ctx.save();
+        ctx.translate(0, canvas.height);
+        ctx.scale(1, -1);
+        // Рисуем исходное изображение (перевернутым)
         ctx.drawImage(img, 0, 0);
+        ctx.restore();
 
         const tex = new THREE.CanvasTexture(canvas);
         tex.wrapS = THREE.RepeatWrapping;

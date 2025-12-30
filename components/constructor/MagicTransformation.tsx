@@ -170,8 +170,13 @@ function Toy3D({
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Рисуем исходное изображение поверх фона
+        // Переворачиваем координаты canvas для правильной ориентации изображения на сфере
+        ctx.save();
+        ctx.translate(0, canvas.height);
+        ctx.scale(1, -1);
+        // Рисуем исходное изображение поверх фона (перевернутым)
         ctx.drawImage(img, 0, 0);
+        ctx.restore();
         
         // Создаем текстуру из обработанного canvas
         const tex = new THREE.CanvasTexture(canvas);
