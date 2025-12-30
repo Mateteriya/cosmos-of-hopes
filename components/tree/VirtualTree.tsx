@@ -2566,22 +2566,40 @@ export default function VirtualTree({
   isNewYearAnimation = false,
   onAnimationComplete,
 }: VirtualTreeProps) {
-  // Состояние для переключателя подсветки (только для разработчика)
+  // Состояние для переключателя подсветки
   const [glowEnabled, setGlowEnabled] = useState(false);
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Проверяем, можно ли включить подсветку (только после 23:59 31 декабря, т.е. с 1 января)
+  const canEnableGlow = (): boolean => {
+    const now = new Date();
+    const newYear2026 = new Date('2026-01-01T00:00:00');
+    return now >= newYear2026;
+  };
+
+  const isGlowEnabled = canEnableGlow();
+  
+  // Получаем текст для тултипа
+  const glowTooltip = isGlowEnabled ? 'Переключить подсветку ёлки' : 'Подсветку елочки можно будет включить 1го января..';
 
   return (
     <div className="w-full bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 relative" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden', backgroundColor: '#1e1b4b' }}>
-      {/* Переключатель подсветки - виден только разработчику */}
-      {isDevelopment && (
-        <button
-          onClick={() => setGlowEnabled(!glowEnabled)}
-          className="absolute top-20 left-4 z-50 bg-slate-800/90 backdrop-blur-md border-2 border-white/30 rounded-lg px-4 py-2 text-white text-xs font-bold shadow-xl hover:bg-slate-700 transition-all"
-          title="Переключить подсветку ёлки"
-        >
-          {glowEnabled ? '💡 Подсветка: ВКЛ' : '💡 Подсветка: ВЫКЛ'}
-        </button>
-      )}
+      {/* Переключатель подсветки - виден всем, но активен только с 1 января */}
+      <button
+        onClick={() => {
+          if (isGlowEnabled) {
+            setGlowEnabled(!glowEnabled);
+          }
+        }}
+        disabled={!isGlowEnabled}
+        className={`absolute top-20 left-4 z-50 bg-slate-800/90 backdrop-blur-md border-2 border-white/30 rounded-lg px-4 py-2 text-white text-xs font-bold shadow-xl transition-all ${
+          isGlowEnabled 
+            ? 'hover:bg-slate-700 cursor-pointer' 
+            : 'opacity-60 cursor-not-allowed'
+        }`}
+        title={glowTooltip}
+      >
+        {glowEnabled ? '💡 Подсветка: ВКЛ' : '💡 Подсветка: ВЫКЛ'}
+      </button>
       <Canvas 
         style={{ width: '100%', height: '100%', display: 'block', position: 'absolute', top: 0, left: 0 }}
         gl={{ 
