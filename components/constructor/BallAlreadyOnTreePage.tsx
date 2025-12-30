@@ -33,14 +33,14 @@ export default function BallAlreadyOnTreePage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
+      <div className="max-w-2xl w-full pt-8 sm:pt-12">
         {/* Заголовок */}
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
             {t('yourBallOnTree')}
           </h1>
           <p className="text-white/80 text-base sm:text-lg mb-2">
-            {t('ballHasLikes').replace('{count}', likesCount.toString())}
+            {t('ballHasLikes')}
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export default function BallAlreadyOnTreePage({
             {likesCount} {t('supports')}
           </div>
           <p className="text-white/70 text-sm sm:text-base">
-            {t('ballHasLikes').replace('{count}', likesCount.toString())}
+            {t('ballHasLikes')}
           </p>
         </div>
 
