@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         rating: rating,
         created_at: new Date().toISOString(),
-      });
+      } as any);
 
     if (error) {
       console.error('Ошибка при сохранении оценки:', error);
