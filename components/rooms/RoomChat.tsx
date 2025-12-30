@@ -26,7 +26,36 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
   useEffect(() => {
     if (!roomId) return;
     
-    loadMessages();
+    let lastMessageId: string | null = null;
+    
+    // Функция для загрузки новых сообщений
+    const checkNewMessages = async () => {
+      try {
+        const allMessages = await getRoomMessages(roomId, 100);
+        if (allMessages.length > 0) {
+          const latestMessage = allMessages[allMessages.length - 1];
+          if (lastMessageId && latestMessage.id !== lastMessageId) {
+            // Есть новые сообщения
+            setMessages(allMessages);
+          } else if (!lastMessageId) {
+            // Первая загрузка
+            setMessages(allMessages);
+            lastMessageId = latestMessage.id;
+          }
+        }
+      } catch (err) {
+        console.error('Ошибка проверки новых сообщений:', err);
+      }
+    };
+    
+    // Загружаем сообщения сразу
+    const initialLoad = async () => {
+      const messages = await loadMessages();
+      if (messages.length > 0) {
+        lastMessageId = messages[messages.length - 1].id;
+      }
+    };
+    initialLoad();
     
     // Подписываемся на новые сообщения через Supabase Realtime
     const unsubscribe = subscribeToRoomMessages(roomId, (newMessage) => {
@@ -39,12 +68,17 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
           return prev;
         }
         console.log('✅ Добавляем новое сообщение в список');
+        lastMessageId = newMessage.id;
         return [...prev, newMessage];
       });
     });
 
+    // Polling как fallback (проверяем каждые 2 секунды)
+    const pollingInterval = setInterval(checkNewMessages, 2000);
+
     return () => {
       unsubscribe();
+      clearInterval(pollingInterval);
     };
   }, [roomId]);
 
@@ -58,8 +92,10 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
       setIsLoading(true);
       const messages = await getRoomMessages(roomId, 100);
       setMessages(messages);
+      return messages;
     } catch (err) {
       console.error('Ошибка загрузки сообщений:', err);
+      return [];
     } finally {
       setIsLoading(false);
     }

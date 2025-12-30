@@ -278,7 +278,7 @@ export default function RoomPage() {
               </div>
             </button>
 
-            {/* Правая часть: Поделиться (только для создателя) и Дизайн */}
+            {/* Правая часть: Поделиться (только для создателя) */}
             <div className="flex items-center gap-2">
               {isCreator && (
                 <button
@@ -295,34 +295,6 @@ export default function RoomPage() {
                   <ShareIcon size={20} className="text-white" />
                 </button>
               )}
-              <div className="relative">
-                <button
-                  onClick={() => setDesignSelectorOpen(!designSelectorOpen)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-manipulation"
-                  title={t('roomDesign')}
-                >
-                  <DesignIcon size={20} className="text-white" />
-                </button>
-                {designSelectorOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[99998]"
-                      onClick={() => setDesignSelectorOpen(false)}
-                    />
-                    <div className="fixed right-4 top-20 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
-                      <RoomDesignSelector
-                        currentTheme={room.design_theme || 'classic'}
-                        currentCustomUrl={room.custom_background_url}
-                        onThemeChange={(theme, url) => {
-                          handleDesignChange(theme, url);
-                          setDesignSelectorOpen(false);
-                        }}
-                        isCreator={isCreator}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -463,6 +435,39 @@ export default function RoomPage() {
 
         {/* МОБИЛЬНАЯ ВЕРСИЯ - Основной контент */}
         <div className="md:hidden flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-3 py-3 gap-3">
+          {/* Селектор дизайна комнаты - длинная тонкая кнопка над чатом */}
+          <div className="flex-shrink-0 relative">
+            <button
+              onClick={() => setDesignSelectorOpen(!designSelectorOpen)}
+              className="w-full bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg px-4 py-2 flex items-center justify-between hover:bg-slate-800/70 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <DesignIcon size={18} className="text-white" />
+                <span className="text-white font-semibold text-sm">{t('roomDesign')}</span>
+              </div>
+              <span className="text-white/50 text-xs">{designSelectorOpen ? '▼' : '▶'}</span>
+            </button>
+            {designSelectorOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-[99998]"
+                  onClick={() => setDesignSelectorOpen(false)}
+                />
+                <div className="absolute top-full left-3 right-3 mt-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg max-h-[60vh] overflow-y-auto">
+                  <RoomDesignSelector
+                    currentTheme={room.design_theme || 'classic'}
+                    currentCustomUrl={room.custom_background_url}
+                    onThemeChange={(theme, url) => {
+                      handleDesignChange(theme, url);
+                      setDesignSelectorOpen(false);
+                    }}
+                    isCreator={isCreator}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Чат текстовый */}
           <div className="flex-shrink-0 relative">
             <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col" style={{ height: '450px' }}>
