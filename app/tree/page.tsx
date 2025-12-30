@@ -96,15 +96,24 @@ function TreePageContent() {
   }, [roomId, currentUserId]);
 
   // Перезагружаем шары когда userHasLiked меняется с false на true
-  const prevUserHasLikedRef = useRef(false);
+  const prevUserHasLikedRef = useRef<boolean | null>(null);
   useEffect(() => {
     // Если userHasLiked изменился с false на true, перезагружаем шары
-    if (userHasLiked && !prevUserHasLikedRef.current && !currentRoom && currentUserId) {
+    if (userHasLiked && prevUserHasLikedRef.current === false && !currentRoom && currentUserId) {
       console.log('[TreePage] userHasLiked изменился на true, перезагружаем шары для показа своего шара');
       // Небольшая задержка, чтобы убедиться, что состояние обновилось
       const timer = setTimeout(() => {
         loadToys();
       }, 200);
+      return () => clearTimeout(timer);
+    }
+    // Если userHasLiked уже true при первой загрузке (после обновления страницы), перезагружаем шары
+    if (userHasLiked && prevUserHasLikedRef.current === null && !currentRoom && currentUserId) {
+      console.log('[TreePage] userHasLiked = true при первой загрузке, перезагружаем шары для показа своего шара');
+      const timer = setTimeout(() => {
+        loadToys();
+      }, 300);
+      prevUserHasLikedRef.current = userHasLiked;
       return () => clearTimeout(timer);
     }
     prevUserHasLikedRef.current = userHasLiked;
@@ -155,7 +164,7 @@ function TreePageContent() {
     if (!currentUserId) return;
     try {
       const hasLiked = await hasUserLikedAnyBall(currentUserId);
-      console.log('[TreePage] Проверка лайков:', { hasLiked, currentUserId });
+      console.log('[TreePage] Проверка лайков:', { hasLiked, currentUserId, previousState: userHasLiked });
       setUserHasLiked(hasLiked);
     } catch (err) {
       console.error('Ошибка проверки лайков:', err);

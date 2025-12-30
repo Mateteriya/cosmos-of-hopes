@@ -98,7 +98,7 @@ export const translations = {
         close: 'Закрыть',
         supports: 'поддержек',
         years: 'лет',
-        likeToSeeYourBall: 'Лайкните чужой шар, чтобы увидеть свой на ёлке, и обновите страницу!',
+        likeToSeeYourBall: 'Чтобы увидеть свой шарик на ёлке, - нужно "лайкнуть" любой другой шарик на выбор и обновить страницу. Спасибо!',
         yourBallOnTree: 'Ваш шар на ёлке!',
         youAlreadyHaveBall: 'У вас уже есть шар на ёлке!',
         ballHasLikes: 'Ваш шар уже получил {count} поддержк(и/у)',
