@@ -253,30 +253,15 @@ export default function CreatePage() {
       </div>
 
       {showSuccess && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-white border-l-4 border-green-500 text-gray-800 p-5 rounded-lg shadow-xl max-w-md pointer-events-auto animate-fade-in">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-4 flex-1 flex items-center justify-between">
-                <span className="text-base font-semibold text-gray-900">{t('ballHangedOnTree')}</span>
-                <button
-                  onClick={() => setShowSuccess(false)}
-                  className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600"
-                  aria-label={t('close')}
-                >
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="fixed top-2 right-2 sm:top-4 sm:right-4 bg-green-500 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg z-50 animate-fade-in flex items-center gap-2 sm:gap-3 max-w-[calc(100vw-1rem)] sm:max-w-md text-xs sm:text-sm">
+          <span>{t('ballHangedOnTree')}</span>
+          <button
+            onClick={() => setShowSuccess(false)}
+            className="text-white hover:text-gray-200 font-bold text-lg sm:text-xl leading-none flex-shrink-0 touch-manipulation p-1"
+            aria-label={t('close')}
+          >
+            ×
+          </button>
         </div>
       )}
 

@@ -68,44 +68,34 @@ export default function NewYearReminder({ onClose }: NewYearReminderProps) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 pointer-events-none">
-      <div className="bg-white border-l-4 border-amber-500 text-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 pointer-events-auto animate-fade-in">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-              <svg className="h-7 w-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="ml-4 flex-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {t('magicMomentComing')}
-            </h2>
-            <div className="text-3xl font-bold mb-3 text-amber-600">
-              {timeLeft}
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              {t('magicMomentDescription')}
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={handleGo}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-md transition-colors"
-              >
-                {t('watchMagic')}
-              </button>
-              <button
-                onClick={() => {
-                  setIsVisible(false);
-                  setTimeout(onClose, 300);
-                }}
-                className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-md transition-colors"
-              >
-                {t('later')}
-              </button>
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-purple-900 via-pink-900 to-purple-900 text-white rounded-2xl border-4 border-purple-400/50 shadow-2xl max-w-md w-full p-8 text-center animate-scale-in">
+        <div className="text-6xl mb-4 animate-pulse">✨🎄✨</div>
+        <h2 className="text-3xl font-bold mb-4">
+          {t('magicMomentComing')}
+        </h2>
+        <div className="text-4xl font-bold mb-6 text-yellow-300">
+          {timeLeft}
+        </div>
+        <p className="text-lg mb-6 text-purple-100">
+          {t('magicMomentDescription')}
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={handleGo}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg"
+          >
+            {t('watchMagic')}
+          </button>
+          <button
+            onClick={() => {
+              setIsVisible(false);
+              setTimeout(onClose, 300);
+            }}
+            className="px-6 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl transition-all"
+          >
+            {t('later')}
+          </button>
         </div>
       </div>
     </div>

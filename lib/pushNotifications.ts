@@ -47,7 +47,6 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 /**
  * Регистрирует Service Worker
- * С таймаутом, чтобы не блокировать загрузку страницы
  */
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -55,74 +54,36 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 
   try {
-    // Создаем таймаут на 3 секунды, чтобы не блокировать загрузку
-    const timeoutPromise = new Promise<null>((resolve) => {
-      setTimeout(() => {
-        console.warn('[Push Notifications] Service Worker registration timeout');
-        resolve(null);
-      }, 3000);
-    });
-
-    const registrationPromise = navigator.serviceWorker.register('/sw.js', {
+    const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
-    }).then(async (registration) => {
-      console.log('[Push Notifications] Service Worker registered:', registration);
-      
-      // Ждем, пока Service Worker активируется, но с таймаутом
-      try {
-        await Promise.race([
-          navigator.serviceWorker.ready,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2000))
-        ]);
-      } catch (e) {
-        console.warn('[Push Notifications] Service Worker ready timeout, but registration successful');
-      }
-      
-      return registration;
-    }).catch((error) => {
-      console.error('[Push Notifications] Service Worker registration failed:', error);
-      return null;
     });
 
-    // Ждем либо регистрацию, либо таймаут
-    const result = await Promise.race([registrationPromise, timeoutPromise]);
-    return result;
+    console.log('[Push Notifications] Service Worker registered:', registration);
+    
+    // Ждем, пока Service Worker активируется
+    await navigator.serviceWorker.ready;
+    
+    return registration;
   } catch (error) {
-    console.error('[Push Notifications] Service Worker registration error:', error);
+    console.error('[Push Notifications] Service Worker registration failed:', error);
     return null;
   }
 }
 
 /**
- * Конвертирует base64url VAPID ключ в Uint8Array
+ * Конвертирует base64 VAPID ключ в Uint8Array
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  try {
-    // Убираем возможные пробелы и переносы строк
-    const cleanKey = base64String.trim();
-    
-    // Добавляем padding если нужно
-    const padding = '='.repeat((4 - (cleanKey.length % 4)) % 4);
-    
-    // Конвертируем base64url в base64
-    const base64 = (cleanKey + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
-    // Декодируем base64
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
 
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    
-    console.log('[Push Notifications] Key converted, length:', outputArray.length, 'bytes');
-    return outputArray;
-  } catch (error: any) {
-    console.error('[Push Notifications] Key conversion error:', error);
-    throw new Error(`Failed to convert VAPID key: ${error.message}`);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
   }
+  return outputArray;
 }
 
 /**
@@ -139,58 +100,20 @@ export async function subscribeToPushNotifications(
       return existingSubscription;
     }
 
-    // Проверяем VAPID ключ
-    console.log('[Push Notifications] VAPID_PUBLIC_KEY:', VAPID_PUBLIC_KEY ? `${VAPID_PUBLIC_KEY.substring(0, 20)}...` : 'НЕ НАЙДЕН');
-    
     if (!VAPID_PUBLIC_KEY) {
-      console.error('[Push Notifications] VAPID public key not configured!');
-      console.error('[Push Notifications] Check NEXT_PUBLIC_VAPID_PUBLIC_KEY in .env.local');
-      alert('Ошибка: VAPID ключ не настроен. Проверьте конфигурацию.');
+      console.warn('[Push Notifications] VAPID public key not configured');
       return null;
     }
 
-    // Проверяем формат ключа (должен быть base64url)
-    if (VAPID_PUBLIC_KEY.length < 80) {
-      console.error('[Push Notifications] VAPID key seems too short:', VAPID_PUBLIC_KEY.length);
-      alert('Ошибка: VAPID ключ имеет неверный формат.');
-      return null;
-    }
-
-    console.log('[Push Notifications] Attempting to subscribe with VAPID key...');
-    console.log('[Push Notifications] Key length:', VAPID_PUBLIC_KEY.length);
-    
-    // Конвертируем ключ
-    let applicationServerKey: Uint8Array;
-    try {
-      applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
-      console.log('[Push Notifications] Key converted successfully, size:', applicationServerKey.length);
-    } catch (conversionError: any) {
-      console.error('[Push Notifications] Key conversion failed:', conversionError);
-      alert('Ошибка конвертации VAPID ключа: ' + conversionError.message);
-      return null;
-    }
-    
-    // Пытаемся подписаться
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: applicationServerKey as unknown as BufferSource,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as unknown as BufferSource,
     });
 
     console.log('[Push Notifications] Subscribed:', subscription);
     return subscription;
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Push Notifications] Subscription failed:', error);
-    console.error('[Push Notifications] Error details:', {
-      name: error?.name,
-      message: error?.message,
-      stack: error?.stack,
-    });
-    
-    // Более информативное сообщение об ошибке
-    if (error?.message?.includes('push service error')) {
-      alert('Ошибка push-сервиса. Возможные причины:\n1. VAPID ключ неверный\n2. Сайт не на HTTPS\n3. Проблема с браузером');
-    }
-    
     return null;
   }
 }

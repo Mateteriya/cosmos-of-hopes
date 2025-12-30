@@ -171,11 +171,6 @@ export const translations = {
         enableNotificationsAfterBall: 'Включить уведомления?',
         enableNotificationsMessage: 'Получайте напоминания о запуске вашей комнаты и важных событиях!',
         view: 'Посмотреть',
-        yourBallGotLike: 'Ваш шар получил {count} поддержку!',
-        someoneLikedYourBall: 'Кто-то поддержал ваше желание',
-        magicMomentComing: 'Волшебный момент приближается!',
-        magicMomentDescription: 'Ваше желание вместе с остальными превратится в звезды и разлетится по космосу 2026+ для совместных исполнений',
-        watchMagic: 'Смотреть волшебство',
         
         // Комнаты - дополнительные
         leaveRoomError: 'Ошибка выхода из комнаты',
@@ -494,11 +489,6 @@ export const translations = {
         enableNotificationsAfterBall: 'Enable notifications?',
         enableNotificationsMessage: 'Get reminders about your room launch and important events!',
         view: 'View',
-        yourBallGotLike: 'Your ball got {count} support!',
-        someoneLikedYourBall: 'Someone supported your wish',
-        magicMomentComing: 'The magical moment is coming!',
-        magicMomentDescription: 'Your wish together with others will turn into stars and fly into the cosmos 2026+ for joint fulfillment',
-        watchMagic: 'Watch the magic',
         
         // Rooms - additional
         leaveRoomError: 'Error leaving room',
@@ -596,6 +586,8 @@ export const translations = {
         pleaseSelectImageFile: 'Please select an image file (JPG, PNG, GIF, BMP)',
         pleaseEnterValidEmail: 'Please enter a valid email address',
         notificationPermissionDenied: 'Notification permission denied',
+        yourBallGotLike: 'Your ball got {count} like!',
+        someoneLikedYourBall: 'Someone supported your wish ball',
         
         // Home page
         appTitle: '✨ Cosmos of Hopes ✨',

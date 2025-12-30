@@ -134,48 +134,14 @@ async function sendPushNotification(
   }
 }
 
-// CORS заголовки
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
 serve(async (req) => {
-  // Обработка CORS preflight запроса
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
   try {
-    // Проверяем, есть ли тело запроса
-    const contentType = req.headers.get('content-type') || '';
-    let toyOwnerId: string | undefined;
-    let toyId: string | undefined;
-
-    if (contentType.includes('application/json')) {
-      try {
-        const body = await req.json();
-        toyOwnerId = body.toyOwnerId;
-        toyId = body.toyId;
-      } catch (jsonError) {
-        // Если тело пустое или некорректное, возвращаем ошибку
-        return new Response(
-          JSON.stringify({ error: 'Invalid JSON body or empty request body' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    } else {
-      // Если нет JSON в заголовках, пытаемся получить из query параметров
-      const url = new URL(req.url);
-      toyOwnerId = url.searchParams.get('toyOwnerId') || undefined;
-      toyId = url.searchParams.get('toyId') || undefined;
-    }
+    const { toyOwnerId, toyId } = await req.json();
 
     if (!toyOwnerId) {
       return new Response(
         JSON.stringify({ error: 'toyOwnerId is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -200,17 +166,15 @@ serve(async (req) => {
 
     if (subsError || !subscriptionData) {
       // Пользователь не подписан на уведомления - это нормально
-      console.log(`User ${toyOwnerId} is not subscribed to push notifications`);
       return new Response(
         JSON.stringify({ message: 'User not subscribed to notifications', sent: false }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     const pushSubscription: PushSubscription = subscriptionData.subscription;
 
     // Отправляем уведомление
-    console.log(`Sending push notification to user ${toyOwnerId} for toy ${toyId}`);
     const sent = await sendPushNotification(
       pushSubscription,
       '✨ Ваш шар получил лайк!',
@@ -218,16 +182,15 @@ serve(async (req) => {
       '/tree'
     );
 
-    console.log(`Push notification ${sent ? 'sent successfully' : 'failed'} for user ${toyOwnerId}`);
     return new Response(
       JSON.stringify({ success: true, sent }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
     console.error('Error in send-like-notification:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 });
