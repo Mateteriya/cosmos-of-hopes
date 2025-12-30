@@ -1968,6 +1968,13 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
   const controlsRef = useRef<any>(null);
   const [treePosition, setTreePosition] = useState<[number, number, number]>([0, -32, 0]); // Позиция елки (по умолчанию)
   const treeGroupRef = useRef<THREE.Group | null>(null);
+  const [isTreeLoaded, setIsTreeLoaded] = useState<boolean>(false); // Флаг загрузки елки
+  
+  // Сбрасываем флаг загрузки при изменении модели елки
+  useEffect(() => {
+    setIsTreeLoaded(false);
+    treeGroupRef.current = null;
+  }, [treeModel]);
   
   // Получаем реальную позицию елки из сцены - улучшенный поиск
   useEffect(() => {
@@ -1985,6 +1992,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
             object.getWorldPosition(worldPosition);
             setTreePosition([worldPosition.x, worldPosition.y, worldPosition.z]);
             treeGroupRef.current = object;
+            setIsTreeLoaded(true); // Елка найдена и загружена!
             found = true;
           }
         }
@@ -2258,8 +2266,8 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
         />
       )}
 
-      {/* Шары на ёлке (только видимые) - скрываем во время новогодней анимации */}
-      {!isNewYearAnimation && visibleToys.map((toy) => {
+      {/* Шары на ёлке (только видимые) - скрываем во время новогодней анимации и до загрузки елки */}
+      {!isNewYearAnimation && isTreeLoaded && visibleToys.map((toy) => {
         const isUserBall = currentUserId && toy.user_id === currentUserId;
         const position = getBallPosition(toy.id);
         const distance = getDistance(position);
