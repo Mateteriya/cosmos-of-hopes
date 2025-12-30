@@ -24,11 +24,23 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
 
   // Загружаем историю сообщений и подписываемся на новые
   useEffect(() => {
+    if (!roomId) return;
+    
     loadMessages();
     
     // Подписываемся на новые сообщения через Supabase Realtime
     const unsubscribe = subscribeToRoomMessages(roomId, (newMessage) => {
-      setMessages(prev => [...prev, newMessage]);
+      console.log('📨 Новое сообщение получено через Realtime:', newMessage);
+      setMessages(prev => {
+        // Проверяем, нет ли уже такого сообщения (защита от дубликатов)
+        const exists = prev.some(msg => msg.id === newMessage.id);
+        if (exists) {
+          console.log('⚠️ Сообщение уже существует, пропускаем');
+          return prev;
+        }
+        console.log('✅ Добавляем новое сообщение в список');
+        return [...prev, newMessage];
+      });
     });
 
     return () => {
@@ -58,10 +70,13 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
     if (!newMessage.trim()) return;
 
     try {
-      await sendRoomMessage(roomId, currentUserId, newMessage.trim());
+      console.log('📤 Отправка сообщения:', newMessage.trim());
+      const sentMessage = await sendRoomMessage(roomId, currentUserId, newMessage.trim());
+      console.log('✅ Сообщение отправлено:', sentMessage);
       setNewMessage('');
+      // Не добавляем сообщение вручную - оно придет через Realtime подписку
     } catch (err: any) {
-      console.error('Ошибка отправки сообщения:', err);
+      console.error('❌ Ошибка отправки сообщения:', err);
       alert(err.message || t('messageSendError'));
     }
   };

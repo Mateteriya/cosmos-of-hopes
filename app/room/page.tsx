@@ -309,11 +309,14 @@ export default function RoomPage() {
                       className="fixed inset-0 z-[99998]"
                       onClick={() => setDesignSelectorOpen(false)}
                     />
-                    <div className="absolute right-0 bottom-full mb-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px] max-h-[80vh] overflow-y-auto">
+                    <div className="fixed right-4 top-20 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px] max-w-[90vw] max-h-[80vh] overflow-y-auto">
                       <RoomDesignSelector
                         currentTheme={room.design_theme || 'classic'}
                         currentCustomUrl={room.custom_background_url}
-                        onThemeChange={handleDesignChange}
+                        onThemeChange={(theme, url) => {
+                          handleDesignChange(theme, url);
+                          setDesignSelectorOpen(false);
+                        }}
                         isCreator={isCreator}
                       />
                     </div>

@@ -70,8 +70,14 @@ export function subscribeToRoomMessages(
   roomId: string,
   onMessage: (message: RoomMessage) => void
 ) {
+  console.log('🔔 Подписка на сообщения комнаты:', roomId);
+  
   const channel = supabase
-    .channel(`room_messages:${roomId}`)
+    .channel(`room_messages:${roomId}`, {
+      config: {
+        broadcast: { self: true },
+      },
+    })
     .on(
       'postgres_changes',
       {
@@ -81,12 +87,23 @@ export function subscribeToRoomMessages(
         filter: `room_id=eq.${roomId}`,
       },
       (payload) => {
-        onMessage(payload.new as RoomMessage);
+        console.log('📬 Realtime событие получено:', payload);
+        const message = payload.new as RoomMessage;
+        console.log('📨 Обработка нового сообщения:', message);
+        onMessage(message);
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log('📡 Статус подписки:', status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Успешно подписан на сообщения комнаты:', roomId);
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error('❌ Ошибка подписки на канал');
+      }
+    });
 
   return () => {
+    console.log('🔕 Отписка от сообщений комнаты:', roomId);
     supabase.removeChannel(channel);
   };
 }
