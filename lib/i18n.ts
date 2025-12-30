@@ -141,12 +141,16 @@ export const translations = {
         
         // Навигация и общие
         home: 'Главная',
+        back: 'Назад',
+        share: 'Поделиться',
         tree: 'Ёлка',
         rooms: 'Комнаты',
         backToTree: '← Вернуться к общей ёлке',
         backToRoomsList: 'Вернуться к списку комнат',
         backToSite: 'Вернуться на сайт',
         backToHome: 'Вернуться на главную',
+        eventProgram: 'Программа мероприятия',
+        newYearGreeting: '🎄 С Новым годом! 🎄',
         loading: 'Загрузка...',
         loadingRooms: 'Загрузка комнат...',
         loadingRoom: 'Загрузка комнаты...',
@@ -428,12 +432,16 @@ export const translations = {
         
         // Navigation and general
         home: 'Home',
+        back: 'Back',
+        share: 'Share',
         tree: 'Tree',
         rooms: 'Rooms',
         backToTree: '← Back to main tree',
         backToRoomsList: 'Back to rooms list',
         backToSite: 'Back to site',
         backToHome: 'Back to home',
+        eventProgram: 'Event Program',
+        newYearGreeting: '🎄 Happy New Year! 🎄',
         loading: 'Loading...',
         loadingRooms: 'Loading rooms...',
         loadingRoom: 'Loading room...',
