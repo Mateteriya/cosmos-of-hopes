@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import ToyConstructor from '@/components/constructor/ToyConstructor';
 import ExistingBallModal from '@/components/constructor/ExistingBallModal';
+import BallAlreadyOnTreePage from '@/components/constructor/BallAlreadyOnTreePage';
 import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 import type { ToyParams, Toy } from '@/types/toy';
 import { createToy, getUserToy, getToyLikesCount } from '@/lib/toys';
@@ -21,6 +22,8 @@ export default function CreatePage() {
   const [showExistingBallModal, setShowExistingBallModal] = useState(false);
   const [existingBallLikes, setExistingBallLikes] = useState(0);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [showReplaceBallModal, setShowReplaceBallModal] = useState(false);
+  const [pendingSaveParams, setPendingSaveParams] = useState<ToyParams | null>(null);
   
   // Инициализация userId только на клиенте
   useEffect(() => {
@@ -78,20 +81,23 @@ export default function CreatePage() {
     
     try {
       // Проверяем, есть ли уже шар (если еще не проверили)
-      if (!existingBall) {
+      let currentBall = existingBall;
+      let currentLikes = existingBallLikes;
+      
+      if (!currentBall) {
         const existing = await getUserToy(userId, roomId || undefined);
         if (existing) {
+          currentBall = existing;
+          currentLikes = await getToyLikesCount(existing.id);
           setExistingBall(existing);
-          const likes = await getToyLikesCount(existing.id);
-          setExistingBallLikes(likes);
-          
-          // Если шар уже есть - показываем модальное окно
-          setShowExistingBallModal(true);
-          return;
+          setExistingBallLikes(currentLikes);
         }
-      } else {
-        // Если шар уже есть - показываем модальное окно
-        setShowExistingBallModal(true);
+      }
+      
+      // Если шар уже есть - показываем модалку подтверждения замены
+      if (currentBall) {
+        setPendingSaveParams(params);
+        setShowReplaceBallModal(true);
         return;
       }
 
@@ -103,8 +109,38 @@ export default function CreatePage() {
     }
   };
 
+  const handleConfirmReplace = async () => {
+    setShowReplaceBallModal(false);
+    if (pendingSaveParams) {
+      await doSave(pendingSaveParams);
+      setPendingSaveParams(null);
+    }
+  };
+
+  const handleCancelReplace = () => {
+    setShowReplaceBallModal(false);
+    setPendingSaveParams(null);
+  };
+
   const doSave = async (params: ToyParams) => {
     try {
+      // Если есть старый шар - удаляем его перед созданием нового
+      if (existingBall) {
+        try {
+          await supabase
+            .from('toys')
+            .delete()
+            .eq('id', existingBall.id);
+          console.log('Старый шар удален:', existingBall.id);
+          // Сбрасываем состояние существующего шара
+          setExistingBall(null);
+          setExistingBallLikes(0);
+        } catch (err) {
+          console.error('Ошибка удаления старого шара:', err);
+          // Продолжаем создание нового шара даже если не удалось удалить старый
+        }
+      }
+
       // Добавляем room_id к параметрам, если он есть в URL
       const paramsWithRoom: ToyParams = {
         ...params,
@@ -219,6 +255,31 @@ export default function CreatePage() {
     );
   }
 
+  // Если есть шар с лайками - показываем страницу "шар уже на ёлке"
+  if (existingBall && existingBallLikes > 0) {
+    return (
+      <div className="min-h-screen">
+        {/* Кнопки навигации */}
+        <div className="fixed top-2 left-2 sm:top-4 sm:left-4 z-50 flex flex-wrap gap-2">
+          <button
+            onClick={() => router.push('/')}
+            className="bg-slate-700/90 hover:bg-slate-600 text-white font-bold px-3 sm:px-4 py-2 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-sm"
+          >
+            <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            {t('home')}
+          </button>
+        </div>
+        <BallAlreadyOnTreePage
+          ball={existingBall}
+          likesCount={existingBallLikes}
+          roomId={roomId}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       {/* Кнопки навигации */}
@@ -284,6 +345,35 @@ export default function CreatePage() {
           }}
           showCloseButton={true}
         />
+      )}
+
+      {/* Модалка подтверждения замены шара */}
+      {showReplaceBallModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border-2 border-purple-500/50 shadow-2xl max-w-md w-full p-4 sm:p-6">
+            <div className="text-center mb-4 sm:mb-6">
+              <div className="text-3xl sm:text-4xl mb-2 sm:mb-3">⚠️</div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+                {t('replaceBallWarning')}
+              </h2>
+            </div>
+
+            <div className="space-y-2 sm:space-y-3">
+              <button
+                onClick={handleConfirmReplace}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg text-sm sm:text-base"
+              >
+                {t('replaceBallConfirm')}
+              </button>
+              <button
+                onClick={handleCancelReplace}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
+              >
+                {t('replaceBallCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <ToyConstructor onSave={handleSave} userId={userId} />
