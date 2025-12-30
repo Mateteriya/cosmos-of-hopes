@@ -3,6 +3,7 @@
  */
 
 import { supabase } from './supabase';
+import { getSupabaseServer } from './supabase-server';
 import type { ToyParams, Toy } from '@/types/toy';
 
 /**
@@ -389,6 +390,11 @@ export async function getToysOnTreeCount(): Promise<number> {
  * Получает количество лайков у конкретного шара
  */
 export async function getToyLikesCount(toyId: string): Promise<number> {
+  // Тестовые шары не имеют лайков в БД
+  if (toyId.startsWith('test-ball-')) {
+    return 0;
+  }
+  
   try {
     const { count, error } = await supabase
       .from('supports')
@@ -430,6 +436,11 @@ export async function getToyLikesCount(toyId: string): Promise<number> {
  * Проверяет, лайкнул ли пользователь конкретный шар
  */
 export async function hasUserLikedToy(toyId: string, userId: string): Promise<boolean> {
+  // Тестовые шары не могут быть лайкнуты
+  if (toyId.startsWith('test-ball-')) {
+    return false;
+  }
+  
   try {
     const { data, error } = await supabase
       .from('supports')
@@ -650,6 +661,110 @@ export async function checkNewLikes(userId: string, lastCheckedTimestamp: number
     }
     console.warn('Ошибка проверки новых лайков:', err);
     return { hasNewLikes: false, toysWithNewLikes: [] };
+  }
+}
+
+/**
+ * Удаляет все кастомные шары из БД, оставляя только 7 (любых)
+ * ВАЖНО: Используется для очистки тестовых данных
+ */
+export async function deleteAllCustomToysExceptSeven(roomId?: string): Promise<number> {
+  try {
+    // Получаем ВСЕ шары на елке
+    let query = supabase
+      .from('toys')
+      .select('id')
+      .eq('status', 'on_tree');
+
+    if (roomId) {
+      query = query.eq('room_id', roomId);
+    } else {
+      query = query.is('room_id', null); // Только общие шары
+    }
+
+    const { data: allToys, error: fetchError } = await query;
+
+    if (fetchError) {
+      console.error('Ошибка загрузки шаров:', fetchError);
+      throw new Error(`Ошибка загрузки шаров: ${fetchError.message}`);
+    }
+
+    if (!allToys || allToys.length === 0) {
+      console.log('Шары не найдены. Удаление не требуется.');
+      return 0;
+    }
+
+    // Фильтруем тестовые шары на клиенте (id начинается с 'test-ball-')
+    // Но так как id это UUID, тестовые шары не будут в БД - они генерируются на клиенте
+    // Поэтому просто берем все шары из БД - это и есть кастомные
+    const customToys = allToys; // Все шары из БД - это кастомные
+
+    if (customToys.length <= 7) {
+      console.log(`Найдено ${customToys.length} кастомных шаров. Удаление не требуется.`);
+      return 0;
+    }
+
+    // Оставляем любые 7, остальные удаляем
+    const toysToDelete = customToys.slice(7);
+    const toyIdsToDelete = toysToDelete.map(toy => toy.id);
+
+    console.log(`Найдено ${customToys.length} кастомных шаров. Оставляем 7, удаляем ${toyIdsToDelete.length}`);
+    console.log(`ID для удаления:`, toyIdsToDelete.slice(0, 5), '...');
+
+    // Удаляем шары используя серверный клиент (обходит RLS)
+    // Получаем серверный клиент только на сервере
+    const supabaseServer = getSupabaseServer();
+    
+    // Разбиваем на батчи по 10 для надежности
+    let deletedCount = 0;
+    const batchSize = 10;
+    
+    for (let i = 0; i < toyIdsToDelete.length; i += batchSize) {
+      const batch = toyIdsToDelete.slice(i, i + batchSize);
+      
+      const { error: deleteError, count } = await supabaseServer
+        .from('toys')
+        .delete({ count: 'exact' })
+        .in('id', batch);
+
+      if (deleteError) {
+        console.error(`Ошибка удаления батча шаров:`, deleteError);
+        // Пробуем удалить по одному
+        for (const toyId of batch) {
+          const { error: singleError, count: singleCount } = await supabaseServer
+            .from('toys')
+            .delete({ count: 'exact' })
+            .eq('id', toyId);
+          
+          if (singleError) {
+            console.error(`Ошибка удаления шара ${toyId}:`, singleError);
+          } else {
+            deletedCount += singleCount || 0;
+          }
+        }
+      } else {
+        deletedCount += count || 0;
+      }
+    }
+
+    console.log(`Успешно удалено ${deletedCount} из ${toyIdsToDelete.length} шаров`);
+
+    // Удаляем связанные лайки (supports) для удаленных шаров
+    try {
+      await supabase
+        .from('supports')
+        .delete()
+        .in('toy_id', toyIdsToDelete);
+    } catch (supportsError) {
+      // Игнорируем ошибки удаления лайков (таблица может не существовать)
+      console.warn('Не удалось удалить связанные лайки:', supportsError);
+    }
+
+    console.log(`✅ Успешно удалено ${toyIdsToDelete.length} шаров. Оставлено 7.`);
+    return toyIdsToDelete.length;
+  } catch (err: any) {
+    console.error('Ошибка при удалении шаров:', err);
+    throw err;
   }
 }
 

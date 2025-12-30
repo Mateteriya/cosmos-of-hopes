@@ -2,7 +2,7 @@
 
 /**
  * Условный компонент AuthButton
- * Показывается только на главной странице, скрыт на странице комнаты
+ * Показывается только на главной странице
  */
 
 import { usePathname } from 'next/navigation';
@@ -11,8 +11,8 @@ import AuthButton from './AuthButton';
 export default function ConditionalAuthButton() {
   const pathname = usePathname();
   
-  // Скрываем кнопки авторизации на странице комнаты
-  if (pathname?.startsWith('/room')) {
+  // Показываем кнопки авторизации только на главной странице
+  if (pathname !== '/') {
     return null;
   }
   

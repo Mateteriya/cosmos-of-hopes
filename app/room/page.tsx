@@ -200,6 +200,15 @@ export default function RoomPage() {
             {/* Левая часть: кнопка назад и название комнаты */}
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <button
+                onClick={() => router.push('/')}
+                className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold p-2 sm:p-2.5 rounded-lg transition-all flex-shrink-0"
+                title={t('home')}
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </button>
+              <button
                 onClick={() => router.push('/rooms')}
                 className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg transition-all text-sm whitespace-nowrap flex-shrink-0"
               >

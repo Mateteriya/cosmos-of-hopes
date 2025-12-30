@@ -2113,8 +2113,59 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     } as Toy));
   }, []);
   
-  // Объединяем реальные шары с тестовыми
-  const allToys = useMemo(() => [...toys, ...testToys], [toys, testToys]);
+  // Множество занятых позиций пользовательскими шарами (0-199)
+  // Новые шары должны заменять тестовые на соответствующих позициях
+  const occupiedPositions = useMemo(() => {
+    const set = new Set<number>();
+    toys.forEach(toy => {
+      // Извлекаем position_index из toy.position_index или из toy.position
+      let positionIndex: number | undefined = (toy as any).position_index;
+      if (positionIndex === undefined || positionIndex === null) {
+        if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+          positionIndex = (toy.position as any).position_index;
+        }
+      }
+      if (positionIndex !== undefined && positionIndex !== null && positionIndex >= 0 && positionIndex < 200) {
+        set.add(positionIndex);
+      }
+    });
+    return set;
+  }, [toys]);
+  
+  // Создаем массив из 200 позиций: пользовательские шары заменяют тестовые на соответствующих позициях
+  const allToys = useMemo(() => {
+    const positions: (Toy | null)[] = Array.from({ length: 200 }, (_, i) => {
+      // Ищем пользовательский шар с position_index === i
+      const userToy = toys.find(toy => {
+        let positionIndex: number | undefined = (toy as any).position_index;
+        if (positionIndex === undefined || positionIndex === null) {
+          if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+            positionIndex = (toy.position as any).position_index;
+          }
+        }
+        return positionIndex === i;
+      });
+      
+      // Если есть пользовательский шар на этой позиции - используем его, иначе тестовый
+      return userToy || testToys[i];
+    });
+    
+    // Фильтруем null (не должно быть, но на всякий случай)
+    const result = positions.filter((toy): toy is Toy => toy !== null);
+    
+    // Добавляем пользовательские шары БЕЗ position_index (старые шары, которые не заменяют тестовые)
+    const toysWithoutPosition = toys.filter(toy => {
+      let positionIndex: number | undefined = (toy as any).position_index;
+      if (positionIndex === undefined || positionIndex === null) {
+        if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+          positionIndex = (toy.position as any).position_index;
+        }
+      }
+      return positionIndex === undefined || positionIndex === null || positionIndex < 0 || positionIndex >= 200;
+    });
+    
+    return [...toysWithoutPosition, ...result];
+  }, [toys, testToys]);
   
   // Сбрасываем флаг загрузки при изменении модели елки
   useEffect(() => {

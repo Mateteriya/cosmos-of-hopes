@@ -35,7 +35,8 @@ export interface Toy {
   
   // Новые поля для виртуальной ёлки
   is_on_tree?: boolean; // Висит ли шар на общей ёлке
-  position?: { x: number; y: number; z: number }; // Координаты на 3D ёлке
+  position?: { x: number; y: number; z: number } | { position_index?: number }; // Координаты на 3D ёлке или индекс позиции (0-199)
+  position_index?: number; // Индекс позиции на елке (0-199) для замены тестовых шаров
   support_count?: number; // Количество полученных «поддержек» (лайков)
   author_tg_id?: string; // ID автора (Telegram ID)
   ball_size?: number; // Размер шара
