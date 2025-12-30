@@ -31,6 +31,13 @@ function TreePageContent() {
   const [treeType] = useState<'3d' | 'png'>('3d');
   const [treeModel] = useState<string>('/placewithtree.obj');
 
+  // Pull-to-refresh для мобильных устройств
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartScrollY = useRef<number | null>(null);
+
   // Тестовый "Новый год" для проверки анимации (пока выключен)
 
   // Инициализация userId
@@ -223,8 +230,87 @@ function TreePageContent() {
     );
   }
 
+  // Обработчики для pull-to-refresh (только для мобильных)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Проверяем, что это мобильное устройство и страница вверху
+    if (typeof window !== 'undefined' && window.scrollY === 0 && window.innerWidth < 768) {
+      const target = e.target as HTMLElement;
+      // Не активируем pull-to-refresh если касаемся интерактивных элементов
+      if (target.closest('button') || target.closest('a') || target.closest('[data-interactive]')) {
+        return;
+      }
+      touchStartY.current = e.touches[0].clientY;
+      touchStartScrollY.current = window.scrollY;
+      setIsPulling(true);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Только для мобильных
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+    
+    if (!isPulling || touchStartY.current === null) return;
+    
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - touchStartY.current;
+    
+    // Разрешаем pull только если страница вверху и тянем вниз
+    if (window.scrollY === 0 && distance > 0) {
+      // Ограничиваем максимальное расстояние
+      const maxDistance = 100;
+      const clampedDistance = Math.min(distance, maxDistance);
+      setPullDistance(clampedDistance);
+      
+      // Предотвращаем прокрутку страницы во время pull
+      if (clampedDistance > 10) {
+        e.preventDefault();
+      }
+    } else {
+      setPullDistance(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    // Только для мобильных
+    if (typeof window === 'undefined' || window.innerWidth >= 768) {
+      touchStartY.current = null;
+      touchStartScrollY.current = null;
+      return;
+    }
+    
+    if (pullDistance > 50 && !isRefreshing) {
+      // Запускаем обновление
+      setIsRefreshing(true);
+      setPullDistance(0);
+      
+      // Обновляем страницу
+      loadToys();
+      if (!currentRoom) {
+        checkUserLikes();
+      }
+      
+      // Сбрасываем состояние через небольшую задержку
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setIsPulling(false);
+      }, 1000);
+    } else {
+      // Сбрасываем pull
+      setPullDistance(0);
+      setIsPulling(false);
+    }
+    touchStartY.current = null;
+    touchStartScrollY.current = null;
+  };
+
   return (
-    <div className="relative w-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}>
+    <div 
+      className="relative w-full" 
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Кнопки навигации */}
       <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-wrap gap-2 sm:gap-3">
         <button
@@ -236,18 +322,6 @@ function TreePageContent() {
           </svg>
           {t('home')}
         </button>
-        {/* Кнопка создания игрушки показывается только для общей ёлки, не для комнат */}
-        {!currentRoom && (
-        <button
-          onClick={() => router.push('/create')}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-          <span className="hidden sm:inline">{t('magicWand')}</span>
-        </button>
-        )}
         <button
           onClick={() => router.push('/rooms')}
           className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-3 sm:px-6 py-2 sm:py-3 rounded-lg shadow-xl transition-all transform hover:scale-105 text-xs sm:text-base flex items-center gap-1.5 whitespace-nowrap"
@@ -278,6 +352,48 @@ function TreePageContent() {
             </button>
           </div>
           <p className="text-[10px] sm:text-xs text-blue-200 mt-1">Код: {currentRoom.invite_code}</p>
+        </div>
+      )}
+
+      {/* Pull-to-refresh индикатор */}
+      {isPulling && pullDistance > 0 && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center pointer-events-none"
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance, 100)}px)`,
+            opacity: Math.min(pullDistance / 50, 1)
+          }}
+        >
+          <div className="bg-slate-800/90 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-white/20">
+            {isRefreshing ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pull-to-refresh индикатор */}
+      {isPulling && pullDistance > 0 && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center pointer-events-none"
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance, 100)}px)`,
+            opacity: Math.min(pullDistance / 50, 1)
+          }}
+        >
+          <div className="bg-slate-800/90 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-white/20">
+            {isRefreshing ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            )}
+          </div>
         </div>
       )}
 
