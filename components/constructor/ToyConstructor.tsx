@@ -1108,9 +1108,9 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           ? 'border-cyan-400 bg-gradient-to-br from-cyan-500/40 via-blue-500/30 to-indigo-500/40 shadow-md scale-105'
                           : 'border-cyan-500/30 hover:border-cyan-400/60 bg-gradient-to-br from-slate-700/40 via-cyan-900/20 to-slate-700/40 hover:from-slate-700/50 hover:via-cyan-900/30 hover:to-slate-700/50'
                       }`}
+                      title={t('glossy')}
                     >
                       <span className="text-lg">✨</span>
-                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('glossy').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setSurfaceType('matte')}
@@ -1122,7 +1122,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       title={t('matte')}
                     >
                       <span className="text-lg">🔳</span>
-                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('matte').toUpperCase()}</div>
                     </button>
                     <button
                       onClick={() => setSurfaceType('metal')}
@@ -1134,7 +1133,6 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       title={t('metal')}
                     >
                       <span className="text-lg">⚡</span>
-                      <div className="hidden lg:block text-[10px] text-white/70 mt-1 font-black uppercase tracking-wider">{t('metal').toUpperCase()}</div>
                     </button>
                   </div>
                 </div>
