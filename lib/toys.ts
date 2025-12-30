@@ -697,7 +697,7 @@ export async function deleteAllCustomToysExceptSeven(roomId?: string): Promise<n
     // Фильтруем тестовые шары на клиенте (id начинается с 'test-ball-')
     // Но так как id это UUID, тестовые шары не будут в БД - они генерируются на клиенте
     // Поэтому просто берем все шары из БД - это и есть кастомные
-    const customToys = allToys; // Все шары из БД - это кастомные
+    const customToys: Array<{ id: string }> = allToys; // Все шары из БД - это кастомные
 
     if (customToys.length <= 7) {
       console.log(`Найдено ${customToys.length} кастомных шаров. Удаление не требуется.`);
