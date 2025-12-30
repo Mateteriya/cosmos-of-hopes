@@ -73,7 +73,7 @@ export function ShareIcon({ className = '', size = 20 }: IconProps) {
   );
 }
 
-// Иконка "Дизайн" - палитра/кристалл, космическая
+// Иконка "Дизайн" - палитра/кисть, космическая
 export function DesignIcon({ className = '', size = 20 }: IconProps) {
   return (
     <svg
@@ -87,13 +87,14 @@ export function DesignIcon({ className = '', size = 20 }: IconProps) {
       strokeLinejoin="round"
       className={className}
     >
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-      <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.6" />
-      <circle cx="16" cy="8" r="1" fill="currentColor" opacity="0.6" />
-      <circle cx="8" cy="16" r="1" fill="currentColor" opacity="0.6" />
-      <circle cx="16" cy="16" r="1" fill="currentColor" opacity="0.6" />
+      {/* Палитра */}
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+      {/* Кисть */}
+      <path d="M12 2L3.09 8.26c-.85.5-1.09 1.64-.5 2.5l3.41 5.24c.59.86 1.74 1.1 2.5.5L12 15" />
+      <path d="M22 12l-5-5M17 7l5 5" />
     </svg>
   );
 }

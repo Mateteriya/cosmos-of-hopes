@@ -72,6 +72,13 @@ export default function RoomPage() {
     }
   }, [roomId]);
 
+  // Прокрутка вверх при загрузке страницы
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   // Отладка для проверки isCreator (должен быть до условных возвратов!)
   useEffect(() => {
     if (room) {
@@ -292,7 +299,7 @@ export default function RoomPage() {
                       className="fixed inset-0 z-[9998]"
                       onClick={() => setDesignSelectorOpen(false)}
                     />
-                    <div className="absolute right-0 top-full mt-2 z-[9999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px]">
+                    <div className="absolute right-0 top-full mt-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg min-w-[280px]">
                       <RoomDesignSelector
                         currentTheme={room.design_theme || 'classic'}
                         currentCustomUrl={room.custom_background_url}
@@ -309,6 +316,9 @@ export default function RoomPage() {
 
         {/* МОБИЛЬНАЯ ВЕРСИЯ - Таймер под верхней панелью */}
         <div className="md:hidden flex-shrink-0 px-3 py-3">
+          <div className="text-white/90 text-sm font-semibold mb-2 text-center">
+            {t('timerUntilNewYear')}
+          </div>
           <NewYearTimer midnightUTC={room.midnight_utc} timezone={room.timezone} />
         </div>
 
@@ -382,11 +392,19 @@ export default function RoomPage() {
                   onThemeChange={handleDesignChange}
                   isCreator={true}
                 />
+                {/* Закомментировано для следующей версии
                 <EventProgramSelector
                   currentProgram={room.event_program || 'chat'}
                   onProgramChange={handleProgramChange}
                   isCreator={true}
                 />
+                */}
+                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 opacity-60">
+                  <div className="text-white/70 font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎮 {t('eventProgram')}</div>
+                  <div className="text-white/50 text-xs sm:text-sm text-center">
+                    {t('comingInNextVersion')}
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -412,11 +430,19 @@ export default function RoomPage() {
                   onThemeChange={() => {}}
                   isCreator={false}
                 />
+                {/* Закомментировано для следующей версии
                 <EventProgramSelector
                   currentProgram={room.event_program || 'chat'}
                   onProgramChange={() => {}}
                   isCreator={false}
                 />
+                */}
+                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 opacity-60">
+                  <div className="text-white/70 font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎮 {t('eventProgram')}</div>
+                  <div className="text-white/50 text-xs sm:text-sm text-center">
+                    {t('comingInNextVersion')}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -426,21 +452,19 @@ export default function RoomPage() {
         <div className="md:hidden flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-3 py-3 gap-3">
           {/* Чат текстовый */}
           <div className="flex-shrink-0 relative">
-            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden" style={{ minHeight: '300px', maxHeight: '400px' }}>
-              <div className="flex flex-col h-full">
-                {/* Участники внутри чата */}
-                <div className="flex-shrink-0 px-3 pt-2 pb-1">
-                  <CompactParticipants 
-                    roomId={room.id} 
-                    currentUserId={tempUserId} 
-                    isCreator={isCreator}
-                    maxInvites={10}
-                  />
-                </div>
-                {/* Окно чата (без заголовка, т.к. участники уже есть) */}
-                <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                  <RoomChat roomId={room.id} currentUserId={tempUserId} hideHeader={true} />
-                </div>
+            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col" style={{ minHeight: '400px', maxHeight: '500px' }}>
+              {/* Участники внутри чата */}
+              <div className="flex-shrink-0 px-3 pt-2 pb-1">
+                <CompactParticipants 
+                  roomId={room.id} 
+                  currentUserId={tempUserId} 
+                  isCreator={isCreator}
+                  maxInvites={10}
+                />
+              </div>
+              {/* Окно чата (без заголовка, т.к. участники уже есть) */}
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                <RoomChat roomId={room.id} currentUserId={tempUserId} hideHeader={true} />
               </div>
             </div>
             {/* Стрелочка вниз сбоку от чата */}
@@ -487,8 +511,16 @@ export default function RoomPage() {
                 )}
               </div>
 
-              {/* Программа мероприятия */}
-              <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden">
+              {/* Программа мероприятия - будет в следующей версии */}
+              <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden opacity-60">
+                <div className="w-full flex items-center justify-between px-4 py-3 cursor-not-allowed">
+                  <span className="text-white/70 font-bold text-sm">{t('eventProgram') || 'Программа мероприятия'}</span>
+                  <span className="text-white/30 text-xs">🔒</span>
+                </div>
+                <div className="px-4 pb-4 text-white/50 text-xs text-center">
+                  {t('comingInNextVersion')}
+                </div>
+                {/* Закомментировано для следующей версии
                 <button
                   onClick={() => setProgramExpanded(!programExpanded)}
                   className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors"
@@ -505,6 +537,7 @@ export default function RoomPage() {
                     />
                   </div>
                 )}
+                */}
               </div>
             </div>
           ) : (

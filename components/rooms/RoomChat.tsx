@@ -77,7 +77,7 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
 
       {/* Сообщения */}
       <div 
-        className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-0 relative chat-messages-area"
+        className={`flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 ${hideHeader ? 'min-h-0' : 'min-h-0'} relative chat-messages-area`}
       >
         {isLoading ? (
           <div className="text-white/50 text-xs sm:text-sm text-center">{t('loadingMessages')}</div>
@@ -116,7 +116,7 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
       </div>
 
       {/* Форма отправки */}
-      <form onSubmit={sendMessage} className="p-2 sm:p-3 border-t border-white/20 flex-shrink-0">
+      <form onSubmit={sendMessage} className={`p-2 sm:p-3 border-t border-white/20 flex-shrink-0 ${hideHeader ? 'mt-auto' : ''}`}>
         <div className="flex gap-1.5 sm:gap-2">
           <input
             type="text"
