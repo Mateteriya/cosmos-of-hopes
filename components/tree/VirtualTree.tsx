@@ -232,8 +232,10 @@ function BallOnTree({
     
     if (meshRef.current && isUserBall) {
         // Для своего шара - пульсация всегда видна, независимо от расстояния
-        const scale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
-        meshRef.current.scale.setScalar(scale);
+        // Базовый размер увеличен в 1.4 раза, плюс пульсация
+        const baseScale = 1.4; // Базовое увеличение размера для своего шара
+        const pulseScale = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.15;
+        meshRef.current.scale.setScalar(baseScale * pulseScale);
         // Пульсация свечения (для PointLight)
         if (glowMeshRef.current) {
           const light = glowMeshRef.current as THREE.PointLight;
@@ -350,7 +352,7 @@ function BallOnTree({
           onClick={handleClick}
           onPointerOver={() => distance < 10 && setHovered(true)}
           onPointerOut={() => setHovered(false)}
-          scale={hovered && distance < 10 ? 1.2 : 1}
+          scale={isUserBall ? 1 : (hovered && distance < 10 ? 1.2 : 1)}
           frustumCulled={false} // ВСЕГДА рендерим все шары, даже если они вне видимости камеры
           renderOrder={1000} // Рендерим поверх елки
         >
@@ -387,7 +389,7 @@ function BallOnTree({
           />
           {/* Очень тонкое свечение вокруг шара (почти прозрачное) */}
           <mesh ref={glowMeshLayerRef}>
-            <sphereGeometry args={[0.42 * (toy.ball_size || 1), 32, 32]} />
+            <sphereGeometry args={[0.42 * (toy.ball_size || 1) * 1.4, 32, 32]} />
           <meshStandardMaterial
               color="#ff00ff"
             transparent
