@@ -160,8 +160,14 @@ export default function RoomsPage() {
           </div>
         )}
 
-        {/* Кнопка возврата */}
-        <div className="mt-6">
+        {/* Кнопки возврата */}
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={() => router.push('/')}
+            className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition-all"
+          >
+            {t('backToHome')}
+          </button>
           <button
             onClick={() => router.push('/tree')}
             className="bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-6 py-3 rounded-lg transition-all"
