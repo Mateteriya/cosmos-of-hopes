@@ -97,7 +97,7 @@ export function AutoTranslator() {
               className="fixed inset-0 z-[49]"
               onClick={() => setShowOptions(false)}
             />
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[320px] max-w-[calc(100vw-2rem)] bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-blue-500/40 shadow-xl p-4 z-50">
+            <div className="fixed top-16 left-1/2 -translate-x-1/2 md:absolute md:top-full md:left-auto md:right-0 md:translate-x-0 md:mt-2 w-[320px] max-w-[calc(100vw-2rem)] bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-blue-500/40 shadow-xl p-4 z-50">
             <div className="text-white/90 text-sm font-bold mb-2">
               {currentTranslations.subtitle}
             </div>
