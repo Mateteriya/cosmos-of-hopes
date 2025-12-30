@@ -352,15 +352,9 @@ export default function NotificationPromptButton({ onSubscribed }: NotificationP
   return (
     <>
       <div 
-        className={`fixed top-4 left-4 z-[100] transition-all duration-300 ${
+        className={`fixed top-4 md:top-20 left-4 z-[100] transition-all duration-300 ${
           showPulse ? 'animate-pulse' : ''
         } ${isCollapsed && isMobile ? 'opacity-70' : ''}`}
-        style={{ 
-          position: 'fixed',
-          top: '1rem',
-          left: '1rem',
-          zIndex: 100
-        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onTouchStart={() => {
