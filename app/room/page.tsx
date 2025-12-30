@@ -452,16 +452,57 @@ export default function RoomPage() {
                   className="fixed inset-0 z-[99998]"
                   onClick={() => setDesignSelectorOpen(false)}
                 />
-                <div className="absolute top-full left-3 right-3 mt-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg max-h-[60vh] overflow-y-auto">
-                  <RoomDesignSelector
-                    currentTheme={room.design_theme || 'classic'}
-                    currentCustomUrl={room.custom_background_url}
-                    onThemeChange={(theme, url) => {
-                      handleDesignChange(theme, url);
-                      setDesignSelectorOpen(false);
-                    }}
-                    isCreator={isCreator}
-                  />
+                <div className="absolute top-full left-3 right-3 mt-2 z-[99999] bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg max-h-[60vh] overflow-y-auto p-3">
+                  {/* Упрощенный селектор для мобильной версии - сразу показывает все варианты */}
+                  <div className="text-white font-bold text-sm mb-3">{t('selectRoomDesign')}</div>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'classic', emoji: '🎄', nameKey: 'designClassic', descKey: 'designClassicDesc' },
+                      { value: 'cosmic', emoji: '🌌', nameKey: 'designCosmic', descKey: 'designCosmicDesc' },
+                      { value: 'minimal', emoji: '✨', nameKey: 'designMinimal', descKey: 'designMinimalDesc' },
+                      { value: 'urban', emoji: '🏙️', nameKey: 'designUrban', descKey: 'designUrbanDesc' },
+                      { value: 'custom', emoji: '🎨', nameKey: 'designCustom', descKey: 'designCustomDesc' },
+                    ].map((theme) => {
+                      const isSelected = (room.design_theme || 'classic') === theme.value;
+                      return (
+                        <button
+                          key={theme.value}
+                          onClick={() => {
+                            if (theme.value === 'custom') {
+                              // Для custom нужно загрузить изображение
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/png,image/jpeg,image/jpg';
+                              input.onchange = (e: any) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const url = URL.createObjectURL(file);
+                                  handleDesignChange('custom', url);
+                                  setDesignSelectorOpen(false);
+                                }
+                              };
+                              input.click();
+                            } else {
+                              handleDesignChange(theme.value as DesignTheme);
+                              setDesignSelectorOpen(false);
+                            }
+                          }}
+                          className={`w-full p-3 flex items-start gap-2 transition-all text-left rounded-lg ${
+                            isSelected ? 'bg-blue-500/20 border-2 border-blue-400' : 'bg-slate-700/50 border-2 border-white/10'
+                          } hover:bg-blue-600/60 hover:border-blue-400`}
+                        >
+                          <span className="text-lg flex-shrink-0">{theme.emoji}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-white font-semibold text-sm">{t(theme.nameKey as any)}</div>
+                            <div className="text-white/60 text-xs mt-0.5">{t(theme.descKey as any)}</div>
+                          </div>
+                          {isSelected && (
+                            <span className="text-blue-400 text-sm">✓</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             )}
