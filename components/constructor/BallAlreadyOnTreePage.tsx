@@ -53,11 +53,11 @@ export default function BallAlreadyOnTreePage({
               imageDataUrl={ball.image_url || null}
               ballSize={ball.ball_size || 1.0}
               surfaceType={ball.surface_type || 'glossy'}
-              effects={ball.effects || {
-                sparkle: false,
-                gradient: false,
-                glow: false,
-                stars: false,
+              effects={{
+                sparkle: ball.effects?.sparkle || false,
+                gradient: ball.effects?.gradient || false,
+                glow: ball.effects?.glow || false,
+                stars: ball.effects?.stars || false,
               }}
             />
           </div>
