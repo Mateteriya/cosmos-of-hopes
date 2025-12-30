@@ -91,7 +91,13 @@ export function AutoTranslator() {
         </button>
 
         {showOptions && (
-          <div className="absolute top-full right-0 mt-2 w-[320px] bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-blue-500/40 shadow-xl p-4 z-50">
+          <>
+            {/* Overlay для закрытия при клике вне меню */}
+            <div
+              className="fixed inset-0 z-[49]"
+              onClick={() => setShowOptions(false)}
+            />
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[320px] max-w-[calc(100vw-2rem)] bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-blue-500/40 shadow-xl p-4 z-50">
             <div className="text-white/90 text-sm font-bold mb-2">
               {currentTranslations.subtitle}
             </div>
@@ -142,10 +148,11 @@ export function AutoTranslator() {
               </button>
             </div>
 
-            <div className="mt-2 text-white/50 text-[9px] italic text-center">
+            <div className="mt-2 text-white/50 text-[9px] italic text-center break-words">
               {currentTranslations.orUseBrowser}
             </div>
           </div>
+          </>
         )}
     </div>
   );
