@@ -465,51 +465,6 @@ function TreePageContent() {
           </svg>
           <span>{t('rooms')}</span>
         </button>
-        {/* Тестовая кнопка для новогодней анимации (для разработки) */}
-        <button
-          onClick={() => {
-            if (isNewYearAnimation) {
-              // Если анимация уже запущена, сбрасываем для перезапуска
-              setIsNewYearAnimation(false);
-              setTimeout(() => {
-                setIsNewYearAnimation(true);
-                console.log('[TreePage] Перезапуск новогодней анимации');
-              }, 100);
-            } else {
-              console.log('[TreePage] Тестовый запуск новогодней анимации');
-              setIsNewYearAnimation(true);
-            }
-          }}
-          style={{ 
-            background: 'linear-gradient(to right, #ca8a04, #ea580c)',
-            color: 'white',
-            padding: '0.75rem 1.25rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            fontSize: '0.875rem',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            pointerEvents: 'auto',
-            position: 'relative',
-            zIndex: 100004
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(to right, #a16207, #c2410c)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(to right, #ca8a04, #ea580c)';
-          }}
-          title="Тестовая кнопка для запуска новогодней анимации (для разработки)"
-        >
-          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-          <span>{isNewYearAnimation ? '🔄 Перезапуск' : '🎆 Тест анимации'}</span>
-        </button>
         </div>
       </div>
 
