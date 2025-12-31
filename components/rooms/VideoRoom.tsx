@@ -115,25 +115,38 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     setShowCustomPlaceholder(false);
     setIsLoading(true);
     
-    // Используем URL с хешем для прямого присоединения к конференции (без плейсхолдера)
-    // Это более надежный способ обхода плейсхолдера Jitsi
-    const directJoinUrl = `${jitsiServerUrl}/${jitsiRoomName}#config.prejoinPageEnabled=false&config.enableWelcomePage=false&config.disableDeepLinking=true&config.disableInviteFunctions=true&config.disableThirdPartyRequests=true&userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false`;
+    // Пробуем использовать параметры через query string с принудительным отключением плейсхолдера
+    // Jitsi может игнорировать некоторые параметры, поэтому используем комбинацию подходов
+    const directJoinParams = new URLSearchParams({
+      'config.prejoinPageEnabled': 'false',
+      'config.enableWelcomePage': 'false',
+      'config.disableDeepLinking': 'true',
+      'config.disableInviteFunctions': 'true',
+      'config.disableThirdPartyRequests': 'true',
+      'config.skipPrejoin': 'true',
+      'userInfo.displayName': userName,
+      'config.startWithVideoMuted': 'false',
+      'config.startWithAudioMuted': 'false',
+    });
+    
+    const directJoinUrl = `${jitsiServerUrl}/${jitsiRoomName}?${directJoinParams.toString()}`;
     
     // Загружаем iframe с новым URL
     if (iframeRef.current) {
-      // Очищаем src перед установкой нового, чтобы гарантировать перезагрузку
+      // Полностью перезагружаем iframe
       iframeRef.current.src = '';
-      setTimeout(() => {
+      // Небольшая задержка для гарантированной перезагрузки
+      requestAnimationFrame(() => {
         if (iframeRef.current) {
           iframeRef.current.src = directJoinUrl;
         }
-      }, 100);
+      });
     }
     
-    // Скрываем лоадер через небольшую задержку
+    // Скрываем лоадер через задержку
     setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 3000);
   };
 
   if (error) {
@@ -265,40 +278,40 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
             </div>
           </div>
         ) : showCustomPlaceholder && isMobile ? (
-          // Кастомный плейсхолдер для мобильной версии с правильным порядком элементов
-          <div className="absolute inset-0 bg-slate-800/95 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-20 p-4">
-            <div className="text-center text-white/90 max-w-sm w-full">
-              {/* Логотип/иконка */}
-              <div className="text-5xl mb-4">📹</div>
+          // Кастомный плейсхолдер для мобильной версии с правильным порядком элементов (компактный)
+          <div className="absolute inset-0 bg-slate-800/95 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-20 p-2 sm:p-3 overflow-y-auto">
+            <div className="text-center text-white/90 w-full max-w-xs">
+              {/* Логотип/иконка (меньше) */}
+              <div className="text-3xl sm:text-4xl mb-2">📹</div>
               
-              {/* Заголовок */}
-              <h3 className="text-lg font-bold mb-2">{t('videoRoom')}</h3>
+              {/* Заголовок (компактнее) */}
+              <h3 className="text-sm sm:text-base font-bold mb-1.5">{t('videoRoom')}</h3>
               
-              {/* Код комнаты (компактно) */}
-              <div className="text-xs text-white/70 mb-6 font-mono bg-slate-700/50 px-3 py-2 rounded">
+              {/* Код комнаты (очень компактно) */}
+              <div className="text-[10px] sm:text-xs text-white/70 mb-3 font-mono bg-slate-700/50 px-2 py-1 rounded text-center truncate">
                 {jitsiRoomName}
               </div>
               
-              {/* Основная кнопка - Присоединиться в браузере (ПЕРВАЯ И КРУПНАЯ) */}
+              {/* Основная кнопка - Присоединиться в браузере (ПЕРВАЯ И КРУПНАЯ, но компактная) */}
               <button
                 onClick={startBrowserCall}
-                className="w-full bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:via-blue-600 hover:to-blue-700 text-white font-bold px-6 py-4 rounded-lg text-base mb-4 transition-all shadow-lg border border-white/20 backdrop-blur-sm"
+                className="w-full bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:via-blue-600 hover:to-blue-700 text-white font-bold px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm mb-2.5 transition-all shadow-lg border border-white/20 backdrop-blur-sm"
                 style={{
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px rgba(0, 0, 0, 0.3)',
-                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3)',
+                  textShadow: '0 1px 1px rgba(0, 0, 0, 0.5)',
                 }}
               >
                 {t('joinInBrowser') || 'Присоединиться в браузере'}
               </button>
               
-              {/* Разделитель */}
-              <div className="flex items-center justify-center mb-4">
+              {/* Разделитель (компактнее) */}
+              <div className="flex items-center justify-center mb-2.5">
                 <div className="flex-1 border-t border-white/20"></div>
-                <span className="px-3 text-xs text-white/50">или</span>
+                <span className="px-2 text-[10px] text-white/50">или</span>
                 <div className="flex-1 border-t border-white/20"></div>
               </div>
               
-              {/* Кнопка открыть в приложении Jitsi (внизу, с пояснением) */}
+              {/* Кнопка открыть в приложении Jitsi (внизу, с пояснением, компактная) */}
               <button
                 onClick={() => {
                   // Открываем в приложении Jitsi через deep link
@@ -309,10 +322,12 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
                     startBrowserCall();
                   }, 1000);
                 }}
-                className="w-full bg-slate-700/80 hover:bg-slate-600/80 text-white font-semibold px-4 py-3 rounded-lg text-sm transition-colors border border-white/10"
+                className="w-full bg-slate-700/80 hover:bg-slate-600/80 text-white font-semibold px-3 py-2 rounded-lg text-[10px] sm:text-xs transition-colors border border-white/10"
               >
-                {t('joinInJitsiApp') || 'Открыть в приложении Jitsi'}
-                <div className="text-xs text-white/60 mt-1 font-normal">
+                <div className="leading-tight">
+                  {t('joinInJitsiApp') || 'Открыть в приложении Jitsi'}
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-white/60 mt-0.5 font-normal leading-tight">
                   {t('jitsiAppNote') || '(требуется установка приложения Jitsi)'}
                 </div>
               </button>
