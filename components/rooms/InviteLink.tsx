@@ -117,7 +117,7 @@ export default function InviteLink({ inviteCode, roomId, roomName }: InviteLinkP
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 backdrop-blur-md border-2 border-white/30 rounded-lg p-1.5 sm:p-2 w-1/2">
+    <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 backdrop-blur-md border-2 border-white/30 rounded-lg p-1.5 sm:p-2 h-full flex flex-col">
       <div className="flex items-center justify-between mb-1">
         <div className="text-white font-bold text-[10px] sm:text-xs">
           {t('inviteFriends')}

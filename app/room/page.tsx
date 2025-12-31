@@ -202,6 +202,14 @@ export default function RoomPage() {
       };
     }
     
+    if (room.design_theme === 'urban') {
+      return {
+        backgroundImage: 'url(/Tokyo.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+    }
+    
     // Для остальных тем возвращаем пустой объект (используем className)
     return {};
   };
@@ -211,7 +219,7 @@ export default function RoomPage() {
       classic: 'bg-gradient-to-br from-green-900 via-red-900 to-yellow-900',
       cosmic: 'bg-gradient-to-br from-indigo-900 via-purple-900 to-black',
       minimal: 'bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300',
-      urban: 'bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900',
+      urban: '', // Теперь используем изображение через getBackgroundStyle
       custom: 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
     };
     
@@ -229,7 +237,7 @@ export default function RoomPage() {
       {/* Контент */}
       <div className="relative z-10 w-full h-screen flex flex-col">
         {/* ПК ВЕРСИЯ - Заголовок с таймером */}
-        <div className="hidden md:block flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 relative">
+        <div className="hidden md:block flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 relative" style={{ zIndex: 10 }}>
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             {/* Левая часть: кнопка назад и название комнаты */}
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
@@ -322,11 +330,21 @@ export default function RoomPage() {
 
         {/* ПК ВЕРСИЯ - Основной контент - три колонки */}
         <div className="hidden md:flex flex-1 p-3 sm:p-4 pb-20 overflow-y-auto overflow-x-hidden">
-          {/* Левая колонка: Видеочат */}
+          {/* Левая колонка: Приглашение + Дизайн + Видеочат */}
           <div className="flex-1 flex flex-col gap-2.5 sm:gap-3 mr-3 sm:mr-4">
-            {/* Приглашение друзей */}
-            <div className="flex-shrink-0">
-              <InviteLink inviteCode={room.invite_code} roomId={room.id} roomName={room.name} />
+            {/* Приглашение друзей и Селектор дизайна в одной строке */}
+            <div className="flex-shrink-0 flex flex-row gap-1.5 sm:gap-2">
+              <div className="flex-1" style={{ minWidth: 0 }}>
+                <InviteLink inviteCode={room.invite_code} roomId={room.id} roomName={room.name} />
+              </div>
+              <div className="flex-1" style={{ zIndex: 100, minWidth: 0 }}>
+                <RoomDesignSelector
+                  currentTheme={room.design_theme || 'classic'}
+                  currentCustomUrl={room.custom_background_url}
+                  onThemeChange={handleDesignChange}
+                  isCreator={isCreator}
+                />
+              </div>
             </div>
 
             {/* Видеочат */}
@@ -335,17 +353,8 @@ export default function RoomPage() {
             </div>
           </div>
 
-          {/* Средняя колонка: Селектор дизайна + Селекторы (только для создателя) */}
+          {/* Средняя колонка: Селекторы (только для создателя) - пока пустая */}
           <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[117px] sm:w-[140px] mr-1.5 sm:mr-2 overflow-visible" style={{ zIndex: 1 }}>
-            {/* Селектор дизайна комнаты */}
-            <div className="flex-shrink-0">
-              <RoomDesignSelector
-                currentTheme={room.design_theme || 'classic'}
-                currentCustomUrl={room.custom_background_url}
-                onThemeChange={handleDesignChange}
-                isCreator={isCreator}
-              />
-            </div>
 
             {/* Селекторы (только для создателя) */}
             {isCreator && (

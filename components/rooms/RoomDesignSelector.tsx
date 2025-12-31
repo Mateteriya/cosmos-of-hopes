@@ -54,10 +54,10 @@ export default function RoomDesignSelector({
     setCustomImageUrl(currentCustomUrl || null);
   }, [currentCustomUrl]);
 
-  // Всегда открываем меню вверх
+  // Всегда открываем меню вниз
   useEffect(() => {
     if (isOpen) {
-      setOpenUpward(true);
+      setOpenUpward(false);
     }
   }, [isOpen]);
 
@@ -108,7 +108,7 @@ export default function RoomDesignSelector({
   const currentThemeData = designThemes.find(t => t.value === selectedTheme);
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative z-20" ref={dropdownRef}>
+    <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 relative h-full flex flex-col" style={{ zIndex: 100 }} ref={dropdownRef}>
       <div className="text-white font-bold text-xs sm:text-sm mb-2">🎨 {t('selectRoomDesign')}</div>
       
       {/* Кнопка селектора */}
@@ -126,12 +126,17 @@ export default function RoomDesignSelector({
 
       {/* Dropdown меню */}
       {isOpen && (
-        <div 
-          ref={menuRef}
-          className={`absolute z-[100] w-full bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden ${
-            openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
-          }`}
-        >
+        <>
+          <div
+            className="fixed inset-0 z-[99998]"
+            onClick={() => setIsOpen(false)}
+          />
+          <div 
+            ref={menuRef}
+            className={`absolute z-[99999] w-full bg-slate-800/95 backdrop-blur-md border-2 border-white/20 rounded-lg shadow-lg overflow-hidden ${
+              openUpward ? 'bottom-full mb-2' : 'top-full mt-2'
+            }`}
+          >
           <div className="max-h-60 overflow-y-auto">
             {designThemes.map((theme) => (
               <button
@@ -148,8 +153,9 @@ export default function RoomDesignSelector({
                 </div>
               </button>
             ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Загрузка кастомного изображения */}
