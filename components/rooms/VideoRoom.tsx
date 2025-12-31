@@ -23,6 +23,8 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [conferenceLeft, setConferenceLeft] = useState(false);
+  const [showCustomPlaceholder, setShowCustomPlaceholder] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Генерируем имя комнаты Jitsi на основе roomId
@@ -34,8 +36,46 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
 
   // URL для Jitsi Meet (используем переменную окружения или публичный сервер по умолчанию)
   const jitsiServerUrl = process.env.NEXT_PUBLIC_JITSI_SERVER_URL || 'https://meet.jit.si';
-  // Настройки для скрытия водяных знаков и настройки меню
-  const jitsiUrl = `${jitsiServerUrl}/${jitsiRoomName}?userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_BRAND_WATERMARK=false&interfaceConfig.SHOW_POWERED_BY=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]`;
+  
+  // Настройки для оптимизации UI мобильной версии:
+  // - Отключаем глубокие ссылки на приложения (принудительно браузер)
+  // - Отключаем показ App Store ссылок
+  // - Скрываем водяные знаки
+  // - Настраиваем порядок элементов (браузер первым)
+  const jitsiConfigParams = [
+    `userInfo.displayName=${encodeURIComponent(userName)}`,
+    'config.startWithVideoMuted=false',
+    'config.startWithAudioMuted=false',
+    'config.disableDeepLinking=true', // Отключаем ссылки на приложения
+    'config.disableInviteFunctions=true', // Отключаем функции приглашения
+    'config.disableThirdPartyRequests=true', // Отключаем запросы к App Store
+    'config.prejoinPageEnabled=true', // Включаем страницу предварительного присоединения (но настроим её)
+    'config.enableWelcomePage=false', // Отключаем приветственную страницу
+    'config.enableNoisyMicDetection=true',
+    'interfaceConfig.SHOW_JITSI_WATERMARK=false',
+    'interfaceConfig.SHOW_BRAND_WATERMARK=false',
+    'interfaceConfig.SHOW_POWERED_BY=false',
+    'interfaceConfig.DISABLE_DOMINANT_SPEAKER_INDICATOR=false',
+    'interfaceConfig.DISABLE_FOCUS_INDICATOR=false',
+    'interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]',
+  ].join('&');
+  
+  const jitsiUrl = `${jitsiServerUrl}/${jitsiRoomName}?${jitsiConfigParams}`;
+
+  // Определяем мобильное устройство
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // На ПК сразу скрываем кастомный плейсхолдер
+      if (!mobile) {
+        setShowCustomPlaceholder(false);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -49,6 +89,16 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       clearTimeout(timer);
     };
   }, [jitsiUrl]);
+
+  // Функция для начала видеозвонка в браузере
+  const startBrowserCall = () => {
+    setShowCustomPlaceholder(false);
+    setIsLoading(false);
+    // Если iframe уже загружен, перезагружаем его для начала звонка
+    if (iframeRef.current) {
+      iframeRef.current.src = jitsiUrl;
+    }
+  };
 
   if (error) {
     return (
@@ -175,6 +225,60 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors"
               >
                 {t('rejoinConference')}
+              </button>
+            </div>
+          </div>
+        ) : showCustomPlaceholder && isMobile ? (
+          // Кастомный плейсхолдер для мобильной версии с правильным порядком элементов
+          <div className="absolute inset-0 bg-slate-800/95 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-20 p-4">
+            <div className="text-center text-white/90 max-w-sm w-full">
+              {/* Логотип/иконка */}
+              <div className="text-5xl mb-4">📹</div>
+              
+              {/* Заголовок */}
+              <h3 className="text-lg font-bold mb-2">{t('videoRoom')}</h3>
+              
+              {/* Код комнаты (компактно) */}
+              <div className="text-xs text-white/70 mb-6 font-mono bg-slate-700/50 px-3 py-2 rounded">
+                {jitsiRoomName}
+              </div>
+              
+              {/* Основная кнопка - Присоединиться в браузере (ПЕРВАЯ И КРУПНАЯ) */}
+              <button
+                onClick={startBrowserCall}
+                className="w-full bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800 hover:from-blue-500 hover:via-blue-600 hover:to-blue-700 text-white font-bold px-6 py-4 rounded-lg text-base mb-4 transition-all shadow-lg border border-white/20 backdrop-blur-sm"
+                style={{
+                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 6px rgba(0, 0, 0, 0.3)',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                }}
+              >
+                {t('joinInBrowser') || 'Присоединиться в браузере'}
+              </button>
+              
+              {/* Разделитель */}
+              <div className="flex items-center justify-center mb-4">
+                <div className="flex-1 border-t border-white/20"></div>
+                <span className="px-3 text-xs text-white/50">или</span>
+                <div className="flex-1 border-t border-white/20"></div>
+              </div>
+              
+              {/* Кнопка открыть в приложении Jitsi (внизу, с пояснением) */}
+              <button
+                onClick={() => {
+                  // Открываем в приложении Jitsi через deep link
+                  const jitsiAppUrl = `org.jitsi.meet://${jitsiServerUrl.replace(/^https?:\/\//, '')}/${jitsiRoomName}`;
+                  window.location.href = jitsiAppUrl;
+                  // Fallback: если приложение не установлено, показываем iframe
+                  setTimeout(() => {
+                    startBrowserCall();
+                  }, 1000);
+                }}
+                className="w-full bg-slate-700/80 hover:bg-slate-600/80 text-white font-semibold px-4 py-3 rounded-lg text-sm transition-colors border border-white/10"
+              >
+                {t('joinInJitsiApp') || 'Открыть в приложении Jitsi'}
+                <div className="text-xs text-white/60 mt-1 font-normal">
+                  {t('jitsiAppNote') || '(требуется установка приложения Jitsi)'}
+                </div>
               </button>
             </div>
           </div>
