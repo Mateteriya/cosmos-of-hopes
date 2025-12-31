@@ -56,13 +56,21 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     'config.enableRemb=true',
     'config.enableTcc=true',
     'config.enableIceRestart=true',
-    'config.p2p.enabled=true', // Включаем P2P для лучшей производительности
+    'config.p2p.enabled=false', // ОТКЛЮЧАЕМ P2P - может вызывать проблемы с соединением
+    'config.iceTransportPolicy=all', // Разрешаем все типы соединений (TURN и STUN)
+    'config.enableNoAudioDetection=true', // Включаем детекцию отсутствия аудио
+    'config.enableNoisyMicDetection=true',
+    'config.audioLevelsInterval=200', // Интервал проверки уровня аудио
+    'config.channelLastN=10', // Количество участников для получения видео
     'interfaceConfig.SHOW_JITSI_WATERMARK=false',
     'interfaceConfig.SHOW_BRAND_WATERMARK=false',
     'interfaceConfig.SHOW_POWERED_BY=false',
     'interfaceConfig.DISABLE_DOMINANT_SPEAKER_INDICATOR=false',
     'interfaceConfig.DISABLE_FOCUS_INDICATOR=false',
-    'interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]',
+    'interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]', // Убрали raisehand - он вызывает панель с эмодзи
+    'interfaceConfig.DISABLE_REACTIONS=true', // Отключаем реакции (эмодзи)
+    'interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true',
+    'interfaceConfig.DISABLE_PRESENCE_STATUS=true',
   ].join('&');
   
   // Базовый URL для Jitsi (без параметров предварительного присоединения)
@@ -115,21 +123,19 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     setShowCustomPlaceholder(false);
     setIsLoading(true);
     
-    // Пробуем использовать параметры через query string с принудительным отключением плейсхолдера
-    // Jitsi может игнорировать некоторые параметры, поэтому используем комбинацию подходов
-    const directJoinParams = new URLSearchParams({
-      'config.prejoinPageEnabled': 'false',
-      'config.enableWelcomePage': 'false',
-      'config.disableDeepLinking': 'true',
-      'config.disableInviteFunctions': 'true',
-      'config.disableThirdPartyRequests': 'true',
-      'config.skipPrejoin': 'true',
-      'userInfo.displayName': userName,
-      'config.startWithVideoMuted': 'false',
-      'config.startWithAudioMuted': 'false',
-    });
+    // Создаем URL с ВСЕМИ параметрами для стабильного соединения и отключения плейсхолдера
+    const directJoinParams = [
+      ...jitsiConfigParams.split('&'),
+      'config.prejoinPageEnabled=false', // ОТКЛЮЧАЕМ плейсхолдер
+      'config.enableWelcomePage=false',
+      'config.skipPrejoin=true',
+      'config.p2p.enabled=false', // Отключаем P2P для стабильности
+      'config.iceTransportPolicy=all',
+      'interfaceConfig.DISABLE_REACTIONS=true', // Отключаем реакции
+      'interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true',
+    ].join('&');
     
-    const directJoinUrl = `${jitsiServerUrl}/${jitsiRoomName}?${directJoinParams.toString()}`;
+    const directJoinUrl = `${jitsiServerUrl}/${jitsiRoomName}?${directJoinParams}`;
     
     // Загружаем iframe с новым URL
     if (iframeRef.current) {
