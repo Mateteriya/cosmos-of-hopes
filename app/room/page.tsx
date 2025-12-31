@@ -351,7 +351,7 @@ export default function RoomPage() {
             </div>
 
             {/* Видеочат */}
-            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[333px] sm:min-h-[417px]">
+            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-visible min-h-[333px] sm:min-h-[417px]" style={{ zIndex: 5 }}>
               {videoChatEnabled ? (
                 <VideoRoom roomId={room.id} currentUserId={tempUserId} />
               ) : (
@@ -361,7 +361,7 @@ export default function RoomPage() {
           </div>
 
           {/* Средняя колонка: Приглашение + Селекторы (только для создателя) */}
-          <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[246px] sm:w-[295px] mr-1.5 sm:mr-2 overflow-visible">
+          <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[246px] sm:w-[295px] mr-1.5 sm:mr-2 overflow-visible" style={{ zIndex: 1 }}>
             {/* Приглашение */}
             <div className="flex-shrink-0">
               <InviteLink inviteCode={room.invite_code} roomId={room.id} />
@@ -544,7 +544,7 @@ export default function RoomPage() {
                 />
               </div>
               {/* Окно видеоЧата */}
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 min-h-0 overflow-visible" style={{ zIndex: 5 }}>
                 <VideoRoom roomId={room.id} currentUserId={tempUserId} hideHeader={true} />
               </div>
             </div>

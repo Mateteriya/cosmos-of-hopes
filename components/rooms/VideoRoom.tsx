@@ -114,8 +114,8 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       {/* Контейнер видеочата */}
       <div
         data-videoroom-container
-        className="flex-1 bg-black rounded-lg overflow-hidden relative"
-        style={{ minHeight: '300px' }}
+        className="flex-1 bg-black rounded-lg overflow-visible relative"
+        style={{ minHeight: '300px', zIndex: 10 }}
       >
         {isLoading && (
           <div className="absolute inset-0 bg-slate-700/50 rounded-lg flex items-center justify-center z-10">
@@ -130,7 +130,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
           src={jitsiUrl}
           allow="camera; microphone; fullscreen; speaker; display-capture"
           className="w-full h-full border-0"
-          style={{ display: isLoading ? 'none' : 'block' }}
+          style={{ display: isLoading ? 'none' : 'block', position: 'relative', zIndex: 1 }}
           onLoad={() => {
             console.log('Jitsi iframe загружен');
             setIsLoading(false);
