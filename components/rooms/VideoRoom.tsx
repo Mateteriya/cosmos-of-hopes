@@ -31,8 +31,18 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   // Используем безопасное имя (только буквы, цифры, дефисы)
   const jitsiRoomName = roomId.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
 
+  // Генерируем уникальный идентификатор для каждого подключения
+  // Это важно, чтобы Jitsi не считал разные устройства одним пользователем
+  const [uniqueSessionId] = useState(() => {
+    // Генерируем уникальный ID при первом рендере (сохраняется на время сессии)
+    return Math.random().toString(36).substring(2, 9);
+  });
+
   // Имя пользователя для отображения в Jitsi
-  const userName = displayName || `${t('participant')} ${currentUserId.slice(-6)}`;
+  // Добавляем уникальный идентификатор, чтобы различать разные подключения
+  const userName = displayName 
+    ? `${displayName} (${uniqueSessionId})` 
+    : `${t('participant')} ${currentUserId.slice(-6)}-${uniqueSessionId}`;
 
   // URL для Jitsi Meet (используем переменную окружения или публичный сервер по умолчанию)
   const jitsiServerUrl = process.env.NEXT_PUBLIC_JITSI_SERVER_URL || 'https://meet.jit.si';
@@ -71,6 +81,10 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     'interfaceConfig.DISABLE_REACTIONS=true', // Отключаем реакции (эмодзи)
     'interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true',
     'interfaceConfig.DISABLE_PRESENCE_STATUS=true',
+    'interfaceConfig.MOBILE_APP_PROMO=false', // Отключаем промо мобильного приложения
+    'interfaceConfig.INITIAL_TOOLBAR_TIMEOUT=20000', // Увеличиваем время показа панели инструментов
+    'interfaceConfig.TOOLBAR_TIMEOUT=4000', // Время скрытия панели инструментов
+    'config.enableClosePage=true', // Включаем возможность закрыть страницу
   ].join('&');
   
   // Базовый URL для Jitsi (без параметров предварительного присоединения)
@@ -195,8 +209,49 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // Обработчик сообщений от iframe (для отслеживания событий Jitsi)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Проверяем, что сообщение от нашего Jitsi сервера
+      if (event.origin !== jitsiServerUrl.replace('https://', '').split('/')[0]) {
+        return;
+      }
+
+      // Обрабатываем события от Jitsi
+      if (event.data && typeof event.data === 'object') {
+        // Если пользователь покинул конференцию
+        if (event.data.type === 'video-conference-left' || event.data.event === 'video-conference-left') {
+          setConferenceLeft(true);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [jitsiServerUrl]);
+
   return (
     <div className="h-full flex flex-col">
+      {/* Глобальные стили для мобильных устройств */}
+      {isMobile && (
+        <style>{`
+          /* Гарантируем, что кнопки в iframe доступны на мобильных */
+          iframe {
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+          }
+          /* Увеличиваем область нажатия для кнопок на мобильных */
+          @media (max-width: 768px) {
+            [data-videoroom-container] button {
+              min-height: 44px !important;
+              min-width: 44px !important;
+              touch-action: manipulation;
+            }
+          }
+        `}</style>
+      )}
       {/* Заголовок с кнопками */}
       {!hideHeader && (
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
@@ -352,19 +407,52 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
                 setIsLoading(false);
               }}
             />
-            {/* Кнопка переподключения в нашем интерфейсе */}
+            {/* Кнопки управления конференцией в нашем интерфейсе (для мобильных) */}
             {!hideHeader && (
-              <button
-                onClick={() => setConferenceLeft(true)}
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 bg-gradient-to-b from-slate-600 via-slate-700 to-slate-800 hover:from-slate-500 hover:via-slate-600 hover:to-slate-700 text-white font-bold px-4 py-2 rounded-lg text-xs z-30 transition-all shadow-lg border border-white/20 backdrop-blur-sm"
-                style={{
-                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 255, 255, 0.1)',
-                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                }}
-                title={t('reconnect') || 'Переподключиться'}
-              >
-                {t('reconnect') || 'Переподключиться'}
-              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-30">
+                {/* Кнопка покинуть конференцию (красная, крупная для мобильных) */}
+                <button
+                  onClick={() => {
+                    setConferenceLeft(true);
+                    // Пытаемся закрыть iframe
+                    if (iframeRef.current) {
+                      iframeRef.current.src = 'about:blank';
+                    }
+                    // Перенаправляем на страницу комнаты или закрываем
+                    setTimeout(() => {
+                      window.location.href = window.location.pathname;
+                    }, 500);
+                  }}
+                  className="bg-gradient-to-b from-red-600 via-red-700 to-red-800 hover:from-red-500 hover:via-red-600 hover:to-red-700 text-white font-bold px-4 py-2.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-all shadow-lg border border-white/20 backdrop-blur-sm touch-manipulation"
+                  style={{
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 0, 0, 0.2)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                    minWidth: isMobile ? '120px' : 'auto',
+                    minHeight: isMobile ? '44px' : 'auto', // Минимальная высота для touch на мобильных
+                  }}
+                  title={t('leaveConference') || 'Покинуть конференцию'}
+                >
+                  📞 {t('leaveConference') || 'Покинуть'}
+                </button>
+                {/* Кнопка переподключения (опционально) */}
+                <button
+                  onClick={() => {
+                    setConferenceLeft(false);
+                    if (iframeRef.current) {
+                      iframeRef.current.src = jitsiUrl;
+                    }
+                  }}
+                  className="bg-gradient-to-b from-slate-600 via-slate-700 to-slate-800 hover:from-slate-500 hover:via-slate-600 hover:to-slate-700 text-white font-bold px-3 py-2.5 sm:py-2 rounded-lg text-xs transition-all shadow-lg border border-white/20 backdrop-blur-sm touch-manipulation"
+                  style={{
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                    minHeight: isMobile ? '44px' : 'auto',
+                  }}
+                  title={t('reconnect') || 'Переподключиться'}
+                >
+                  🔄
+                </button>
+              </div>
             )}
           </div>
         )}
