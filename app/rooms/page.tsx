@@ -36,8 +36,43 @@ export default function RoomsPage() {
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [tempUserId] = useState<string>(() => getTempUserId());
 
+  const handleJoinByInviteCode = async (inviteCode: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Присоединяемся к комнате по коду
+      const room = await joinRoomByInviteCode(inviteCode, tempUserId);
+      
+      // Перенаправляем в саму комнату
+      router.push(`/room?room=${room.id}`);
+    } catch (err: any) {
+      console.error('Ошибка присоединения по invite коду:', err);
+      setError(err.message || 'Не удалось присоединиться к комнате');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadRooms();
+  }, [tempUserId]);
+
+  // Обработка invite кода из URL
+  useEffect(() => {
+    if (typeof window === 'undefined' || !tempUserId) return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const inviteCode = params.get('invite');
+    
+    if (inviteCode) {
+      // Убираем параметр из URL, чтобы избежать повторной обработки
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      // Присоединяемся к комнате
+      handleJoinByInviteCode(inviteCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tempUserId]);
 
   const loadRooms = async () => {
