@@ -2166,7 +2166,95 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       return positionIndex === undefined || positionIndex === null || positionIndex < 0 || positionIndex >= 200;
     });
     
-    return [...toysWithoutPosition, ...result];
+    // Добавляем три тестовых шара на верхушку елки
+    const topBall: Toy = {
+      id: 'test-ball-top',
+      user_id: 'test-user-top',
+      shape: 'ball' as const,
+      color: '#FFD700', // Золотой цвет для верхушки
+      pattern: null,
+      sticker: undefined,
+      wish_text: 'Желание',
+      wish_for_others: undefined,
+      image_url: undefined,
+      user_photo_url: undefined,
+      status: 'on_tree' as const,
+      room_id: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ball_size: 0.8,
+      surface_type: 'glossy' as const,
+      effects: undefined,
+      filters: undefined,
+      second_color: undefined,
+      user_name: undefined,
+      selected_country: undefined,
+      birth_year: undefined,
+      is_on_tree: true,
+      position: undefined,
+      support_count: 0,
+      author_tg_id: undefined,
+    };
+    
+    const topBall2: Toy = {
+      id: 'test-ball-top-2',
+      user_id: 'test-user-top-2',
+      shape: 'ball' as const,
+      color: '#FF6B6B', // Красный цвет
+      pattern: null,
+      sticker: undefined,
+      wish_text: 'Желание',
+      wish_for_others: undefined,
+      image_url: undefined,
+      user_photo_url: undefined,
+      status: 'on_tree' as const,
+      room_id: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ball_size: 0.7,
+      surface_type: 'glossy' as const,
+      effects: undefined,
+      filters: undefined,
+      second_color: undefined,
+      user_name: undefined,
+      selected_country: undefined,
+      birth_year: undefined,
+      is_on_tree: true,
+      position: undefined,
+      support_count: 0,
+      author_tg_id: undefined,
+    };
+    
+    const topBall3: Toy = {
+      id: 'test-ball-top-3',
+      user_id: 'test-user-top-3',
+      shape: 'ball' as const,
+      color: '#4ECDC4', // Бирюзовый цвет
+      pattern: null,
+      sticker: undefined,
+      wish_text: 'Желание',
+      wish_for_others: undefined,
+      image_url: undefined,
+      user_photo_url: undefined,
+      status: 'on_tree' as const,
+      room_id: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ball_size: 0.7,
+      surface_type: 'glossy' as const,
+      effects: undefined,
+      filters: undefined,
+      second_color: undefined,
+      user_name: undefined,
+      selected_country: undefined,
+      birth_year: undefined,
+      is_on_tree: true,
+      position: undefined,
+      support_count: 0,
+      author_tg_id: undefined,
+    };
+    
+    return [...toysWithoutPosition, ...result, topBall, topBall2, topBall3];
   }, [toys, testToys]);
   
   // Сбрасываем флаг загрузки при изменении модели елки
@@ -2302,7 +2390,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
 
   // ФИКСИРОВАННОЕ позиционирование: каждому шару - своя конкретная позиция на елке
   // Позиция рассчитывается на основе индекса и формы елки (конус)
-  const generateBaseBallPosition = (toyId: string, index: number = 0, totalCount: number = 1): [number, number, number] => {
+  const generateBaseBallPosition = (toyId: string, index: number = 0, totalCount: number = 1, useUniformDistribution: boolean = false): [number, number, number] => {
     // Если параметры не переданы, используем значения по умолчанию
     if (totalCount === 1) {
     let hash = 0;
@@ -2326,7 +2414,10 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     const normalizedIndex = index / Math.max(1, totalCount - 1); // От 0 до 1
     
     // Высота: малые индексы -> ВВЕРХ (maxY), большие индексы -> ВНИЗ (minY)
-    const heightProgress = Math.sqrt(normalizedIndex); // От 0 до 1, концентрирует внизу
+    // Если useUniformDistribution = true, используем функцию, которая дает меньше шаров на верхушке
+    // но равномерно распределяет по остальной елке (степень 0.7 вместо квадратного корня)
+    // Иначе используем квадратный корень для концентрации внизу
+    const heightProgress = useUniformDistribution ? Math.pow(normalizedIndex, 0.7) : Math.sqrt(normalizedIndex); // От 0 до 1
     const baseHeight = maxY - heightProgress * (maxY - minY);
     
     // Ширина треугольника: зависит от высоты (вверху узко, внизу широко)
@@ -2429,14 +2520,94 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     return [finalX + randomX, baseHeight + randomY + wrapYOffset, finalZ + randomZ];
   };
 
-  // ПРОСТОЙ кэш позиций: просто генерируем позиции по индексу
+  // ПРОСТОЙ кэш позиций: генерируем позиции по индексу
+  // Для шаров с position_index используем position_index как индекс
+  // Для шаров без position_index распределяем равномерно по всей елке
   const ballPositionsCache = useMemo(() => {
     const cache = new Map<string, [number, number, number]>();
     
-    for (let i = 0; i < allToys.length; i++) {
-      const toy = allToys[i];
-      const pos = generateBaseBallPosition(toy.id, i, allToys.length);
+    // Считаем шары с position_index и без
+    const toysWithPosition = allToys.filter(toy => {
+      let positionIndex: number | undefined = (toy as any).position_index;
+      if (positionIndex === undefined || positionIndex === null) {
+        if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+          positionIndex = (toy.position as any).position_index;
+        }
+      }
+      return positionIndex !== undefined && positionIndex !== null && positionIndex >= 0 && positionIndex < 200;
+    });
+    
+    const toysWithoutPosition = allToys.filter(toy => {
+      let positionIndex: number | undefined = (toy as any).position_index;
+      if (positionIndex === undefined || positionIndex === null) {
+        if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+          positionIndex = (toy.position as any).position_index;
+        }
+      }
+      return positionIndex === undefined || positionIndex === null || positionIndex < 0 || positionIndex >= 200;
+    });
+    
+    // Для шаров с position_index используем position_index как индекс
+    for (const toy of toysWithPosition) {
+      let positionIndex: number | undefined = (toy as any).position_index;
+      if (positionIndex === undefined || positionIndex === null) {
+        if (toy.position && typeof toy.position === 'object' && 'position_index' in toy.position) {
+          positionIndex = (toy.position as any).position_index;
+        }
+      }
+      if (positionIndex !== undefined && positionIndex !== null && positionIndex >= 0) {
+        // Если индекс в диапазоне 0-199, используем его напрямую
+        // Если индекс >= 200, это переполнение - размещаем внизу елки
+        if (positionIndex < 200) {
+          // Используем равномерное распределение для шаров с position_index
+          // Это гарантирует, что шары будут и на верхушке, и внизу
+          const pos = generateBaseBallPosition(toy.id, positionIndex, 200, true);
+          cache.set(toy.id, pos);
+        } else {
+          // Для переполнения (>= 200) распределяем равномерно по всей елке
+          // Используем остаток от деления на 200 для равномерного распределения
+          const normalizedIndex = positionIndex % 200;
+          const pos = generateBaseBallPosition(toy.id, normalizedIndex, 200, true);
+          cache.set(toy.id, pos);
+        }
+      }
+    }
+    
+    // Для шаров без position_index распределяем равномерно по всей елке
+    // Используем хеш от toy.id для детерминированного, но равномерного распределения
+    for (let i = 0; i < toysWithoutPosition.length; i++) {
+      const toy = toysWithoutPosition[i];
+      // Создаем хеш из toy.id для равномерного распределения по всей елке (0-199)
+      let hash = 0;
+      for (let j = 0; j < toy.id.length; j++) {
+        hash = ((hash << 5) - hash) + toy.id.charCodeAt(j);
+        hash = hash & hash;
+      }
+      // Используем хеш для получения индекса от 0 до 199 (равномерно по всей елке)
+      const distributedIndex = Math.abs(hash) % 200;
+      // Используем равномерное распределение для старых шаров без position_index
+      const pos = generateBaseBallPosition(toy.id, distributedIndex, 200, true);
       cache.set(toy.id, pos);
+    }
+    
+    // Добавляем позиции для тестовых шаров на верхушке
+    const topBall = allToys.find(toy => toy.id === 'test-ball-top');
+    const topBall2 = allToys.find(toy => toy.id === 'test-ball-top-2');
+    const topBall3 = allToys.find(toy => toy.id === 'test-ball-top-3');
+    
+    if (topBall) {
+      // Позиция на самой верхушке: Y = maxY (8.5), X = 0 (центр), Z = 0.3 (близко к елке)
+      cache.set(topBall.id, [0, 8.5, 0.3]);
+    }
+    
+    if (topBall2) {
+      // Второй шар: чуть ниже (Y = 8.0), дальше влево (X = -0.7), близко к елке (Z = 0.3)
+      cache.set(topBall2.id, [-0.7, 8.0, 0.3]);
+    }
+    
+    if (topBall3) {
+      // Третий шар: чуть ниже (Y = 8.0), дальше вправо (X = 0.7), близко к елке (Z = 0.3)
+      cache.set(topBall3.id, [0.7, 8.0, 0.3]);
     }
     
     return cache;
