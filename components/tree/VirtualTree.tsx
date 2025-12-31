@@ -2571,10 +2571,20 @@ export default function VirtualTree({
   const [glowEnabled, setGlowEnabled] = useState(false);
   
   // Проверяем, можно ли включить подсветку (только после 23:59 31 декабря, т.е. с 1 января)
+  // Используем локальное время пользователя, а не UTC
   const canEnableGlow = (): boolean => {
     const now = new Date();
-    const newYear2026 = new Date('2026-01-01T00:00:00');
-    return now >= newYear2026;
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-11
+    const date = now.getDate();
+    
+    // Проверяем: если год >= 2026 И (месяц > 0 ИЛИ (месяц === 0 И дата >= 1))
+    // То есть: 1 января 2026 или позже
+    if (year > 2026) return true;
+    if (year === 2026 && month > 0) return true;
+    if (year === 2026 && month === 0 && date >= 1) return true;
+    
+    return false;
   };
 
   const isGlowEnabled = canEnableGlow();

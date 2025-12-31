@@ -14,6 +14,7 @@ import type { Toy } from '@/types/toy';
 import type { Room } from '@/types/room';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
 import { getOrCreateUserId } from '@/lib/userId';
+import { useNewYearAnimationController } from '@/components/tree/NewYearAnimationController';
 
 function TreePageContent() {
   const router = useRouter();
@@ -30,6 +31,17 @@ function TreePageContent() {
   // Тип ёлки и путь к модели - только OBJ модель
   const [treeType] = useState<'3d' | 'png'>('3d');
   const [treeModel] = useState<string>('/placewithtree.obj');
+  
+  // Новогодняя анимация
+  const [isNewYearAnimation, setIsNewYearAnimation] = useState(false);
+  
+  // Контроллер новогодней анимации
+  const { isNewYear } = useNewYearAnimationController({
+    onNewYearStart: () => {
+      console.log('[TreePage] Новый год наступил! Запускаем анимацию');
+      setIsNewYearAnimation(true);
+    },
+  });
 
   // Pull-to-refresh для мобильных устройств
   const [pullDistance, setPullDistance] = useState(0);
@@ -428,8 +440,11 @@ function TreePageContent() {
           isRoom={!!currentRoom}
           treeType={treeType}
           treeModel={treeModel}
-          isNewYearAnimation={false}
-          onAnimationComplete={() => {}}
+          isNewYearAnimation={isNewYearAnimation}
+          onAnimationComplete={() => {
+            console.log('[TreePage] Анимация завершена');
+            // Анимация завершена, можно оставить состояние или сбросить
+          }}
         />
       )}
 
