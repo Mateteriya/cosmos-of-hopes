@@ -480,53 +480,78 @@ function TreePageContent() {
           </svg>
           <span>{t('rooms')}</span>
         </button>
-        {/* Тестовая кнопка для новогодней анимации - ТОЛЬКО В РАЗРАБОТКЕ! НЕ КОММИТИТЬ В ПРОД! */}
-        {process.env.NODE_ENV !== 'production' && (
-          <button
-            onClick={() => {
-              if (isNewYearAnimation) {
-                // Если анимация уже запущена, сбрасываем для перезапуска
-                setIsNewYearAnimation(false);
-                setTimeout(() => {
+        {/* Кнопка "ВКЛЮЧИТЬ анимацию" - активна только 1-го января 00:00 */}
+        {(() => {
+          // Проверяем, наступил ли Новый год (1 января 00:00)
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = now.getMonth(); // 0-11
+          const date = now.getDate();
+          const hours = now.getHours();
+          
+          // Кнопка активна только 1-го января 00:00 (первые 60 минут) или в режиме разработки
+          const isNewYearTime = year >= 2026 && month === 0 && date === 1 && hours === 0;
+          const isButtonEnabled = isNewYearTime || process.env.NODE_ENV !== 'production';
+          
+          return (
+            <button
+              onClick={() => {
+                if (!isButtonEnabled) return;
+                
+                if (isNewYearAnimation) {
+                  // Если анимация уже запущена, сбрасываем для перезапуска
+                  setIsNewYearAnimation(false);
+                  setTimeout(() => {
+                    setIsNewYearAnimation(true);
+                    console.log('[TreePage] Перезапуск новогодней анимации');
+                  }, 100);
+                } else {
+                  console.log('[TreePage] Запуск новогодней анимации');
                   setIsNewYearAnimation(true);
-                  console.log('[TreePage] Перезапуск новогодней анимации');
-                }, 100);
-              } else {
-                console.log('[TreePage] Тестовый запуск новогодней анимации');
-                setIsNewYearAnimation(true);
-              }
-            }}
-            style={{ 
-              background: 'linear-gradient(to right, #ca8a04, #ea580c)',
-              color: 'white',
-              padding: '0.75rem 1.25rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              pointerEvents: 'auto',
-              position: 'relative',
-              zIndex: 100004
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(to right, #a16207, #c2410c)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(to right, #ca8a04, #ea580c)';
-            }}
-            title="ТЕСТОВАЯ кнопка - ТОЛЬКО ДЛЯ РАЗРАБОТКИ! НЕ ДОЛЖНА БЫТЬ В ПРОДЕ!"
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-            <span>{isNewYearAnimation ? '🔄 Перезапуск' : '🎆 Тест анимации'}</span>
-          </button>
-        )}
+                }
+              }}
+              disabled={!isButtonEnabled}
+              style={{ 
+                background: isButtonEnabled 
+                  ? 'linear-gradient(to right, #ca8a04, #ea580c)' 
+                  : 'linear-gradient(to right, #6b7280, #4b5563)',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+                cursor: isButtonEnabled ? 'pointer' : 'not-allowed',
+                boxShadow: isButtonEnabled ? '0 4px 6px rgba(0, 0, 0, 0.3)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                pointerEvents: 'auto',
+                position: 'relative',
+                zIndex: 100004,
+                opacity: isButtonEnabled ? 1 : 0.5,
+              }}
+              onMouseEnter={(e) => {
+                if (isButtonEnabled) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #a16207, #c2410c)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isButtonEnabled) {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #ca8a04, #ea580c)';
+                }
+              }}
+              title={isButtonEnabled 
+                ? 'Включить новогоднюю анимацию' 
+                : 'Анимация будет доступна 1-го января в 00:00'}
+            >
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <span>{isNewYearAnimation ? '🔄 Перезапуск' : '🎆 ВКЛЮЧИТЬ анимацию'}</span>
+            </button>
+          );
+        })()}
         </div>
       </div>
 
