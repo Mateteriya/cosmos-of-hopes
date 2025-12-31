@@ -172,6 +172,10 @@ function TreePageContent() {
   };
 
   const handleBallClick = (toy: Toy) => {
+    // Не открываем модальное окно для тестовых шаров
+    if (toy.id.startsWith('test-ball-')) {
+      return;
+    }
     setSelectedToy(toy);
   };
 

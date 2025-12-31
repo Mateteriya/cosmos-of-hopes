@@ -2092,7 +2092,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       color: colors[i % colors.length],
       pattern: null,
       sticker: undefined,
-      wish_text: `Тестовый шар ${i + 1}`,
+      wish_text: `Желание`,
       wish_for_others: undefined,
       image_url: undefined,
       user_photo_url: undefined,
@@ -2498,6 +2498,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       {/* Скрываем во время новогодней анимации и до загрузки елки */}
       {!isNewYearAnimation && isTreeLoaded && visibleToys.map((toy) => {
         const isUserBall = currentUserId && toy.user_id === currentUserId;
+        const isTestBall = toy.id.startsWith('test-ball-');
         const position = getBallPosition(toy.id);
         const distance = getDistance(position);
         
@@ -2507,8 +2508,8 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
             toy={toy}
             position={position}
             isUserBall={!!isUserBall}
-            onClick={() => onBallClick?.(toy)}
-            onLike={() => onBallLike?.(toy.id)}
+            onClick={isTestBall ? () => {} : () => onBallClick?.(toy)}
+            onLike={isTestBall ? () => {} : () => onBallLike?.(toy.id)}
             distance={distance}
           />
         );
