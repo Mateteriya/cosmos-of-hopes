@@ -65,7 +65,22 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     'interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]',
   ].join('&');
   
+  // Базовый URL для Jitsi (без параметров предварительного присоединения)
   const jitsiUrl = `${jitsiServerUrl}/${jitsiRoomName}?${jitsiConfigParams}`;
+  
+  // URL для прямого присоединения к конференции (без плейсхолдера)
+  const jitsiDirectUrl = `${jitsiServerUrl}/${jitsiRoomName}#jitsi_meet_external_api_config=${encodeURIComponent(JSON.stringify({
+    prejoinPageEnabled: false,
+    enableWelcomePage: false,
+    disableDeepLinking: true,
+    disableInviteFunctions: true,
+    disableThirdPartyRequests: true,
+    startWithVideoMuted: false,
+    startWithAudioMuted: false,
+    userInfo: {
+      displayName: userName
+    }
+  }))}`;
 
   // Определяем мобильное устройство
   useEffect(() => {
@@ -100,20 +115,19 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     setShowCustomPlaceholder(false);
     setIsLoading(true);
     
-    // Создаем URL с параметрами для принудительного открытия в браузере БЕЗ плейсхолдера
-    const browserOnlyParams = [
-      ...jitsiConfigParams.split('&'),
-      'config.prejoinPageEnabled=false', // ОТКЛЮЧАЕМ страницу предварительного присоединения
-      'config.enableWelcomePage=false', // ОТКЛЮЧАЕМ приветственную страницу
-      'config.skipPrejoin=true', // Пропускаем предварительное присоединение
-      'appData.browserOnly=true', // Флаг для браузера
-    ].join('&');
-    
-    const browserOnlyUrl = `${jitsiServerUrl}/${jitsiRoomName}?${browserOnlyParams}`;
+    // Используем URL с хешем для прямого присоединения к конференции (без плейсхолдера)
+    // Это более надежный способ обхода плейсхолдера Jitsi
+    const directJoinUrl = `${jitsiServerUrl}/${jitsiRoomName}#config.prejoinPageEnabled=false&config.enableWelcomePage=false&config.disableDeepLinking=true&config.disableInviteFunctions=true&config.disableThirdPartyRequests=true&userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false`;
     
     // Загружаем iframe с новым URL
     if (iframeRef.current) {
-      iframeRef.current.src = browserOnlyUrl;
+      // Очищаем src перед установкой нового, чтобы гарантировать перезагрузку
+      iframeRef.current.src = '';
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = directJoinUrl;
+        }
+      }, 100);
     }
     
     // Скрываем лоадер через небольшую задержку
@@ -308,7 +322,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
           <div className="relative w-full h-full">
             <iframe
               ref={iframeRef}
-              src={jitsiUrl}
+              src={showCustomPlaceholder ? '' : jitsiUrl}
               allow="camera; microphone; fullscreen; speaker; display-capture"
               className="w-full h-full border-0"
               onError={(e) => {
