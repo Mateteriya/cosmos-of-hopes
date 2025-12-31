@@ -26,6 +26,19 @@ export function useNewYearAnimationController({
   const [treeBlinking, setTreeBlinking] = useState(false);
   const warningShownRef = useRef(false);
   const blinkCountRef = useRef(0);
+  const isNewYearRef = useRef(false);
+  
+  // Сохраняем колбэки в ref, чтобы избежать перезапуска эффекта
+  const onNewYearStartRef = useRef(onNewYearStart);
+  const onPreNewYearWarningRef = useRef(onPreNewYearWarning);
+  const onTreeBlinkRef = useRef(onTreeBlink);
+  
+  // Обновляем ref при изменении колбэков
+  useEffect(() => {
+    onNewYearStartRef.current = onNewYearStart;
+    onPreNewYearWarningRef.current = onPreNewYearWarning;
+    onTreeBlinkRef.current = onTreeBlink;
+  }, [onNewYearStart, onPreNewYearWarning, onTreeBlink]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -41,12 +54,16 @@ export function useNewYearAnimationController({
 
       // Проверяем, наступил ли Новый год (1 января 2026, 00:00)
       if (year >= 2026 && month === 0 && date === 1 && hours === 0 && minutes === 0 && seconds < 20) {
-        if (!isNewYear) {
+        if (!isNewYearRef.current) {
+          isNewYearRef.current = true;
           setIsNewYear(true);
-          onNewYearStart?.();
+          onNewYearStartRef.current?.();
         }
       } else {
-        setIsNewYear(false);
+        if (isNewYearRef.current) {
+          isNewYearRef.current = false;
+          setIsNewYear(false);
+        }
       }
 
       // Проверяем 23:58 31 декабря - показываем уведомление
@@ -54,7 +71,7 @@ export function useNewYearAnimationController({
         if (!warningShownRef.current) {
           warningShownRef.current = true;
           setShowWarning(true);
-          onPreNewYearWarning?.();
+          onPreNewYearWarningRef.current?.();
           
           // Скрываем уведомление через 10 секунд
           setTimeout(() => {
@@ -70,7 +87,7 @@ export function useNewYearAnimationController({
         if (blinkCountRef.current < 2) {
           setTreeBlinking(true);
           blinkCountRef.current++;
-          onTreeBlink?.();
+          onTreeBlinkRef.current?.();
           
           setTimeout(() => {
             setTreeBlinking(false);
@@ -85,7 +102,7 @@ export function useNewYearAnimationController({
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, [isNewYear, onNewYearStart, onPreNewYearWarning, onTreeBlink]);
+  }, []); // Убрали все зависимости - эффект запускается только один раз
 
   return {
     currentTime,
