@@ -545,7 +545,15 @@ export default function RoomPage() {
               </div>
               {/* Окно видеоЧата */}
               <div className="flex-1 min-h-0 overflow-visible" style={{ zIndex: 5 }}>
-                <VideoRoom roomId={room.id} currentUserId={tempUserId} hideHeader={true} />
+                <VideoRoom 
+                  roomId={room.id} 
+                  currentUserId={tempUserId} 
+                  hideHeader={true}
+                  onConferenceLeft={() => {
+                    // При завершении конференции можно выполнить действия
+                    console.log('Конференция завершена');
+                  }}
+                />
               </div>
             </div>
           </div>

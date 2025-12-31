@@ -485,6 +485,8 @@ export const translations = {
         you: 'You',
         participants: 'Participants',
         jitsiVideoRoom: 'Jitsi Meet Video Room',
+        conferenceEnded: 'Video conference ended',
+        rejoinConference: 'Rejoin conference',
         designClassic: 'Classic',
         designClassicDesc: 'Traditional tree, snow, garlands',
         designCosmic: 'Cosmic',
