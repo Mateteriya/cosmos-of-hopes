@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
+import type { ReactElement } from 'react';
 
 type TabType = 'concept' | 'mission' | 'technical' | 'contacts';
 
@@ -13,7 +14,7 @@ export default function AboutProgram() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>('concept');
 
-  const tabs: Array<{ id: TabType; label: string; icon: JSX.Element }> = [
+  const tabs: Array<{ id: TabType; label: string; icon: ReactElement }> = [
     { 
       id: 'concept', 
       label: t('aboutConcept'), 
