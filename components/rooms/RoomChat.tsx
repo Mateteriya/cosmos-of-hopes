@@ -22,8 +22,10 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false, is
   const [messages, setMessages] = useState<RoomMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
 
   // Загружаем историю сообщений и подписываемся на новые
   useEffect(() => {
@@ -93,6 +95,23 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false, is
     }
   }, [messages]);
 
+  // Закрытие emoji picker при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setEmojiPickerOpen(false);
+      }
+    };
+
+    if (emojiPickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [emojiPickerOpen]);
+
   const loadMessages = async () => {
     try {
       setIsLoading(true);
@@ -116,11 +135,54 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false, is
       const sentMessage = await sendRoomMessage(roomId, currentUserId, newMessage.trim());
       console.log('✅ Сообщение отправлено:', sentMessage);
       setNewMessage('');
+      setEmojiPickerOpen(false);
       // Не добавляем сообщение вручную - оно придет через Realtime подписку
     } catch (err: any) {
       console.error('❌ Ошибка отправки сообщения:', err);
       alert(err.message || t('messageSendError'));
     }
+  };
+
+  // Современные эмодзи в космическом стиле
+  const popularEmojis = [
+    // Космос и звезды
+    '🌌', '🌠', '⭐', '🌟', '✨', '💫', '🚀', '🛸', '👽', '🛰️',
+    '🌍', '🌎', '🌏', '🪐', '🌙', '☀️', '🌕', '🌖', '🌗', '🌘',
+    '🌑', '🌒', '🌓', '🌔', '⚡', '🔥', '💥', '🌈', '☄️', '🌊',
+    
+    // Современные эмоции
+    '😊', '🥰', '😍', '🤩', '😎', '🤗', '😇', '🥳', '🤯', '😌',
+    '😉', '😋', '😜', '🤪', '😝', '🤑', '🤭', '🤫', '🤔', '🤐',
+    '😏', '😴', '🤤', '😮', '😯', '😲', '😳', '🥺', '😱', '🤯',
+    '😵', '😵‍💫', '🤠', '🥸', '🤓', '🧐', '😕', '😟', '🙁', '😤',
+    
+    // Сердца и любовь
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '❤️‍🔥',
+    '❤️‍🩹', '💋', '💌', '💐', '🌹', '🥀', '🌺', '🌸', '🌻', '🌷',
+    
+    // Празднование и веселье
+    '🎉', '🎊', '🎈', '🎁', '🎀', '🎂', '🍰', '🧁', '🍾', '🥂',
+    '🍻', '🥳', '🎆', '🎇', '🧨', '✨', '🎪', '🎭', '🎨', '🎬',
+    
+    // Жесты и действия
+    '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘',
+    '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '☝️', '👋', '🤚',
+    '🖐️', '✋', '🖖', '👏', '🙌', '🤲', '🤝', '🙏', '✍️', '💪',
+    
+    // Современные символы
+    '💯', '🔥', '⚡', '💫', '⭐', '🌟', '✨', '🎯', '🎲', '🎰',
+    '🎮', '🕹️', '🎧', '🎤', '🎵', '🎶', '🎸', '🎹', '🥁', '🎺',
+    '🎷', '🎻', '📱', '💻', '⌚', '📷', '📸', '🎥', '📹', '🎬',
+    
+    // Природа и космос
+    '🌲', '🌳', '🌴', '🌵', '🌿', '☘️', '🍀', '🌱', '🌾', '🌺',
+    '🌻', '🌷', '🌹', '🥀', '🌼', '🌸', '💐', '🌾', '🌿', '🍃',
+  ];
+
+  const insertEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    setEmojiPickerOpen(false);
   };
 
   return (
@@ -208,7 +270,43 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false, is
       <form onSubmit={sendMessage} className={`p-2 sm:p-3 border-t border-white/20 flex-shrink-0 transition-all duration-300 ${
         isCollapsed ? 'max-h-0 opacity-0 overflow-hidden p-0 border-0' : 'opacity-100'
       }`}>
-        <div className="flex gap-1.5 sm:gap-2">
+        <div className="flex gap-1.5 sm:gap-2 relative">
+          {/* Кнопка эмодзи */}
+          <button
+            type="button"
+            onClick={() => setEmojiPickerOpen(!emojiPickerOpen)}
+            className="bg-purple-800/80 hover:bg-purple-700/80 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors text-base sm:text-lg flex-shrink-0 border border-white/20"
+            title={t('emoji') || 'Эмодзи'}
+          >
+            👽
+          </button>
+          
+          {/* Emoji Picker */}
+          {emojiPickerOpen && (
+            <div
+              ref={emojiPickerRef}
+              className="absolute bottom-full left-0 mb-2 bg-slate-800/95 backdrop-blur-md border border-white/20 rounded-lg p-3 shadow-xl z-50"
+              style={{
+                width: '280px',
+                maxHeight: '200px',
+                overflowY: 'auto',
+              }}
+            >
+              <div className="grid grid-cols-8 gap-1">
+                {popularEmojis.map((emoji, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => insertEmoji(emoji)}
+                    className="text-lg sm:text-xl hover:bg-white/20 rounded p-1 transition-colors touch-manipulation"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <input
             type="text"
             value={newMessage}
