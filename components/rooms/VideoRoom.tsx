@@ -13,15 +13,13 @@ interface VideoRoomProps {
   currentUserId: string;
   displayName?: string;
   hideHeader?: boolean;
-  onConferenceLeft?: () => void;
 }
 
-export default function VideoRoom({ roomId, currentUserId, displayName, hideHeader = false, onConferenceLeft }: VideoRoomProps) {
+export default function VideoRoom({ roomId, currentUserId, displayName, hideHeader = false }: VideoRoomProps) {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [conferenceLeft, setConferenceLeft] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Генерируем имя комнаты Jitsi на основе roomId
@@ -36,7 +34,6 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   // Настройки для скрытия водяных знаков и настройки меню
   const jitsiUrl = `${jitsiServerUrl}/${jitsiRoomName}?userInfo.displayName=${encodeURIComponent(userName)}&config.startWithVideoMuted=false&config.startWithAudioMuted=false&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_BRAND_WATERMARK=false&interfaceConfig.SHOW_POWERED_BY=false&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","closedcaptions","desktop","fullscreen","fodeviceselection","hangup","profile","chat","recording","livestreaming","settings","raisehand","videoquality","filmstrip","invite","feedback","stats","shortcuts","tileview","videobackgroundblur","download","help","mute-everyone","security"]`;
 
-  // Отслеживание событий завершения конференции через postMessage
   useEffect(() => {
     setIsLoading(true);
     
@@ -44,40 +41,10 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       setIsLoading(false);
     }, 2000);
 
-    // Слушаем сообщения от iframe Jitsi
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        // Проверяем, что сообщение от Jitsi (безопасность)
-        const jitsiHost = new URL(jitsiServerUrl).hostname;
-        const eventHost = new URL(event.origin).hostname;
-        if (eventHost !== jitsiHost && !eventHost.endsWith('.' + jitsiHost)) {
-          return;
-        }
-
-        // Событие завершения конференции
-        if (event.data && typeof event.data === 'object') {
-          if (event.data.type === 'video-conference-left' || 
-              event.data.event === 'video-conference-left' ||
-              event.data.name === 'video-conference-left' ||
-              (event.data.eventName === 'video.conference.left')) {
-            setConferenceLeft(true);
-            if (onConferenceLeft) {
-              onConferenceLeft();
-            }
-          }
-        }
-      } catch (e) {
-        // Игнорируем ошибки парсинга URL
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('message', handleMessage);
     };
-  }, [jitsiServerUrl, onConferenceLeft]);
+  }, []);
 
   if (error) {
     return (
@@ -147,7 +114,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       <div
         data-videoroom-container
         className="flex-1 bg-black rounded-lg overflow-visible relative"
-        style={{ minHeight: '300px', zIndex: 1000, isolation: 'isolate' }}
+        style={{ minHeight: '300px', marginRight: '-200px', paddingRight: '200px', zIndex: 100 }}
       >
         {isLoading && (
           <div className="absolute inset-0 bg-slate-700/50 rounded-lg flex items-center justify-center z-10">
@@ -157,31 +124,12 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
             </div>
           </div>
         )}
-        {conferenceLeft ? (
-          <div className="absolute inset-0 bg-slate-800/90 backdrop-blur-md rounded-lg flex items-center justify-center z-20">
-            <div className="text-center text-white/80">
-              <div className="text-4xl mb-4">📞</div>
-              <div className="text-sm font-semibold mb-2">{t('conferenceEnded') || 'Видеозвонок завершен'}</div>
-              <button
-                onClick={() => {
-                  setConferenceLeft(false);
-                  if (iframeRef.current) {
-                    iframeRef.current.src = jitsiUrl;
-                  }
-                }}
-                className="mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs"
-              >
-                {t('rejoinConference') || 'Подключиться снова'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <iframe
+        <iframe
             ref={iframeRef}
             src={jitsiUrl}
             allow="camera; microphone; fullscreen; speaker; display-capture"
             className="w-full h-full border-0"
-            style={{ display: isLoading ? 'none' : 'block', position: 'relative', zIndex: 1 }}
+            style={{ display: isLoading ? 'none' : 'block' }}
             onLoad={() => {
               console.log('Jitsi iframe загружен');
               setIsLoading(false);
@@ -192,7 +140,6 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
               setIsLoading(false);
             }}
           />
-        )}
       </div>
 
       <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center flex-shrink-0">

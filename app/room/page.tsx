@@ -351,7 +351,7 @@ export default function RoomPage() {
             </div>
 
             {/* Видеочат */}
-            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-visible min-h-[333px] sm:min-h-[417px]" style={{ zIndex: 5 }}>
+            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[333px] sm:min-h-[417px]" style={{ paddingRight: '200px', marginRight: '-200px' }}>
               {videoChatEnabled ? (
                 <VideoRoom roomId={room.id} currentUserId={tempUserId} />
               ) : (
@@ -549,10 +549,6 @@ export default function RoomPage() {
                   roomId={room.id} 
                   currentUserId={tempUserId} 
                   hideHeader={true}
-                  onConferenceLeft={() => {
-                    // При завершении конференции можно выполнить действия
-                    console.log('Конференция завершена');
-                  }}
                 />
               </div>
             </div>
