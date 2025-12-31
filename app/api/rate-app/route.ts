@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       hasRated: !!data,
-      rating: data?.rating || null,
+      rating: (data as any)?.rating || null,
     });
   } catch (error) {
     console.error('Ошибка в API rate-app GET:', error);
