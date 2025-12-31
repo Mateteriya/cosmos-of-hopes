@@ -41,7 +41,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   // - Отключаем глубокие ссылки на приложения (принудительно браузер)
   // - Отключаем показ App Store ссылок
   // - Скрываем водяные знаки
-  // - Настраиваем порядок элементов (браузер первым)
+  // - Принудительно открываем в браузере, минуя плейсхолдер
   const jitsiConfigParams = [
     `userInfo.displayName=${encodeURIComponent(userName)}`,
     'config.startWithVideoMuted=false',
@@ -49,9 +49,14 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     'config.disableDeepLinking=true', // Отключаем ссылки на приложения
     'config.disableInviteFunctions=true', // Отключаем функции приглашения
     'config.disableThirdPartyRequests=true', // Отключаем запросы к App Store
-    'config.prejoinPageEnabled=true', // Включаем страницу предварительного присоединения (но настроим её)
+    'config.prejoinPageEnabled=false', // ОТКЛЮЧАЕМ страницу предварительного присоединения (чтобы сразу в звонок)
     'config.enableWelcomePage=false', // Отключаем приветственную страницу
     'config.enableNoisyMicDetection=true',
+    'config.enableLayerSuspension=true',
+    'config.enableRemb=true',
+    'config.enableTcc=true',
+    'config.enableIceRestart=true',
+    'config.p2p.enabled=true', // Включаем P2P для лучшей производительности
     'interfaceConfig.SHOW_JITSI_WATERMARK=false',
     'interfaceConfig.SHOW_BRAND_WATERMARK=false',
     'interfaceConfig.SHOW_POWERED_BY=false',
@@ -93,11 +98,28 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   // Функция для начала видеозвонка в браузере
   const startBrowserCall = () => {
     setShowCustomPlaceholder(false);
-    setIsLoading(false);
-    // Если iframe уже загружен, перезагружаем его для начала звонка
+    setIsLoading(true);
+    
+    // Создаем URL с параметрами для принудительного открытия в браузере БЕЗ плейсхолдера
+    const browserOnlyParams = [
+      ...jitsiConfigParams.split('&'),
+      'config.prejoinPageEnabled=false', // ОТКЛЮЧАЕМ страницу предварительного присоединения
+      'config.enableWelcomePage=false', // ОТКЛЮЧАЕМ приветственную страницу
+      'config.skipPrejoin=true', // Пропускаем предварительное присоединение
+      'appData.browserOnly=true', // Флаг для браузера
+    ].join('&');
+    
+    const browserOnlyUrl = `${jitsiServerUrl}/${jitsiRoomName}?${browserOnlyParams}`;
+    
+    // Загружаем iframe с новым URL
     if (iframeRef.current) {
-      iframeRef.current.src = jitsiUrl;
+      iframeRef.current.src = browserOnlyUrl;
     }
+    
+    // Скрываем лоадер через небольшую задержку
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
   };
 
   if (error) {

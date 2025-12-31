@@ -590,7 +590,7 @@ export default function RoomPage() {
           </div>
 
           {/* ВидеоЧат */}
-          <div className="flex-shrink-0 bg-slate-800/40 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden" style={{ minHeight: '250px', maxHeight: '350px' }}>
+          <div className="flex-shrink-0 bg-slate-800/40 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden" style={{ minHeight: '375px', maxHeight: '525px' }}>
             <div className="flex flex-col h-full">
               {/* Участники внутри видеоЧата */}
               <div className="flex-shrink-0 px-3 pt-2 pb-1">
