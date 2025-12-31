@@ -20,6 +20,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [conferenceLeft, setConferenceLeft] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Генерируем имя комнаты Jitsi на основе roomId
@@ -37,14 +38,15 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
   useEffect(() => {
     setIsLoading(true);
     
+    // Показываем наш лоадер дольше, чтобы скрыть Jitsi плейсхолдер (обычно 2-4 секунды)
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 4000);
 
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [jitsiUrl]);
 
   if (error) {
     return (
@@ -113,33 +115,59 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       {/* Контейнер видеочата */}
       <div
         data-videoroom-container
-        className="flex-1 bg-black rounded-lg overflow-visible relative"
-        style={{ minHeight: '300px', marginRight: '-200px', paddingRight: '200px', zIndex: 100 }}
+        className="flex-1 bg-black rounded-lg overflow-hidden relative"
+        style={{ minHeight: '300px' }}
       >
-        {isLoading && (
-          <div className="absolute inset-0 bg-slate-700/50 rounded-lg flex items-center justify-center z-10">
-            <div className="text-center text-white/70">
+        {isLoading ? (
+          <div className="absolute inset-0 bg-slate-800/95 backdrop-blur-md rounded-lg flex items-center justify-center z-20">
+            <div className="text-center text-white/80">
               <div className="text-4xl mb-4 animate-pulse">📹</div>
-              <div className="text-sm">{t('loadingVideoRoom')}</div>
+              <div className="text-sm font-semibold">{t('loadingVideoRoom')}</div>
             </div>
           </div>
+        ) : conferenceLeft ? (
+          <div className="absolute inset-0 bg-slate-800/95 backdrop-blur-md rounded-lg flex items-center justify-center z-20">
+            <div className="text-center text-white/80">
+              <div className="text-4xl mb-4">📞</div>
+              <div className="text-sm font-semibold mb-4">{t('conferenceEnded')}</div>
+              <button
+                onClick={() => {
+                  setConferenceLeft(false);
+                  if (iframeRef.current) {
+                    iframeRef.current.src = jitsiUrl;
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-colors"
+              >
+                {t('rejoinConference')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="relative w-full h-full">
+            <iframe
+              ref={iframeRef}
+              src={jitsiUrl}
+              allow="camera; microphone; fullscreen; speaker; display-capture"
+              className="w-full h-full border-0"
+              onError={(e) => {
+                console.error('Ошибка загрузки iframe:', e);
+                setError(t('videoRoomLoadError'));
+                setIsLoading(false);
+              }}
+            />
+            {/* Кнопка завершения звонка в нашем интерфейсе */}
+            {!hideHeader && (
+              <button
+                onClick={() => setConferenceLeft(true)}
+                className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded text-xs z-30 transition-colors"
+                title={t('endCall') || 'Завершить звонок'}
+              >
+                {t('endCall') || 'Завершить'}
+              </button>
+            )}
+          </div>
         )}
-        <iframe
-            ref={iframeRef}
-            src={jitsiUrl}
-            allow="camera; microphone; fullscreen; speaker; display-capture"
-            className="w-full h-full border-0"
-            style={{ display: isLoading ? 'none' : 'block' }}
-            onLoad={() => {
-              console.log('Jitsi iframe загружен');
-              setIsLoading(false);
-            }}
-            onError={(e) => {
-              console.error('Ошибка загрузки iframe:', e);
-              setError(t('videoRoomLoadError'));
-              setIsLoading(false);
-            }}
-          />
       </div>
 
       <div className="mt-2 text-white/50 text-[9px] sm:text-[10px] text-center flex-shrink-0">

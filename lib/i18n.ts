@@ -177,6 +177,9 @@ export const translations = {
         mute: '🔊 Выключить звук',
         loadingVideoRoom: 'Загрузка видеокомнаты...',
         videoRoomError: '❌ Ошибка загрузки видеокомнаты',
+        conferenceEnded: 'Видеозвонок завершен',
+        rejoinConference: 'Подключиться снова',
+        endCall: 'Завершить звонок',
         
         // Уведомления
         ballHangedOnTree: '✅ Ваша игрушка заняла своё место на ёлке! 1 января она отправится в космос! 🌟',
@@ -485,8 +488,9 @@ export const translations = {
         you: 'You',
         participants: 'Participants',
         jitsiVideoRoom: 'Jitsi Meet Video Room',
-        conferenceEnded: 'Video conference ended',
-        rejoinConference: 'Rejoin conference',
+        conferenceEnded: 'Видеозвонок завершен',
+        rejoinConference: 'Подключиться снова',
+        endCall: 'Завершить звонок',
         designClassic: 'Classic',
         designClassicDesc: 'Traditional tree, snow, garlands',
         designCosmic: 'Cosmic',
