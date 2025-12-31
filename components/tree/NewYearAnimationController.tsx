@@ -53,7 +53,8 @@ export function useNewYearAnimationController({
       const seconds = now.getSeconds();
 
       // Проверяем, наступил ли Новый год (1 января 2026, 00:00)
-      if (year >= 2026 && month === 0 && date === 1 && hours === 0 && minutes === 0 && seconds < 20) {
+      // Расширяем окно: первые 60 минут 1 января 2026
+      if (year >= 2026 && month === 0 && date === 1 && hours === 0 && minutes < 60) {
         if (!isNewYearRef.current) {
           isNewYearRef.current = true;
           setIsNewYear(true);

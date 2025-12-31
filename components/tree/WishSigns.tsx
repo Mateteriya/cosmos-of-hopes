@@ -49,6 +49,7 @@ interface WishSignsProps {
   enabled?: boolean;
   toys: Toy[]; // Пользовательские шары с желаниями
   startTime?: number; // Время начала анимации для синхронизации
+  initialPositions?: THREE.Vector3[]; // Начальные позиции (позиции шаров на момент превращения)
   onExplosionComplete?: () => void; // Callback после завершения взрыва
 }
 
@@ -64,7 +65,7 @@ interface WishSignData {
   toyId: string; // ID шара для отслеживания
 }
 
-export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete }: WishSignsProps) {
+export function WishSigns({ enabled = true, toys, startTime, initialPositions, onExplosionComplete }: WishSignsProps) {
   const startTimeRef = useRef<number>(startTime || Date.now());
   
   // Обновляем время начала при изменении пропса
@@ -82,6 +83,10 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
   const hasCalledExplosionCompleteRef = useRef<boolean>(false); // Ref для отслеживания вызова callback
   const starMeshesRef = useRef<THREE.Mesh[]>([]); // Ref для мешей звезд
   const plasmaCloudsRef = useRef<any[]>([]); // Ref для облаков плазмы (должен быть в начале!)
+  const year2026ParticlesRef = useRef<Array<{ position: THREE.Vector3; color: THREE.Color; size: number; originalPosition: THREE.Vector3 }>>([]); // Ref для частиц "2026"
+  const year2026MeshesRef = useRef<THREE.Mesh[]>([]); // Ref для мешей "2026"
+  const backgroundStarsRef = useRef<Array<{ position: THREE.Vector3; color: THREE.Color; size: number }>>([]); // Ref для фоновых звездочек
+  const backgroundStarsMeshesRef = useRef<THREE.Mesh[]>([]); // Ref для мешей фоновых звездочек
 
   // Фильтруем шары с желаниями и создаем таблички
   const signs = useMemo(() => {
@@ -110,29 +115,29 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
       // Обрезаем текст до 100 символов для читаемости
       const displayText = wishText.length > 100 ? wishText.substring(0, 97) + '...' : wishText;
       
-      // Сферическое распределение вокруг елки (но дальше, чем обычные таблички)
-      const theta = (Math.PI * 2 * i) / count; // Азимут
-      const phi = Math.acos(2 * (i / count) - 1); // Полярный угол
-      const radius = 15 + Math.random() * 10; // Радиус от 15 до 25 (дальше обычных табличек)
+      // ВСЕ таблички появляются В ЦЕНТРЕ ЭКРАНА (в одной точке), загораживая всю елку!
+      // Размещаем их перед камерой (ближе к камере, чем елка)
+      const centerX = 0;
+      const centerY = 0; // По центру экрана по вертикали
+      const centerZ = -5; // Перед елкой (ближе к камере), чтобы загораживать ее
       
-      const x = Math.sin(phi) * Math.cos(theta) * radius;
-      const y = (Math.sin(phi) * Math.sin(theta) * radius) + 5; // Смещение вверх
-      const z = Math.cos(phi) * radius;
+      // ВСЕ таблички в одной точке в центре - без смещения!
+      const originalPosition = new THREE.Vector3(centerX, centerY, centerZ);
       
-      const originalPosition = new THREE.Vector3(x, y, z);
+      // Создаем целевые позиции для разлета - ВСЕ таблички сначала в центре, потом разлетаются
+      const targetPositions: THREE.Vector3[] = [originalPosition.clone()]; // Первая позиция - центр экрана (все вместе!)
       
-      // Создаем минимум 3 целевые позиции для смены
-      const targetPositions: THREE.Vector3[] = [originalPosition.clone()]; // Первая позиция - исходная
-      
+      // ВСЕ таблички остаются в центре (первая позиция), затем разлетаются
       for (let j = 0; j < 3; j++) {
-        // Генерируем новые позиции вокруг елки
-        const newTheta = (Math.PI * 2 * (i + j * 0.3)) / count;
-        const newPhi = Math.acos(2 * ((i + j * 0.2) / count) - 1);
-        const newRadius = 15 + Math.random() * 10;
+        // Генерируем позиции для разлета - таблички разлетаются в разные стороны от центра
+        const scatterAngle = (Math.PI * 2 * (i + j * 0.3)) / count;
+        const scatterRadius = 10 + j * 5; // Увеличивающийся радиус разлета (дальше!)
+        const scatterHeight = (Math.random() - 0.5) * 8; // Вертикальный разброс (больше!)
         
-        const newX = Math.sin(newPhi) * Math.cos(newTheta) * newRadius;
-        const newY = (Math.sin(newPhi) * Math.sin(newTheta) * newRadius) + 5;
-        const newZ = Math.cos(newPhi) * newRadius;
+        // Разлетаются от центра экрана в разные стороны
+        const newX = Math.cos(scatterAngle) * scatterRadius;
+        const newY = scatterHeight;
+        const newZ = -5 + scatterRadius * 0.3; // Немного отдаляются от камеры при разлете
         
         targetPositions.push(new THREE.Vector3(newX, newY, newZ));
       }
@@ -156,101 +161,146 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
     }
     
     // Инициализируем позиции (только один раз при создании)
-    const initialPositions = signs.map(s => s.position.clone());
-    setSignPositions(initialPositions);
+    const initialSignPositions = signs.map(s => s.position.clone());
+    setSignPositions(initialSignPositions);
     lastPositionUpdateRef.current = 0; // Сбрасываем таймер обновления
     
     return signs;
-  }, [enabled, toys]);
+  }, [enabled, toys, initialPositions]);
 
   // Обновляем позиции звезд в useFrame (объединено с основной анимацией)
   useFrame((state, delta) => {
-    // Обновляем позиции звезд (если есть)
-    if (explosionPhase === 'stars') {
+    const elapsed = (Date.now() - startTimeRef.current) / 1000; // Время в секундах
+    
+    // ВАЖНО: Звездочки должны обновляться БЕСКОНЕЧНО, даже если таблички выключены!
+    // Используем type assertion для проверки фазы взрыва
+    const isStarsPhase = (explosionPhase as 'normal' | 'exploding' | 'stars') === 'stars';
+    
+    // После 38 секунды таблички становятся микроточками-звездочками и начинают рассыпаться
+    if (elapsed >= 38 && !isStarsPhase) {
+      setExplosionPhase('stars');
+    }
+    
+    // Создаем звезды из позиций табличек (только один раз, когда переходим в фазу 'stars')
+    // ВАЖНО: Это должно работать даже если таблички выключены!
+    if (isStarsPhase && starParticlesRef.current.length === 0) {
+      // Используем центр сбора для всех звезд (все таблички собрались в кучку)
+      const gatherCenter = new THREE.Vector3(0, 5, 0); // Центр сбора - немного выше центра
+      const explosionCenter = gatherCenter.clone();
+      
+      // Создаем простые звездочки-точечки - ОБЫЧНЫЕ точечки разной яркости
+      const totalParticleCount = Math.max(500, (signs.length || 20) * 50); // Минимум 500 звезд для красивого звездного неба
+      
+      for (let i = 0; i < totalParticleCount; i++) {
+        // Небольшой разброс начальной позиции для каждой звезды
+        const initialOffset = new THREE.Vector3(
+          (Math.random() - 0.5) * 2.0, // Разброс 2 единицы
+          (Math.random() - 0.5) * 2.0,
+          (Math.random() - 0.5) * 2.0
+        );
+        const pos = explosionCenter.clone().add(initialOffset);
+        
+        // ПОЛНОСТЬЮ СЛУЧАЙНЫЙ угол разлета - звезды разлетаются во все стороны
+        const angle = Math.random() * Math.PI * 2; // Случайный угол 0-2π
+        const elevation = (Math.random() - 0.5) * Math.PI; // Случайный угол возвышения
+        const speed = 0.5 + Math.random() * 1.5; // Скорость разлета (0.5-2.0)
+        
+        // ОБЫЧНЫЕ звездочки - белые/желтоватые с разной яркостью (как настоящее звездное небо)
+        const brightness = 0.7 + Math.random() * 0.3; // Яркость от 0.7 до 1.0 (разная яркость)
+        const starColor = new THREE.Color().setRGB(brightness, brightness, brightness * 0.95); // Белый с легким желтоватым оттенком
+        
+        // Создаем галактики - группируем звезды в галактики
+        const galaxyId = Math.floor(i / (totalParticleCount / 8)); // 8 галактик
+        const originalAngle = Math.atan2(pos.z, pos.x);
+        
+        const particle: any = {
+          position: pos.clone(),
+          velocity: new THREE.Vector3(
+            Math.cos(elevation) * Math.cos(angle) * speed,
+            Math.sin(elevation) * speed,
+            Math.cos(elevation) * Math.sin(angle) * speed
+          ),
+          color: starColor,
+          size: 0.03 + Math.random() * 0.05, // Размер звездочек (0.03-0.08) - видимые точечки
+          startTime: elapsed, // Начинают двигаться сразу
+          galaxyId: galaxyId, // ID галактики для группировки
+          originalAngle: originalAngle, // Исходный угол для спирали
+        };
+        starParticlesRef.current.push(particle);
+      }
+      console.log('⭐ Создано звезд для звездного неба:', starParticlesRef.current.length);
+      
+      // Создаем фоновые звездочки для заполнения неба (статические, не двигаются)
+      if (backgroundStarsRef.current.length === 0) {
+        const backgroundStarCount = 2000; // Много звездочек для заполнения неба
+        
+        for (let i = 0; i < backgroundStarCount; i++) {
+          // Случайная позиция по всему экрану
+          const x = (Math.random() - 0.5) * 100; // Ширина экрана
+          const y = (Math.random() - 0.5) * 100; // Высота экрана
+          const z = -20 + Math.random() * 40; // Глубина (от -20 до 20)
+          
+          // Разная яркость для реалистичности
+          const brightness = 0.3 + Math.random() * 0.5; // От 0.3 до 0.8 (более тусклые, чем основные звезды)
+          const starColor = new THREE.Color().setRGB(brightness, brightness, brightness * 0.95);
+          
+          const particle: any = {
+            position: new THREE.Vector3(x, y, z),
+            color: starColor,
+            size: 0.02 + Math.random() * 0.03, // Размер меньше основных звезд (0.02-0.05)
+          };
+          backgroundStarsRef.current.push(particle);
+        }
+        console.log('⭐ Создано фоновых звездочек для неба:', backgroundStarsRef.current.length);
+      }
+    }
+    
+    // Обновляем позиции звезд (если есть) - это должно работать ВСЕГДА после взрыва
+    if (isStarsPhase) {
       starParticlesRef.current.forEach((particle, index) => {
         if (starMeshesRef.current[index]) {
           starMeshesRef.current[index].position.copy(particle.position);
         }
       });
-    }
-    
-    // Анимация цветов, прозрачности, масштаба и движения
-    if (!enabled || signs.length === 0 || signPositions.length === 0) return;
-    
-    const elapsed = (Date.now() - startTimeRef.current) / 1000; // Время в секундах
-    
-    // СБОР ТАБЛИЧЕК В КУЧКУ перед взрывом (18-20 секунды)
-    const gatherProgress = elapsed >= 18 && elapsed < 20 ? Math.min(1, (elapsed - 18) / 2) : 0; // 0-1 за 2 секунды (18-20 сек)
-    const gatherCenter = new THREE.Vector3(0, 5, 0); // Центр сбора - немного выше центра
-    
-    // Уменьшение табличек до микроточек-звездочек начиная с 20 секунды
-    // Но сначала применяем обычную анимацию, а затем уменьшение поверх нее
-    let shrinkProgress = 0;
-    if (elapsed >= 20 && explosionPhase === 'normal') {
-      shrinkProgress = Math.min(1, (elapsed - 20) / 2); // 0-1 за 2 секунды (20-22 сек)
       
-      // После 22 секунды таблички становятся микроточками-звездочками и начинают рассыпаться
-      if (elapsed >= 22) {
-        setExplosionPhase('stars');
-          // Создаем звезды из позиций табличек (только один раз)
-          if (starParticlesRef.current.length === 0) {
-            // Используем центр сбора для всех звезд (все таблички собрались в кучку)
-            const explosionCenter = gatherCenter.clone();
-            
-            // Создаем звезды из центра сбора, но с РАЗНЫМИ задержками и начальными позициями для несинхронности
-            const totalParticleCount = signs.length * 75; // Общее количество звезд (75 на табличку в среднем)
-            
-            for (let i = 0; i < totalParticleCount; i++) {
-              // РАЗНЫЕ задержки для разных групп звезд (0-2 секунды) - чтобы взрывы были НЕСИНХРОННЫМИ
-              const explosionDelay = Math.random() * 2.0; // Увеличиваем разброс задержек
-              
-              // Небольшой разброс начальной позиции для каждой звезды (чтобы не было одной точки взрыва)
-              const initialOffset = new THREE.Vector3(
-                (Math.random() - 0.5) * 1.5, // Разброс 1.5 единицы
-                (Math.random() - 0.5) * 1.5,
-                (Math.random() - 0.5) * 1.5
-              );
-              const pos = explosionCenter.clone().add(initialOffset);
-              
-              // ПОЛНОСТЬЮ СЛУЧАЙНЫЙ угол - никаких паттернов!
-              const angle = Math.random() * Math.PI * 2; // Полностью случайный угол 0-2π
-              const speed = 0.3 + Math.random() * 0.7; // Более плавная скорость разлета (0.3-1.0)
-              
-              // РАЗНОЦВЕТНЫЕ звезды - используем весь спектр HSL для максимального разнообразия
-              // ВАЖНО: ВСЕ звезды должны быть разноцветными, не только первые 5!
-              // Для очень маленьких звезд нужны ОЧЕНЬ яркие и насыщенные цвета!
-              const hue = Math.random(); // Полный спектр от 0 до 1 (все цвета радуги)
-              const saturation = 1.0; // МАКСИМАЛЬНАЯ насыщенность (1.0) - самые яркие неоновые цвета!
-              const lightness = 0.4 + Math.random() * 0.2; // Средняя яркость (0.4-0.6) - яркие, но НЕ белые!
-              
-              // Создаем цвет с максимальной насыщенностью
-              const starColor = new THREE.Color().setHSL(hue, saturation, lightness);
-              
-              const particle: any = {
-                position: pos.clone(),
-                velocity: new THREE.Vector3(
-                  Math.cos(angle) * speed,
-                  (Math.random() - 0.5) * speed * 0.8, // Вертикальный разброс
-                  Math.sin(angle) * speed
-                ),
-                color: starColor, // ВАЖНО: создаем НОВЫЙ Color для каждой звезды!
-                size: (0.08 + Math.random() * 0.15) / 10, // УМЕНЬШИЛИ в 10 раз! (0.008-0.023)
-                galaxyId: Math.floor(Math.random() * 10), // ID галактики для группировки
-                originalAngle: Math.atan2(pos.z, pos.x), // Исходный угол для спирали
-                explosionDelay: explosionDelay, // Задержка взрыва для несинхронности
-                startTime: elapsed + explosionDelay, // Время начала движения этой звезды
-              };
-              starParticlesRef.current.push(particle);
-            }
-            console.log('⭐ Таблички уменьшились до микроточек-звездочек! Создано звезд:', starParticlesRef.current.length);
-          }
-      }
+      // Анимация "2026" - легкая пульсация и мерцание
+      year2026ParticlesRef.current.forEach((particle, index) => {
+        const particleAny = particle as any;
+        const pulse = Math.sin(elapsed * 2 + index * 0.1) * 0.1 + 1; // Пульсация размера
+        const twinkle = Math.sin(elapsed * 3 + index * 0.2) * 0.3 + 0.7; // Мерцание яркости
+        
+        // Легкое движение вокруг исходной позиции
+        const offsetX = Math.sin(elapsed * 0.5 + index * 0.1) * 0.2;
+        const offsetY = Math.cos(elapsed * 0.5 + index * 0.1) * 0.2;
+        
+        particle.position.x = particleAny.originalPosition.x + offsetX;
+        particle.position.y = particleAny.originalPosition.y + offsetY;
+        particle.position.z = particleAny.originalPosition.z;
+        
+        // Обновляем цвет для мерцания
+        if (year2026MeshesRef.current[index] && year2026MeshesRef.current[index].material) {
+          const material = year2026MeshesRef.current[index].material as THREE.MeshStandardMaterial;
+          const brightColor = particleAny.color.clone().multiplyScalar(twinkle);
+          material.color.copy(brightColor);
+          material.emissive.copy(brightColor);
+          material.emissiveIntensity = 20 * twinkle;
+          material.needsUpdate = true;
+        }
+        
+        // Обновляем размер для пульсации
+        if (year2026MeshesRef.current[index]) {
+          const scale = particleAny.size * pulse;
+          year2026MeshesRef.current[index].scale.setScalar(scale / particleAny.size);
+        }
+      });
     }
     
-    // Анимация рассыпания звезд и создания галактик (22+ секунды)
-    if (explosionPhase === 'stars' && elapsed >= 22) {
-      const scatterProgress = (elapsed - 22) / 8; // 0-1 за 8 секунд (22-30 сек) - ВРАЩЕНИЕ + 2 секунды
-      const afterRotationTime = elapsed - 30; // Время после фиксации (30+ секунды)
+    // Анимация разлета звезд с галактиками и спиралями (38+ секунды) - БЕСКОНЕЧНАЯ!
+    if (isStarsPhase && elapsed >= 38) {
+      const timeSinceExplosion = elapsed - 38; // Время с момента взрыва (бесконечно растет)
+      const scatterProgress = Math.min(1, timeSinceExplosion / 15); // 0-1 за 15 секунд, потом продолжается
+      
+      // Обновляем позиции звезд - разлет с формированием галактик и спиралей
       
       // Создаем облака плазмы вокруг галактик (только один раз, когда галактики начинают формироваться)
       if (plasmaCloudsRef.current.length === 0 && scatterProgress > 0.2) {
@@ -306,90 +356,76 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
           }
         });
         
-        console.log('🌌 Облака плазмы созданы! Количество:', plasmaCloudsRef.current.length);
+        // Облака плазмы созданы (без логирования)
       }
       
-      // Обновляем позиции звезд для рассыпания и цвета
+      // Обновляем позиции звезд - разлет с формированием галактик и спиралей
       starParticlesRef.current.forEach((particle, index) => {
         const particleAny = particle as any;
-        const explosionDelay = particleAny.explosionDelay || 0;
-        const startTime = particleAny.startTime || 22;
+        const startTime = particleAny.startTime || elapsed;
+        const galaxyId = particleAny.galaxyId !== undefined ? particleAny.galaxyId : Math.floor(index / (starParticlesRef.current.length / 8));
+        const originalAngle = particleAny.originalAngle !== undefined ? particleAny.originalAngle : Math.atan2(particle.position.z, particle.position.x);
         
         // Обновляем цвет материала звезды, если меш существует
-        // КРИТИЧНО для очень маленьких звезд - цвета должны быть максимально яркими!
         if (starMeshesRef.current[index] && starMeshesRef.current[index].material) {
           const material = starMeshesRef.current[index].material as THREE.MeshStandardMaterial;
           if (particle.color && material.color) {
-            // Копируем цвет напрямую
             material.color.copy(particle.color);
             material.emissive.copy(particle.color);
-            // Увеличиваем интенсивность эмиссии для видимости маленьких звезд
-            material.emissiveIntensity = 15;
+            // Интенсивность эмиссии зависит от яркости звезды
+            material.emissiveIntensity = 8 + (particle.color.r * 7); // 8-15 в зависимости от яркости
             material.needsUpdate = true;
           }
         }
         
-        // Проверяем, начался ли взрыв для этой звезды (с учетом задержки)
-        if (elapsed < startTime) {
-          return; // Звезда еще не начала двигаться
-        }
-        
-        const localProgress = Math.min(1, (elapsed - startTime) / 8); // Локальный прогресс для этой звезды
-        
-        // ФАЗА 1: Вращение и формирование галактик (0-8 секунд после начала взрыва)
-        if (localProgress < 1) {
-          // Более плавное движение - используем меньшую скорость для плавности
-          const moveSpeed = delta * (1.0 + localProgress * 0.5); // Плавное ускорение
+        // ФАЗА 1: Первые 5 секунд - простой разлет во все стороны
+        const timeSinceStart = elapsed - startTime;
+        if (timeSinceStart < 5) {
+          // Простое движение - звезды разлетаются по прямой линии
+          const moveSpeed = delta * (0.8 + scatterProgress * 0.4);
           particle.position.add(particle.velocity.clone().multiplyScalar(moveSpeed));
-          particle.velocity.multiplyScalar(0.999); // Более плавное замедление
-          
-          // Создаем эффект галактик и звездных систем - звезды группируются в спирали
-          // Начинаем формировать спирали РАНЬШЕ и БОЛЕЕ АГРЕССИВНО
-          if (localProgress > 0.1) {
-            const particleAny = particle as any;
-            const galaxyId = particleAny.galaxyId !== undefined ? particleAny.galaxyId : Math.floor(index / 20);
-            const originalAngle = particleAny.originalAngle !== undefined ? particleAny.originalAngle : Math.atan2(particle.position.z, particle.position.x);
-            
-            // Центр галактики - смещаем относительно исходной позиции (используем localProgress)
-            const galaxyCenterX = Math.cos(galaxyId * 0.5) * (3 + localProgress * 8);
-            const galaxyCenterZ = Math.sin(galaxyId * 0.5) * (3 + localProgress * 8);
-            const galaxyCenterY = (galaxyId % 3 - 1) * (1 + localProgress * 2);
-            
-            // Относительная позиция от центра галактики
-            const relX = particle.position.x - galaxyCenterX;
-            const relZ = particle.position.z - galaxyCenterZ;
-            const relDistance = Math.sqrt(relX * relX + relZ * relZ);
-            const relAngle = Math.atan2(relZ, relX);
-            
-            // БОЛЕЕ СИЛЬНОЕ спиральное движение (используем localProgress)
-            const spiralSpeed = 0.05 + (galaxyId % 4) * 0.02; // Более быстрые и заметные скорости
-            const newAngle = originalAngle + spiralSpeed * localProgress * 2; // Более сильное вращение
-            
-            // Спиральный радиус с более заметной спиралью
-            const baseRadius = 2 + localProgress * 8;
-            const spiralTightness = 0.3 + localProgress * 0.4; // Более заметная спираль
-            const spiralRadius = baseRadius * (1 + Math.sin(newAngle * 2.5) * 0.2 * spiralTightness);
-            
-            // Позиция в спирали
-            const newX = galaxyCenterX + Math.cos(newAngle) * spiralRadius;
-            const newZ = galaxyCenterZ + Math.sin(newAngle) * spiralRadius;
-            
-            // ПЛАВНО интерполируем к спиральной позиции (используем localProgress)
-            const interpolationFactor = Math.min(1, (localProgress - 0.1) * 0.4); // Более плавная интерполяция
-            particle.position.x = particle.position.x * (1 - interpolationFactor * 0.15) + newX * interpolationFactor * 0.15;
-            particle.position.z = particle.position.z * (1 - interpolationFactor * 0.15) + newZ * interpolationFactor * 0.15;
-            
-            // Вертикальное движение для 3D эффекта галактик
-            const verticalWave = Math.sin(localProgress * Math.PI * 2 + galaxyId * 0.3) * 0.03;
-            particle.position.y = galaxyCenterY + verticalWave * (1 - relDistance / 10);
-          }
+          particle.velocity.multiplyScalar(0.998);
         } else {
-          // ФАЗА 2: Фиксация и очень медленное движение (после 28 секунды)
-          // Очень медленное плавное движение - едва заметное
-          const slowSpeed = delta * 0.01; // ОЧЕНЬ медленное движение
-          particle.position.add(particle.velocity.clone().multiplyScalar(slowSpeed));
-          // Еще больше замедляем
-          particle.velocity.multiplyScalar(0.9995);
+          // ФАЗА 2: После 5 секунд - формирование галактик и спиралей
+          const galaxyProgress = Math.min(1, (timeSinceStart - 5) / 10); // 0-1 за 10 секунд (5-15 сек)
+          
+          // Центр галактики - смещается от центра взрыва
+          const galaxyCenterX = Math.cos(galaxyId * 0.5) * (3 + galaxyProgress * 12);
+          const galaxyCenterZ = Math.sin(galaxyId * 0.5) * (3 + galaxyProgress * 12);
+          const galaxyCenterY = (galaxyId % 3 - 1) * (1 + galaxyProgress * 3);
+          
+          // Спиральное движение - звезды закручиваются в спирали
+          const spiralSpeed = 0.08 + (galaxyId % 4) * 0.03; // Скорость вращения спирали
+          const newAngle = originalAngle + spiralSpeed * galaxyProgress * 3; // Вращение
+          
+          // Спиральный радиус - увеличивается со временем
+          const baseRadius = 2 + galaxyProgress * 10;
+          const spiralTightness = 0.4 + galaxyProgress * 0.3; // Плотность спирали
+          const spiralRadius = baseRadius * (1 + Math.sin(newAngle * 2) * 0.3 * spiralTightness);
+          
+          // Позиция в спирали
+          const targetX = galaxyCenterX + Math.cos(newAngle) * spiralRadius;
+          const targetZ = galaxyCenterZ + Math.sin(newAngle) * spiralRadius;
+          const targetY = galaxyCenterY + Math.sin(galaxyProgress * Math.PI * 2 + galaxyId * 0.5) * 2;
+          
+          // Плавная интерполяция к спиральной позиции
+          const interpolationFactor = Math.min(1, galaxyProgress * 0.5);
+          particle.position.x = particle.position.x * (1 - interpolationFactor * 0.1) + targetX * interpolationFactor * 0.1;
+          particle.position.z = particle.position.z * (1 - interpolationFactor * 0.1) + targetZ * interpolationFactor * 0.1;
+          particle.position.y = particle.position.y * (1 - interpolationFactor * 0.1) + targetY * interpolationFactor * 0.1;
+          
+          // После формирования спиралей - медленное вращение
+          if (galaxyProgress >= 1) {
+            const rotationSpeed = delta * 0.02; // Медленное вращение
+            const currentAngle = Math.atan2(particle.position.z - galaxyCenterZ, particle.position.x - galaxyCenterX);
+            const newRotatedAngle = currentAngle + rotationSpeed;
+            const distance = Math.sqrt(
+              Math.pow(particle.position.x - galaxyCenterX, 2) + 
+              Math.pow(particle.position.z - galaxyCenterZ, 2)
+            );
+            particle.position.x = galaxyCenterX + Math.cos(newRotatedAngle) * distance;
+            particle.position.z = galaxyCenterZ + Math.sin(newRotatedAngle) * distance;
+          }
         }
       });
       
@@ -397,9 +433,9 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
       plasmaCloudsRef.current.forEach((cloud: any) => {
         if (cloud && cloud.galaxyId !== undefined) {
           const galaxyId = cloud.galaxyId;
-          const galaxyCenterX = Math.cos(galaxyId * 0.5) * (3 + scatterProgress * 8);
-          const galaxyCenterZ = Math.sin(galaxyId * 0.5) * (3 + scatterProgress * 8);
-          const galaxyCenterY = (galaxyId % 3 - 1) * (1 + scatterProgress * 2);
+          const galaxyCenterX = Math.cos(galaxyId * 0.5) * (3 + scatterProgress * 12);
+          const galaxyCenterZ = Math.sin(galaxyId * 0.5) * (3 + scatterProgress * 12);
+          const galaxyCenterY = (galaxyId % 3 - 1) * (1 + scatterProgress * 3);
           
           // Обновляем позицию облака относительно центра галактики
           const offsetX = cloud.originalOffsetX || (cloud.position.x - galaxyCenterX);
@@ -433,12 +469,7 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
         }
       });
       
-      if (onExplosionComplete && scatterProgress >= 1 && !hasCalledExplosionCompleteRef.current) {
-        hasCalledExplosionCompleteRef.current = true;
-        onExplosionComplete();
-        console.log('🌟 Новая Вселенная создана! Галактики и звездные системы!');
-      }
-      
+      // Анимация продолжается БЕСКОНЕЧНО - звездочки продолжают двигаться и вращаться
       // Пропускаем обычную анимацию во время рассыпания
       return;
     }
@@ -449,15 +480,15 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
     if (elapsed - lastPositionUpdateRef.current >= updateInterval) {
       lastPositionUpdateRef.current = elapsed;
       
-      // СБОР ТАБЛИЧЕК В КУЧКУ перед взрывом (18-20 секунды)
-      const gatherProgress = elapsed >= 18 && elapsed < 20 ? Math.min(1, (elapsed - 18) / 2) : 0;
+      // СБОР ТАБЛИЧЕК В КУЧКУ перед взрывом (38-40 секунды, после долгого кружения!)
+      const gatherProgress = elapsed >= 38 && elapsed < 40 ? Math.min(1, (elapsed - 38) / 2) : 0;
       const gatherCenter = new THREE.Vector3(0, 5, 0); // Центр сбора - немного выше центра
       
       // Обновляем позиции через setState (но редко)
       const newPositions = signPositions.map((pos, index) => {
         const sign = signs[index];
         
-        // Если идет сбор в кучку (18-20 секунды), собираем все таблички в центр
+        // Если идет сбор в кучку (34-36 секунды), собираем все таблички в центр
         if (gatherProgress > 0) {
           const currentPos = pos.clone();
           return currentPos.lerp(gatherCenter, gatherProgress);
@@ -465,29 +496,49 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
         
         if (!sign || !sign.targetPositions || sign.targetPositions.length < 2) return pos;
         
-        // Время анимации: 20 секунд (от 6 до 26, так как появляются после слетания шаров)
-        const animationDuration = 20;
-        const animationTime = Math.max(0, Math.min(elapsed - 6, animationDuration)); // От 0 до 20, начиная с 6 сек
+        // Таблички появляются на 6 секунде, остаются в центре 2 секунды, потом ЛЕТАЮТ ПО ВСЕМУ ЭКРАНУ
+        const timeSinceAppearance = elapsed - 6; // Время с момента появления (6 секунда)
         
-        // Разбиваем время на 4 фазы (исходная + 3 смены позиций)
-        const phaseDuration = animationDuration / 4; // 5 секунд на каждую фазу
-        const currentPhase = Math.floor(animationTime / phaseDuration);
-        const phaseProgress = (animationTime % phaseDuration) / phaseDuration; // 0-1 внутри фазы
+        // Фаза 1: все таблички в центре (0-2 сек после появления, т.е. 6-8 сек)
+        if (timeSinceAppearance < 2) {
+          // Все таблички остаются в центре - не двигаются!
+          return sign.originalPosition.clone();
+        }
         
-        // Определяем текущую и следующую позиции
-        const fromIndex = Math.min(currentPhase, sign.targetPositions.length - 1);
-        const toIndex = Math.min(currentPhase + 1, sign.targetPositions.length - 1);
+        // Фаза 2: ЛЕТАЮТ ПО ВСЕМУ ЭКРАНУ (2+ сек после появления, т.е. 8+ сек)
+        const scatterTime = timeSinceAppearance - 2; // Время с начала разлета
+        const animationDuration = 34; // 34 секунд на полет (8-42 сек) - продлено еще на 6 секунд!
+        const animationTime = Math.min(scatterTime, animationDuration); // От 0 до 34
         
-        const fromPos = sign.targetPositions[fromIndex];
-        const toPos = sign.targetPositions[toIndex];
+        // Плавное движение по всему экрану - таблички летают ДАЛЕКО друг от друга, не загораживая друг друга
+        // Используем синусоидальное движение для плавного полета с БОЛЬШИМ радиусом
+        const flightSpeed = 0.15; // Медленная скорость полета для плавности
+        const baseRadius = 25; // Базовый радиус увеличен (было 15)
+        const radiusVariation = (index % 7) * 5; // Больший разброс радиусов (0-30 единиц)
+        const flightRadius = baseRadius + radiusVariation; // Разный радиус для каждой таблички (25-55 единиц) - ДАЛЕКО друг от друга!
+        const flightAngle = scatterTime * flightSpeed + (index * Math.PI * 2) / signs.length; // Уникальный угол для каждой таблички
         
-        // Плавная интерполяция между позициями
-        const smoothProgress = phaseProgress * phaseProgress * (3 - 2 * phaseProgress); // Smoothstep
-        return fromPos.clone().lerp(toPos, smoothProgress);
+        // УЛУЧШЕННОЕ вертикальное распределение - таблички гуляют ВЫШЕ и НИЖЕ!
+        const baseVerticalOffset = (index % 5 - 2) * 4; // Базовое вертикальное смещение (-8 до 8 единиц)
+        const verticalWave = Math.sin(scatterTime * flightSpeed * 0.7 + index * 0.5) * 12; // Большая вертикальная волна (было 8)
+        const verticalOffset = baseVerticalOffset + verticalWave; // Комбинированное вертикальное движение
+        
+        // Позиция для полета по всему экрану - ДАЛЕКО друг от друга, ВЫШЕ и НИЖЕ!
+        const flightX = Math.cos(flightAngle) * flightRadius;
+        const flightY = verticalOffset; // Улучшенное вертикальное распределение
+        const flightZ = -5 + Math.sin(flightAngle * 0.5) * 5; // Увеличенная глубина для 3D эффекта
+        
+        return new THREE.Vector3(flightX, flightY, flightZ);
       });
       
       // Обновляем позиции (редко, поэтому не тормозит)
       setSignPositions(newPositions);
+    }
+    
+    // Уменьшение табличек до микроточек-звездочек начиная с 36 секунды
+    let shrinkProgress = 0;
+    if (elapsed >= 36 && (explosionPhase as 'normal' | 'exploding' | 'stars') === 'normal') {
+      shrinkProgress = Math.min(1, (elapsed - 36) / 2); // 0-1 за 2 секунды (36-38 сек)
     }
     
     signRefs.current.forEach((ref, index) => {
@@ -502,37 +553,33 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
       const lightness = 0.6 + Math.sin(t * 1.5) * 0.2; // 0.4-0.8 (ярче)
       
       // Динамическая прозрачность - становится НЕпрозрачнее со временем (таблички становятся четче)
-      const baseOpacity = 0.75; // Начальная прозрачность
-      const growProgress = Math.min(1, (elapsed - 6) / 12); // От 6 до 18 секунды (0-1)
-      const dynamicOpacity = 0.75 + Math.sin(t * 0.8) * 0.2; // 0.55-0.95 (базовая пульсация)
-      const opacity = Math.min(1, dynamicOpacity + growProgress * 0.25); // Постепенно увеличиваем до 1.0 (полностью непрозрачные)
+      // Эффект ВСПЫШКИ при появлении - таблички появляются ОГРОМНЫМИ в центре экрана!
+      const timeSinceAppearance = elapsed - 6; // Время с момента появления (6 секунда)
+      let scale = 1;
+      let opacity = 1;
+      let glowIntensity = 0;
       
-      // Динамический масштаб с увеличением по очереди - становится КРУПНЕЕ со временем
-      // Базовый масштаб увеличивается со временем
-      const baseScaleGrowth = 0.7 + growProgress * 0.5; // От 0.7 до 1.2 (становится крупнее)
-      const baseScale = baseScaleGrowth + Math.sin(t * 0.5) * 0.2; // 0.5-1.4 (базовая пульсация, крупный размер)
+      // ВСЕ таблички ОДИНАКОВОГО размера - увеличены в 3 раза!
+      // Базовый размер контента: 200px (minWidth)
+      // Фиксированный размер: 1200px → scale = 1200/200 = 6.0
+      const baseScale = 6.0; // Единый размер для всех табличек (1200px) - увеличен в 3 раза!
       
-      // Увеличение по очереди - каждая табличка проходит минимум 3 цикла (от микро до максимума)
-      const scaleWaveTime = elapsed - 6 - (sign.scaleDelay * 4); // Задержка от 0 до 4 секунд, начиная с 6 сек
-      let scaleMultiplier = 1;
-      
-      if (scaleWaveTime > 0) {
-        // Создаем минимум 3 полных цикла за время анимации (17 секунд от 6 до 23)
-        // Частота: 3 цикла за 17 секунд = 3 * 2π / 17 ≈ 1.1 рад/сек
-        const cycleSpeed = 1.1; // Скорость циклов (минимум 3 цикла за ~17 секунд)
-        const wavePhase = (scaleWaveTime * cycleSpeed) % (Math.PI * 2); // Циклическая волна
+      if (timeSinceAppearance < 0.5) {
+        // Фаза вспышки (0-0.5 сек): таблички появляются с яркой вспышкой
+        const flashProgress = timeSinceAppearance / 0.5; // 0..1
+        scale = baseScale * (1.1 - flashProgress * 0.05); // Небольшая вспышка
+        opacity = 0.3 + flashProgress * 0.7; // От полупрозрачных до непрозрачных
+        glowIntensity = (1 - flashProgress) * 0.5; // Яркое свечение в начале
+      } else {
+        // После вспышки: все таблички одинакового размера, медленно плавают
+        scale = baseScale; // Всегда одинаковый размер (1.25 = 250px)
+        opacity = 1; // Полностью непрозрачные
+        glowIntensity = 0; // Свечение исчезает
         
-        // Плавная синусоида от 0 до 1 (минимум до максимума)
-        const pulse = Math.sin(wavePhase) * 0.5 + 0.5; // 0-1
-        
-        // Масштаб от микро (0.2) до максимума (3-4 раза)
-        const minScale = 0.2; // Микро размер
-        const maxScale = 2.5 + sign.scaleDelay * 0.5; // Максимальный размер (2.5-3)
-        scaleMultiplier = minScale + pulse * (maxScale - minScale); // От микро до максимума
+        // Легкая пульсация для красоты (очень медленная)
+        const pulse = Math.sin(timeSinceAppearance * 0.5) * 0.03 + 1; // Очень медленная пульсация
+        scale = scale * pulse;
       }
-      
-      // Финальный масштаб (средний контролируемый размер)
-      let scale = baseScale * scaleMultiplier;
       
       // Применяем уменьшение поверх обычной анимации (если началось уменьшение)
       if (shrinkProgress > 0) {
@@ -559,16 +606,72 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
       ref.element.style.color = hslColor;
       ref.element.style.opacity = `${finalOpacity}`;
       ref.element.style.transform = `scale(${scale}) translateZ(0)`;
-      ref.element.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.2), 0 0 20px ${shadowColor}`;
+      // Яркое свечение при вспышке
+      const glowSize = glowIntensity > 0 ? 40 + glowIntensity * 60 : 20;
+      ref.element.style.boxShadow = `0 4px 12px rgba(0, 0, 0, 0.2), 0 0 ${glowSize}px ${shadowColor}`;
     });
   });
 
-  if (!enabled || signs.length === 0) return null;
-
-  if (signPositions.length === 0) return null;
+  // ВАЖНО: Звездочки должны рендериться даже после выключения табличек!
+  // Проверяем, есть ли звездочки для рендеринга (после взрыва)
+  const isStarsPhase = (explosionPhase as 'normal' | 'exploding' | 'stars') === 'stars';
+  const hasStars = isStarsPhase && starParticlesRef.current.length > 0;
+  const hasYear2026 = year2026ParticlesRef.current.length > 0; // "2026" появляется на 6 секунде, не зависит от isStarsPhase
+  const hasBackgroundStars = isStarsPhase && backgroundStarsRef.current.length > 0;
+  
+  // Если нет ни табличек, ни звезд, ни "2026" - не рендерим ничего
+  if (!enabled && !hasStars && !hasYear2026 && !hasBackgroundStars) return null;
+  
+  // Если есть таблички, но нет позиций - не рендерим таблички
+  if (signs.length === 0 && !hasStars && !hasYear2026 && !hasBackgroundStars) return null;
+  if (signPositions.length === 0 && signs.length > 0 && !hasStars && !hasYear2026 && !hasBackgroundStars) return null;
   
   return (
     <group>
+      {/* Фоновые звездочки для заполнения неба (появляются на 38 секунде вместе с галактиками) */}
+      {isStarsPhase && backgroundStarsRef.current.map((particle, index) => (
+        <mesh 
+          key={`bg-star-${index}`} 
+          ref={(el) => {
+            if (el) backgroundStarsMeshesRef.current[index] = el;
+          }}
+          position={particle.position}
+        >
+          <sphereGeometry args={[particle.size, 6, 6]} />
+          <meshStandardMaterial
+            color={particle.color}
+            emissive={particle.color}
+            emissiveIntensity={10}
+            transparent
+            opacity={0.8}
+            roughness={0.0}
+            metalness={0.0}
+          />
+        </mesh>
+      ))}
+      
+      {/* Число "2026" из звездочек сверху экрана (появляется на 6 секунде) */}
+      {hasYear2026 && year2026ParticlesRef.current.map((particle, index) => (
+        <mesh 
+          key={`year2026-${index}`} 
+          ref={(el) => {
+            if (el) year2026MeshesRef.current[index] = el;
+          }}
+          position={particle.position}
+        >
+          <sphereGeometry args={[particle.size, 8, 8]} />
+          <meshStandardMaterial
+            color={particle.color}
+            emissive={particle.color}
+            emissiveIntensity={20}
+            transparent
+            opacity={1.0}
+            roughness={0.0}
+            metalness={0.0}
+          />
+        </mesh>
+      ))}
+      
       {/* Звезды после взрыва - рендерим через ref для обновления позиций */}
       {explosionPhase === 'stars' && starParticlesRef.current.map((particle, index) => (
         <mesh 
@@ -656,7 +759,10 @@ export function WishSigns({ enabled = true, toys, startTime, onExplosionComplete
                 fontFamily: 'system-ui, -apple-system, sans-serif',
                 transition: 'none', // Отключаем CSS transitions для плавной анимации через JS
                 maxWidth: '400px', // Увеличиваем ширину для лучшего переноса по словам
-                minWidth: '200px', // Минимальная ширина для читаемости
+                minWidth: '200px', // Базовый размер контента (для расчета scale)
+                // Убираем minHeight, чтобы размер контролировался только через scale
+                width: 'auto', // Автоматическая ширина
+                height: 'auto', // Автоматическая высота
                 textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
               }}
             >

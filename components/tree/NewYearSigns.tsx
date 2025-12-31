@@ -154,6 +154,8 @@ export function NewYearSigns({ enabled = true, startTime }: NewYearSignsProps) {
     const signs: SignData[] = [];
     
     for (let i = 0; i < count; i++) {
+      const isRussian = i === 0; // Русская табличка - первая в массиве
+      
       // Сферическое распределение вокруг елки
       const theta = (Math.PI * 2 * i) / count; // Азимут
       const phi = Math.acos(2 * (i / count) - 1); // Полярный угол
@@ -161,7 +163,8 @@ export function NewYearSigns({ enabled = true, startTime }: NewYearSignsProps) {
       
       const x = Math.sin(phi) * Math.cos(theta) * radius;
       const y = (Math.sin(phi) * Math.sin(theta) * radius) + 5; // Смещение вверх
-      const z = Math.cos(phi) * radius;
+      // Русская табличка на переднем плане (ближе к камере)
+      const z = isRussian ? -3 : Math.cos(phi) * radius; // Русская табличка на z = -3 (передний план)
       
       // Разные базовые цвета для каждой таблички
       const baseHue = (i / count) % 1; // Распределение по всему спектру
@@ -181,7 +184,8 @@ export function NewYearSigns({ enabled = true, startTime }: NewYearSignsProps) {
         
         const newX = Math.sin(newPhi) * Math.cos(newTheta) * newRadius;
         const newY = (Math.sin(newPhi) * Math.sin(newTheta) * newRadius) + 5;
-        const newZ = Math.cos(newPhi) * newRadius;
+        // Русская табличка всегда на переднем плане (ближе к камере)
+        const newZ = isRussian ? -3 : Math.cos(newPhi) * newRadius;
         
         targetPositions.push(new THREE.Vector3(newX, newY, newZ));
       }
@@ -266,8 +270,12 @@ export function NewYearSigns({ enabled = true, startTime }: NewYearSignsProps) {
       const opacity = dynamicOpacity * (1 - fadeProgress * 0.7); // Постепенно уменьшаем до 30% от исходной
       
       // Динамический масштаб с увеличением по очереди
-      // Базовый масштаб (средний размер для читаемости)
-      const baseScale = 0.7 + Math.sin(t * 0.5) * 0.2; // 0.5-0.9 (базовая пульсация, средний размер)
+      const isRussian = sign.lang === 'Русский'; // Проверяем, русская ли это табличка
+      
+      // Базовый масштаб увеличен для всех табличек, русская - САМАЯ КРУПНАЯ
+      const baseScale = isRussian 
+        ? 1.5 + Math.sin(t * 0.5) * 0.3  // Русская: 1.2-1.8 (САМАЯ КРУПНАЯ!)
+        : 1.0 + Math.sin(t * 0.5) * 0.2; // Остальные: 0.8-1.2 (крупнее, чем было)
       
       // Увеличение по очереди - каждая табличка проходит минимум 3 цикла (от микро до максимума)
       const scaleWaveTime = elapsed - (sign.scaleDelay * 4); // Задержка от 0 до 4 секунд
@@ -282,13 +290,15 @@ export function NewYearSigns({ enabled = true, startTime }: NewYearSignsProps) {
         // Плавная синусоида от 0 до 1 (минимум до максимума)
         const pulse = Math.sin(wavePhase) * 0.5 + 0.5; // 0-1
         
-        // Масштаб от микро (0.2) до максимума (3-4 раза)
-        const minScale = 0.2; // Микро размер
-        const maxScale = 2.5 + sign.scaleDelay * 0.5; // Максимальный размер (2.5-3)
+        // Масштаб от микро (0.2) до максимума - русская САМАЯ КРУПНАЯ
+        const minScale = 0.3; // Микро размер (увеличен)
+        const maxScale = isRussian 
+          ? 3.5 + sign.scaleDelay * 0.5  // Русская: 3.5-4.0 (САМАЯ КРУПНАЯ!)
+          : 2.5 + sign.scaleDelay * 0.5; // Остальные: 2.5-3.0 (крупнее)
         scaleMultiplier = minScale + pulse * (maxScale - minScale); // От микро до максимума
       }
       
-      // Финальный масштаб (средний контролируемый размер)
+      // Финальный масштаб - русская САМАЯ КРУПНАЯ
       const scale = baseScale * scaleMultiplier;
       
       // Применяем стили

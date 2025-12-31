@@ -437,12 +437,12 @@ function BallOnTree({
 }
 
 // Компонент для загрузки OBJ модели БЕЗ MTL материалов
-function OBJTreeWithoutMTL({ objPath, glowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; glowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
-  return <OBJTreeContent objPath={objPath} materials={null} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} showBlackBackground={showBlackBackground} />;
+function OBJTreeWithoutMTL({ objPath, glowEnabled = false, autoGlowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; glowEnabled?: boolean; autoGlowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
+  return <OBJTreeContent objPath={objPath} materials={null} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} showBlackBackground={showBlackBackground} />;
 }
 
 // Компонент для загрузки OBJ модели С MTL материалами
-function OBJTreeWithMTL({ objPath, mtlPath, glowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; mtlPath: string; glowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
+function OBJTreeWithMTL({ objPath, mtlPath, glowEnabled = false, autoGlowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; mtlPath: string; glowEnabled?: boolean; autoGlowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
   // Настраиваем путь для загрузки текстур (относительно MTL файла)
   const mtlDir = mtlPath.includes('/') 
     ? mtlPath.substring(0, mtlPath.lastIndexOf('/') + 1) 
@@ -457,7 +457,7 @@ function OBJTreeWithMTL({ objPath, mtlPath, glowEnabled = false, isNewYearAnimat
 }
 
 // Основной компонент для загрузки OBJ модели
-function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; materials: any; glowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
+function OBJTreeContent({ objPath, materials, glowEnabled = false, autoGlowEnabled = false, isNewYearAnimation = false, treeOpacity = 1.0, showBlackBackground = false }: { objPath: string; materials: any; glowEnabled?: boolean; autoGlowEnabled?: boolean; isNewYearAnimation?: boolean; treeOpacity?: number; showBlackBackground?: boolean }) {
   const treeRef = useRef<THREE.Group>(null);
   const meshMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]); // Ссылки на материалы для анимации
   const meshRefs = useRef<THREE.Mesh[]>([]); // Ссылки на меши для управления видимостью
@@ -1572,8 +1572,8 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
 
           // ПОЛНОСТЬЮ УДАЛЯЕМ ЕЛКУ при появлении черного фона (космоса) - не через прозрачность!
           // Елка удаляется СРАЗУ при включении черного фона (14 секунд) - АБСОЛЮТНО УДАЛЯЕМ!
-          // Используем showBlackBackground для надежного удаления, или проверяем treeOpacity
-          const shouldHideTree = showBlackBackground || (isNewYearAnimation && treeOpacity <= 0);
+          // Елка НЕ скрывается во время анимации - остается видимой с подсветкой!
+          const shouldHideTree = false;
           
           return (
     <>
@@ -1586,7 +1586,7 @@ function OBJTreeContent({ objPath, materials, glowEnabled = false, isNewYearAnim
           {/* Сама 3D-ёлка */}
       <primitive object={clonedObj} />
           {/* Свечение ствола изнутри */}
-          <TrunkGlow enabled={glowEnabled} />
+          <TrunkGlow enabled={glowEnabled || autoGlowEnabled} />
           {/* Снежинки на ёлке (только в режиме БЕЗ подсветки) */}
           {!glowEnabled && (
             <TreeSnowflakes 
@@ -1674,12 +1674,13 @@ function TrunkGlow({ enabled = true }: { enabled?: boolean }) {
       const currentColor = new THREE.Color().lerpColors(color1, color2, t);
       
       // ЯРКОЕ мигание - интенсивность сильно меняется (от 8 до 15)
-      const baseIntensity = 10.0;
-      const pulse = Math.sin(time * 4 + index * 0.8) * 0.5 + 0.5; // От 0 до 1
-      const intensity = baseIntensity + pulse * 7.0; // От 10 до 17
+      // Усиливаем мигание для анимации - более заметное и быстрое
+      const baseIntensity = 12.0; // Увеличена базовая интенсивность
+      const pulse = Math.sin(time * 6 + index * 0.8) * 0.5 + 0.5; // От 0 до 1 (быстрее - time * 6 вместо 4)
+      const intensity = baseIntensity + pulse * 10.0; // От 12 до 22 (усилено)
       
-      // Дополнительное мигание для эффекта "переливания"
-      const flicker = Math.sin(time * 8 + index * 1.2) * 0.3 + 0.7; // От 0.4 до 1.0
+      // Дополнительное мигание для эффекта "переливания" - более выраженное
+      const flicker = Math.sin(time * 12 + index * 1.2) * 0.4 + 0.6; // От 0.2 до 1.0 (более выраженное мигание)
       const finalIntensity = intensity * flicker;
       
       light.color.copy(currentColor);
@@ -1722,12 +1723,20 @@ function TrunkGlow({ enabled = true }: { enabled?: boolean }) {
 // Шары слетают с ёлки, закручиваются в спираль и рассыпаются по космосу
 function NewYearAnimation({
   toys,
+  currentUserId,
   onComplete,
   onTreeOpacityChange,
+  onGlowEnable,
+  onCameraDistanceChange,
+  onSnowVisibilityChange,
 }: {
   toys: Toy[];
+  currentUserId?: string;
   onComplete?: () => void;
   onTreeOpacityChange?: (opacity: number) => void;
+  onGlowEnable?: () => void;
+  onCameraDistanceChange?: (distance: number) => void;
+  onSnowVisibilityChange?: (visible: boolean) => void;
 }) {
   const animationRef = useRef<THREE.Group>(null);
   const [animationPhase, setAnimationPhase] = useState<'idle' | 'flying' | 'spiral' | 'scattering' | 'complete'>('idle');
@@ -1736,16 +1745,26 @@ function NewYearAnimation({
   const [showWishSigns, setShowWishSigns] = useState<boolean>(false); // Состояние для управления видимостью табличек с желаниями
   const [showBlackBackground, setShowBlackBackground] = useState<boolean>(false); // Состояние для черного фона
   const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки (для плавного исчезновения)
+  const [showSnow, setShowSnow] = useState<boolean>(true); // Состояние для управления видимостью снега
   const elapsedTimeRef = useRef<number>(0); // Ref для отслеживания времени анимации
   const startTimeRef = useRef<number>(0);
   const sparkRefs = useRef<THREE.Mesh[]>([]);
+  const ballPositionsAtTransformationRef = useRef<THREE.Vector3[]>([]); // Позиции шаров на момент превращения в таблички
   const fireworksShownRef = useRef<boolean>(false); // Ref для отслеживания, были ли уже показаны фейерверки
   const signsShownRef = useRef<boolean>(false); // Ref для отслеживания, были ли уже показаны таблички с поздравлениями
   const wishSignsShownRef = useRef<boolean>(false); // Ref для отслеживания, были ли уже показаны таблички с желаниями
+  const wishSignsHiddenRef = useRef<boolean>(false); // Ref для отслеживания, были ли уже скрыты таблички с желаниями
+  const treeFadeCompleteRef = useRef<boolean>(false); // Ref для отслеживания завершения растворения елки
   const blackBackgroundShownRef = useRef<boolean>(false); // Ref для отслеживания черного фона
+  const snowStoppedRef = useRef<boolean>(false); // Ref для отслеживания остановки снега
 
-  // Количество «искорок» в анимации (берём по количеству шаров, но не больше 80)
-  const sparksCount = Math.min(toys.length > 0 ? toys.length : 50, 80);
+  // Фильтруем только ПОЛЬЗОВАТЕЛЬСКИЕ шары для анимации
+  const userToys = currentUserId ? toys.filter(toy => toy.user_id === currentUserId) : [];
+  
+  // Оптимизированное количество «искорок» в анимации для производительности
+  // Используем пользовательские шары, но если их нет - создаем минимум 20 для красоты
+  // Увеличиваем максимум до 40 для более впечатляющего эффекта
+  const sparksCount = Math.max(userToys.length > 0 ? userToys.length : 20, 20);
 
   useEffect(() => {
     // Запускаем анимацию при монтировании
@@ -1754,11 +1773,15 @@ function NewYearAnimation({
     fireworksShownRef.current = false; // Сбрасываем флаг фейерверков
     signsShownRef.current = false; // Сбрасываем флаг табличек с поздравлениями
     wishSignsShownRef.current = false; // Сбрасываем флаг табличек с желаниями
+    wishSignsHiddenRef.current = false; // Сбрасываем флаг скрытия табличек с желаниями
+    treeFadeCompleteRef.current = false; // Сбрасываем флаг завершения растворения елки
     blackBackgroundShownRef.current = false; // Сбрасываем флаг черного фона
     setShowFireworks(false); // Сбрасываем состояние
     setShowSigns(false); // Сбрасываем состояние табличек с поздравлениями
     setShowWishSigns(false); // Сбрасываем состояние табличек с желаниями
     setShowBlackBackground(false); // Сбрасываем состояние черного фона
+    setShowSnow(true); // Сбрасываем состояние снега
+    snowStoppedRef.current = false; // Сбрасываем флаг остановки снега
     setTreeOpacity(1.0); // Сбрасываем прозрачность елки
   }, []);
 
@@ -1768,8 +1791,8 @@ function NewYearAnimation({
     const elapsed = (Date.now() - startTimeRef.current) / 1000; // Время в секундах
     elapsedTimeRef.current = elapsed; // Обновляем ref времени для управления фейерверками/конфетти
     
-    // Включаем таблички с поздравлениями на 5 секунде (задержка на пару секунд)
-    if (elapsed >= 5 && !signsShownRef.current) {
+    // Включаем таблички с поздравлениями на 3 секунде (за 2-3 секунды ДО пользовательских табличек на 6 секунде)
+    if (elapsed >= 3 && !signsShownRef.current) {
       signsShownRef.current = true;
       setShowSigns(true);
       console.log('🎊 Таблички с поздравлениями включены! Время:', elapsed.toFixed(2), 'сек');
@@ -1780,45 +1803,97 @@ function NewYearAnimation({
       setShowFireworks(true);
       console.log('🎆 Фейерверки и конфетти включены! Время:', elapsed.toFixed(2), 'сек');
     }
-    // Включаем таблички с желаниями на 7.5 секунде (смена табличек)
-    if (elapsed >= 7.5 && !wishSignsShownRef.current) {
+    // Включаем таблички с желаниями на 6 секунде - когда шары собрались в центр (после отдаления елки)
+    // Таблички появляются на месте шаров, которые собрались в центр
+    if (elapsed >= 6 && !wishSignsShownRef.current) {
       wishSignsShownRef.current = true;
       setShowWishSigns(true);
-      console.log('💫 Таблички с желаниями включены! Время:', elapsed.toFixed(2), 'сек');
+      console.log('💫 Таблички с желаниями включены на позициях шаров! Время:', elapsed.toFixed(2), 'сек');
     }
-    // Выключаем таблички с поздравлениями на 7.5 секунде (полная смена на таблички с желаниями)
-    if (elapsed >= 7.5 && showSigns) {
+    // Выключаем таблички с поздравлениями на 10 секунде (задержка на 1-2 секунды, полная смена на таблички с желаниями, которые появляются на 6 секунде)
+    if (elapsed >= 10 && showSigns) {
       setShowSigns(false);
       console.log('🎊 Таблички с поздравлениями выключены');
     }
-    // ПЛАВНОЕ исчезновение елки с 12 до 14 секунд
-    if (elapsed >= 12 && elapsed < 14) {
-      const fadeProgress = (elapsed - 12) / 2; // 0-1 за 2 секунды (12-14 сек)
-      const newOpacity = Math.max(0, 1 - fadeProgress); // Плавно от 1 до 0
-      setTreeOpacity(newOpacity);
-      if (onTreeOpacityChange) {
-        onTreeOpacityChange(newOpacity);
+    // Выключаем таблички с желаниями на 42 секунде (36 секунд с момента появления на 6 секунде - продлено еще на 6 секунд!)
+    if (elapsed >= 42 && showWishSigns && !wishSignsHiddenRef.current) {
+      wishSignsHiddenRef.current = true;
+      setShowWishSigns(false);
+      console.log('💫 Таблички с желаниями выключены на 42 секунде');
+    }
+    // ВКЛЮЧАЕМ ПОДСВЕТКУ ЕЛКИ на первой секунде!
+    if (elapsed >= 1) {
+      // Елка НЕ исчезает, а наоборот - включается подсветка!
+      if (onGlowEnable && !blackBackgroundShownRef.current) {
+        onGlowEnable();
+        blackBackgroundShownRef.current = true; // Используем как флаг, что подсветка уже включена
+        console.log('💡 Подсветка елки включена! Время:', elapsed.toFixed(2), 'сек');
       }
     }
-    // Включаем черный фон ПЕРЕД взрывом на 20 секунде (за 2 секунды до взрыва на 22 секунде)
-    if (elapsed >= 20 && !blackBackgroundShownRef.current) {
-      blackBackgroundShownRef.current = true;
-      setShowBlackBackground(true);
-      console.log('🌌 Черный фон включен ПЕРЕД взрывом! Время:', elapsed.toFixed(2), 'сек');
+    
+    // Елка остается видимой (opacity = 1.0) до 11 секунды - ВСЕГДА до 11 секунды!
+    // ВАЖНО: Это должно быть ВНЕ других условий, чтобы елка не исчезала раньше времени!
+    if (elapsed < 11) {
+      // Елка остается видимой до 11 секунды - принудительно устанавливаем 1.0
+      setTreeOpacity(1.0);
+      if (onTreeOpacityChange) {
+        onTreeOpacityChange(1.0);
+      }
     }
-    // Выключаем фейерверки/конфетти на 14 секунде (когда фон становится черным)
-    if (elapsed >= 14 && showFireworks) {
+    // Елка остается видимой до взрыва звездочек (38 секунда)
+    // На 38 секунде - ВЗРЫВ ЕЛКИ - она исчезает СРАЗУ!
+    if (elapsed >= 38) {
+      // ВЗРЫВ ЕЛКИ - исчезает СРАЗУ на 38 секунде (когда взрываются звездочки)
+      setTreeOpacity(0.0); // Елка полностью невидима
+      if (onTreeOpacityChange) {
+        onTreeOpacityChange(0.0);
+      }
+      // Останавливаем снег на 38 секунде
+      if (!snowStoppedRef.current) {
+        snowStoppedRef.current = true;
+        setShowSnow(false);
+        if (onSnowVisibilityChange) {
+          onSnowVisibilityChange(false);
+        }
+        console.log('❄️ Снег остановлен! Время:', elapsed.toFixed(2), 'сек');
+      }
+      // Включаем черный фон для космоса
+      if (!blackBackgroundShownRef.current) {
+        blackBackgroundShownRef.current = true;
+        setShowBlackBackground(true);
+        console.log('🌌 Черный космос включен! Елка взорвана! Время:', elapsed.toFixed(2), 'сек');
+      }
+    } else {
+      // Елка видима до 38 секунды
+      setTreeOpacity(1.0);
+      if (onTreeOpacityChange) {
+        onTreeOpacityChange(1.0);
+      }
+    }
+    // Выключаем фейерверки/конфетти на 20 секунде (плавное завершение эффектов)
+    if (elapsed >= 20 && showFireworks) {
       setShowFireworks(false);
       console.log('🎆 Фейерверки и конфетти выключены');
     }
-    // ПОЛНОСТЬЮ УДАЛЯЕМ ЕЛКУ при появлении черного фона (14 секунд) - не через прозрачность!
-    // Елка уже удалена при включении черного фона выше, здесь ничего не делаем
+    // Елка НЕ удаляется и НЕ скрывается - остается видимой с подсветкой!
     
+    // СНАЧАЛА отдаляем елку далеко (0-4 сек) - делаем ее маленькой
+    if (elapsed >= 0) {
+      const zoomProgress = Math.min(elapsed / 4, 1); // 0..1 за 4 секунды (0-4 сек) - быстро отдаляем
+      // Отдаляем от 18 до 80 единиц (делаем елку ОЧЕНЬ маленькой!)
+      const startDistance = 18;
+      const endDistance = 80;
+      const currentDistance = startDistance + (endDistance - startDistance) * zoomProgress;
+      if (onCameraDistanceChange) {
+        onCameraDistanceChange(currentDistance);
+      }
+    }
 
     // Улучшенная анимация согласно сценарию:
-    // Фаза 1 (0-6 сек): шарики слетают с ёлки и превращаются в белые точки
-    // Фаза 2 (6-13 сек): закручиваются в спираль-комету
-    // Фаза 3 (13+ сек): рассыпаются по космосу
+    // Фаза 0 (0-4 сек): отдаляем елку далеко (делаем маленькой)
+    // Фаза 1 (4-10 сек): шарики слетают с ёлки и превращаются в звездочки-точки
+    // Фаза 2 (10-17 сек): закручиваются в спираль-комету
+    // Фаза 3 (17+ сек): рассыпаются по космосу
 
     for (let i = 0; i < sparksCount; i++) {
       const mesh = sparkRefs.current[i];
@@ -1827,14 +1902,18 @@ function NewYearAnimation({
       const t = i / sparksCount; // 0..1
       const material = mesh.material as THREE.MeshStandardMaterial;
       
-      // Начальные позиции (на ёлке)
-      const startY = -5 + t * 15; // От низа до верха ёлки
-      const startRadius = 1 + t * 3;
-      const startAngle = t * Math.PI * 4;
+      // Начальные позиции (на ёлке) - используем реалистичные позиции шаров на елке
+      // Елка находится примерно от y=-4 до y=8, радиус от 0.5 до 4
+      const startY = -3 + t * 11; // От низа до верха ёлки (от -3 до 8)
+      const startRadius = 0.5 + t * 3.5; // От центра до края (от 0.5 до 4)
+      const startAngle = t * Math.PI * 6; // Равномерное распределение по кругу
 
-      if (animationPhase === 'flying' && elapsed < 6) {
-        // Фаза 1: слетают с ёлки и собираются в кучу, превращаясь в яркие разноцветные точки
-        const k = elapsed / 6; // 0..1
+      if (animationPhase === 'flying' && elapsed < 10) {
+        // Фаза 1: ПЛАВНО начинают слетать с ёлки (начинаем движение с 4 секунды, ПОСЛЕ отдаления елки!)
+        // До 4 секунд шары остаются на елке (пока елка отдаляется), затем начинают плавно слетать
+        const startDelay = 4.0; // Задержка перед началом движения - ПОСЛЕ отдаления елки
+        const actualElapsed = Math.max(0, elapsed - startDelay); // Время с начала движения
+        const k = Math.min(actualElapsed / (10 - startDelay), 1); // 0..1 (нормализованное время движения)
         
         // Яркие неоновые разноцветные цвета с максимальным разнообразием!
         // Используем разные диапазоны оттенков для каждого шарика
@@ -1855,19 +1934,25 @@ function NewYearAnimation({
         material.color.setRGB(sparkColor.r, sparkColor.g, sparkColor.b);
         material.emissive.setRGB(sparkColor.r, sparkColor.g, sparkColor.b);
         material.emissiveIntensity = 3.5; // Очень яркое неоновое свечение!
-        material.needsUpdate = true;
+        // Убрали needsUpdate для оптимизации - обновляется автоматически
         
-        // Размер шаров - крупные и заметные!
+        // Размер шаров - видимые звездочки-точки
         const sizeProgress = Math.min(k * 2, 1);
-        const targetSize = 0.4; // Увеличили с 0.08 до 0.4 - крупные шары!
-        const startSize = 0.5; // Увеличили с 0.15 до 0.5 - очень заметные!
+        const targetSize = 0.12; // Видимые точки-звездочки (увеличили для видимости)
+        const startSize = 0.15; // Немного больше в начале
         mesh.scale.setScalar(startSize + (targetSize - startSize) * sizeProgress);
         
-        // Плавное движение: сначала собираются в кучу, потом немного разлетаются
+        // Плавное движение: сначала остаются на елке (до 2 сек), затем собираются в кучу, потом разлетаются
         let finalX: number, finalY: number, finalZ: number;
         
-        if (k < 0.4) {
-          // Фаза 1 (0-40%): собираются в кучу
+        if (elapsed < startDelay) {
+          // До начала движения (до 4 сек) - шары остаются на своих позициях на елке
+          // Важно: позиции должны точно соответствовать елке, чтобы было видно, что шары слетают с нее!
+          finalX = Math.cos(startAngle) * startRadius;
+          finalY = startY;
+          finalZ = Math.sin(startAngle) * startRadius;
+        } else if (k < 0.4) {
+          // Фаза 1 (40% движения): собираются в кучу
           const gatherK = k / 0.4; // 0..1
           const centerX = 0;
           const centerY = 5; // Над ёлкой
@@ -1879,24 +1964,38 @@ function NewYearAnimation({
           finalX = startX + (centerX - startX) * gatherK;
           finalY = startY + (centerY - startY) * gatherK;
           finalZ = startZ + (centerZ - startZ) * gatherK;
+        } else if (elapsed < 6.2) {
+          // Фаза 1.5: остаются в центре (до 6.2 секунды) - здесь они превращаются в таблички
+          finalX = 0;
+          finalY = 5;
+          finalZ = 0;
+          
+          // Сохраняем позиции шаров на момент превращения (на 6 секунде)
+          if (elapsed >= 5.9 && elapsed < 6.1 && ballPositionsAtTransformationRef.current.length === 0) {
+            // Сохраняем позиции всех шаров один раз
+            ballPositionsAtTransformationRef.current = [];
+            for (let j = 0; j < sparksCount; j++) {
+              const ballMesh = sparkRefs.current[j];
+              if (ballMesh) {
+                const pos = ballMesh.position.clone();
+                ballPositionsAtTransformationRef.current.push(pos);
+              }
+            }
+          }
+          
+          // Шары остаются видимыми до 9 секунды (через 3 секунды после появления табличек)
+          mesh.visible = true;
         } else {
-          // Фаза 2 (40-100%): немного разлетаются из кучи
-          const scatterK = (k - 0.4) / 0.6; // 0..1
-          const scatterRadius = scatterK * 1.5; // Небольшой разлет
-          const scatterAngle = startAngle + scatterK * Math.PI;
-          finalX = Math.cos(scatterAngle) * scatterRadius;
-          finalY = 5 + scatterK * 3; // Поднимаются немного выше
-          finalZ = Math.sin(scatterAngle) * scatterRadius;
+          // Фаза 2 (после 9 сек): скрываем шары, они превратились в таблички
+          // Шары больше не видны, их заменили таблички
+          mesh.visible = false;
+          continue; // Пропускаем обновление позиции
         }
         
         mesh.position.set(finalX, finalY, finalZ);
-        
-        if (elapsed >= 6) {
-          setAnimationPhase('spiral');
-        }
-      } else if (animationPhase === 'spiral' && elapsed < 13) {
-        // Фаза 2: закручиваются в спираль-комету (6-7 секунд)
-        const k = (elapsed - 6) / 7; // 0..1
+      } else if (animationPhase === 'spiral' && elapsed < 17) {
+        // Фаза 2: закручиваются в спираль-комету (10-17 сек)
+        const k = (elapsed - 10) / 7; // 0..1
         
         // Яркие неоновые разноцветные точки (звездная спираль) с максимальным разнообразием!
         const colorGroup = Math.floor(i % 6);
@@ -1916,8 +2015,8 @@ function NewYearAnimation({
         material.color.setRGB(sparkColor.r, sparkColor.g, sparkColor.b);
         material.emissive.setRGB(sparkColor.r, sparkColor.g, sparkColor.b);
         material.emissiveIntensity = 3.5; // Очень яркое неоновое свечение!
-        material.needsUpdate = true;
-        mesh.scale.setScalar(0.4); // Крупные шары для видимости!
+        // Убрали needsUpdate для оптимизации - обновляется автоматически
+        mesh.scale.setScalar(0.12); // Видимые звездочки-точки (увеличили для видимости)
         
         // Закручивание в спираль-комету
         // Спираль закручивается вокруг центральной оси
@@ -1936,12 +2035,12 @@ function NewYearAnimation({
           Math.sin(spiralAngle) * (spiralRadius + offset),
         );
         
-        if (elapsed >= 13) {
+        if (elapsed >= 17) {
           setAnimationPhase('scattering');
         }
-      } else if (animationPhase === 'scattering' && elapsed < 20) {
+      } else if (animationPhase === 'scattering' && elapsed < 24) {
         // Фаза 3: рассыпаются по космосу (звездные системы и галактики)
-        const k = (elapsed - 13) / 7; // 0..1
+        const k = (elapsed - 17) / 7; // 0..1
         
         // Яркие неоновые разноцветные звезды в космосе с максимальным разнообразием!
         const colorGroup = Math.floor(i % 6);
@@ -2009,25 +2108,25 @@ function NewYearAnimation({
                 if (ref) sparkRefs.current[index] = ref;
               }}
             >
-              <sphereGeometry args={[0.25, 12, 12]} />
+              <sphereGeometry args={[0.2, 8, 8]} />
               <meshStandardMaterial 
                 color={color}
                 emissive={color}
-                emissiveIntensity={2.5}
+                emissiveIntensity={4.0}
               />
             </mesh>
           );
         })}
       </group>
       
-      {/* Фейерверки и салюты - активны с 4 секунды */}
+      {/* Фейерверки и салюты - активны с 4 секунды (уменьшено для производительности) */}
       {showFireworks && (
-        <Fireworks count={8} enabled={true} />
+        <Fireworks count={5} enabled={true} />
       )}
       
-      {/* Конфетти - активно с 4 секунды */}
+      {/* Конфетти - активно с 4 секунды (уменьшено для производительности) */}
       {showConfetti && (
-        <Confetti count={60} enabled={true} />
+        <Confetti count={40} enabled={true} />
       )}
       
       {/* Таблички с поздравлениями на разных языках */}
@@ -2035,26 +2134,29 @@ function NewYearAnimation({
         <NewYearSigns enabled={true} startTime={startTimeRef.current} />
       )}
       
-      {/* Таблички с желаниями из пользовательских шаров */}
-      {showWishSigns && (
+      {/* Таблички с желаниями из пользовательских шаров - компонент остается активным для звездочек! */}
+      {/* ВАЖНО: Компонент НЕ выключается после 42 секунды - звездочки должны продолжать работать БЕСКОНЕЧНО! */}
+      {/* Продолжаем рендерить компонент даже после скрытия табличек, чтобы звездочки продолжали работать */}
+      {(showWishSigns || wishSignsHiddenRef.current) && (
         <WishSigns 
-          enabled={true} 
+          enabled={showWishSigns} 
           toys={toys} 
           startTime={startTimeRef.current}
+          initialPositions={ballPositionsAtTransformationRef.current}
           onExplosionComplete={() => {
             console.log('🌟 Новая Вселенная создана!');
           }}
         />
       )}
       
-      {/* Черный фон (космос) после исчезновения новогодних элементов - на 14 секунде */}
+      {/* Черный фон для космоса - включается на 38 секунде (взрыв звездочек) */}
       {showBlackBackground && (
         <>
-          {/* Огромный черный фон сзади - покрывает весь экран */}
+          {/* Огромный черный фон сзади - покрывает весь экран (космос) */}
           <mesh position={[0, 0, -200]} renderOrder={-10}>
             <planeGeometry args={[1000, 1000]} />
             <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
-        </mesh>
+          </mesh>
           {/* Дополнительный фон ближе для надежности */}
           <mesh position={[0, 0, -100]} renderOrder={-9}>
             <planeGeometry args={[800, 800]} />
@@ -2072,15 +2174,28 @@ function NewYearAnimation({
 }
 
 // Основной компонент сцены (оптимизирован для миллионов шаров)
-function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked, treeImageUrl, treeType, treeModel, isNewYearAnimation, onAnimationComplete, glowEnabled = false }: VirtualTreeProps) {
+function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked, treeImageUrl, treeType, treeModel, isNewYearAnimation, onAnimationComplete, glowEnabled = false, showSnow = true, onSnowVisibilityChange }: VirtualTreeProps & { showSnow?: boolean; onSnowVisibilityChange?: (visible: boolean) => void }) {
   const { camera, scene } = useThree();
   const [visibleToys, setVisibleToys] = useState<Toy[]>([]);
   const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки - непрозрачная
+  const [autoGlowEnabled, setAutoGlowEnabled] = useState<boolean>(false); // Автоматическая подсветка при анимации
+  const [cameraDistance, setCameraDistance] = useState<number>(18); // Расстояние камеры
+  const [showBallsOnTree, setShowBallsOnTree] = useState<boolean>(true); // Показывать ли шары на елке
+  const [showSnowState, setShowSnowState] = useState<boolean>(showSnow); // Состояние для управления видимостью снега
+  const animationStartTimeRef = useRef<number | null>(null); // Время начала анимации
   const controlsRef = useRef<any>(null);
   const [treePosition, setTreePosition] = useState<[number, number, number]>([0, -32, 0]); // Позиция елки (по умолчанию)
   const treeGroupRef = useRef<THREE.Group | null>(null);
   const treeRotationGroupRef = useRef<THREE.Group | null>(null); // Ref для группы вращения елки
   const [isTreeLoaded, setIsTreeLoaded] = useState<boolean>(false); // Флаг загрузки елки
+  
+  // Обновляем состояние снега при изменении пропса
+  useEffect(() => {
+    setShowSnowState(showSnow);
+  }, [showSnow]);
+  
+  // Экспортируем setShowSnowState для использования в NewYearAnimation через callback
+  // Но лучше использовать пропс showSnow напрямую
   
   // Создаем 200 тестовых шаров с фиксированными позициями
   const testToys = useMemo(() => {
@@ -2301,6 +2416,34 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     };
   }, [scene, treeModel]);
   
+  // Отслеживаем начало анимации и скрываем шары ТОЛЬКО когда появляются таблички (на 6 секунде)
+  useEffect(() => {
+    if (isNewYearAnimation) {
+      // Запоминаем время начала анимации
+      if (animationStartTimeRef.current === null) {
+        animationStartTimeRef.current = Date.now();
+        setShowBallsOnTree(true); // Показываем шары в начале
+      }
+      
+      // Проверяем, прошло ли 9 секунд (3 секунды после появления табличек на 6 секунде)
+      const checkInterval = setInterval(() => {
+        if (animationStartTimeRef.current !== null) {
+          const elapsed = Date.now() - animationStartTimeRef.current;
+          if (elapsed >= 9000) {
+            setShowBallsOnTree(false); // Скрываем шары на 9 секунде (через 3 секунды после появления табличек)
+            clearInterval(checkInterval);
+          }
+        }
+      }, 100); // Проверяем каждые 100мс
+      
+      return () => clearInterval(checkInterval);
+    } else {
+      // Сбрасываем при остановке анимации
+      animationStartTimeRef.current = null;
+      setShowBallsOnTree(true);
+    }
+  }, [isNewYearAnimation]);
+  
   // Обновляем позицию елки в useFrame для точности
   useFrame(() => {
     if (treeGroupRef.current) {
@@ -2310,19 +2453,17 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     }
   });
 
+  // Обновляем позицию камеры при изменении расстояния
   useEffect(() => {
-    // Камера четко по центру для любого устройства (мобильные и десктоп)
-    // Позиционирование елки одинаково для всех устройств
-    camera.position.set(0, 2, 18);
+    camera.position.set(0, 2, cameraDistance);
     camera.lookAt(0, 0, 0);
     
     // Принудительно устанавливаем target для OrbitControls
-    // Одинаково для всех устройств
     if (controlsRef.current) {
       controlsRef.current.target.set(0, 0, 0);
       controlsRef.current.update();
     }
-  }, [camera]);
+  }, [cameraDistance, camera]);
 
   // Автоматическое вращение елки вправо-влево в пределах разрешенных градусов
   // ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп)
@@ -2647,27 +2788,27 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
         <Suspense fallback={null} key={`obj-${treeModel}`}>
           {/* На мобильных устройствах загружаем без MTL для ускорения */}
           {typeof window !== 'undefined' && window.innerWidth < 768 ? (
-            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
+            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
           ) : treeModel.startsWith('/') ? (
-            <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
+            <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
               <OBJTreeWithMTL 
                 objPath={treeModel} 
                 mtlPath={treeModel.endsWith('.obj') ? treeModel.replace(/\.obj$/, '.mtl') : treeModel + '.mtl'}
-                glowEnabled={glowEnabled}
+                glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled}
                 isNewYearAnimation={isNewYearAnimation}
                 treeOpacity={treeOpacity}
               />
             </ErrorBoundary>
           ) : (
-            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
+            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
           )}
         </Suspense>
         </group>
       )}
 
       {/* Шары на ПЕРЕДНЕМ ПЛАНЕ - ВНЕ группы елки, статично на экране */}
-      {/* Скрываем во время новогодней анимации и до загрузки елки */}
-      {!isNewYearAnimation && isTreeLoaded && visibleToys.map((toy) => {
+      {/* Скрываем во время новогодней анимации только после 4 секунд и до загрузки елки */}
+      {showBallsOnTree && isTreeLoaded && visibleToys.map((toy) => {
         const isUserBall = currentUserId && toy.user_id === currentUserId;
         const isTestBall = toy.id.startsWith('test-ball-');
         const position = getBallPosition(toy.id);
@@ -2689,11 +2830,21 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       {/* Новогодняя анимация (1 января) */}
       {isNewYearAnimation && (
         <NewYearAnimation 
-          toys={toys} 
+          toys={toys}
+          currentUserId={currentUserId}
           onComplete={onAnimationComplete}
           onTreeOpacityChange={(opacity) => {
             setTreeOpacity(opacity);
           }}
+          onGlowEnable={() => {
+            // Включаем автоматическую подсветку елки при анимации
+            setAutoGlowEnabled(true);
+          }}
+          onCameraDistanceChange={(distance) => {
+            // Обновляем расстояние камеры для отдаления елки
+            setCameraDistance(distance);
+          }}
+          onSnowVisibilityChange={onSnowVisibilityChange}
         />
       )}
 
@@ -2702,8 +2853,8 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
       )}
 
-      {/* Падающий снег на фоне */}
-      <FallingSnow />
+      {/* Падающий снег на фоне - останавливается на 38 секунде (взрыв звездочек) */}
+      {showSnowState && <FallingSnow />}
 
       {/* Управление камерой - ПРИМЕНЯЕТСЯ ОДИНАКОВО ДЛЯ ВСЕХ УСТРОЙСТВ (мобильные и десктоп) */}
       {/* Строгие ограничения поворотов и наклонов одинаковы для всех устройств */}
@@ -2740,6 +2891,8 @@ export default function VirtualTree({
 }: VirtualTreeProps) {
   // Состояние для переключателя подсветки
   const [glowEnabled, setGlowEnabled] = useState(false);
+  // Состояние для управления видимостью снега (останавливается на 38 секунде)
+  const [showSnow, setShowSnow] = useState<boolean>(true);
   
   // Проверяем, можно ли включить подсветку (только после 23:59 31 декабря, т.е. с 1 января)
   // Используем локальное время пользователя, а не UTC
@@ -2818,6 +2971,10 @@ export default function VirtualTree({
             isNewYearAnimation={isNewYearAnimation}
             onAnimationComplete={onAnimationComplete}
             glowEnabled={glowEnabled}
+            showSnow={showSnow}
+            onSnowVisibilityChange={(visible) => {
+              setShowSnow(visible);
+            }}
           />
         </Suspense>
       </Canvas>
@@ -2825,4 +2982,5 @@ export default function VirtualTree({
     </div>
   );
 }
+
 
