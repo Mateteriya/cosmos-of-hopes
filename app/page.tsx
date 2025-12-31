@@ -17,6 +17,7 @@ import {
 } from '@/lib/pushNotifications';
 import RemoteNewYear from '@/components/info/RemoteNewYear';
 import AboutProgram from '@/components/info/AboutProgram';
+import AppRating from '@/components/info/AppRating';
 
 export default function Home() {
   const router = useRouter();
@@ -254,6 +255,9 @@ export default function Home() {
 
         {/* Раздел "О программе" */}
         <AboutProgram />
+
+        {/* Оценка приложения */}
+        <AppRating />
 
         {/* Дополнительная информация */}
         <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">
