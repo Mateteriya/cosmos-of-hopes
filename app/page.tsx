@@ -15,6 +15,8 @@ import {
   getPushSubscription,
   registerServiceWorker,
 } from '@/lib/pushNotifications';
+import RemoteNewYear from '@/components/info/RemoteNewYear';
+import AboutProgram from '@/components/info/AboutProgram';
 
 export default function Home() {
   const router = useRouter();
@@ -176,8 +178,13 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Описание приложения */}
-        <div className="bg-gradient-to-br from-slate-800/80 via-purple-900/30 to-slate-800/80 backdrop-blur-md border-2 border-purple-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+        {/* Блоки "Удалённый Новый год" и "Что мы предлагаем" рядом */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6 md:mb-8">
+          {/* Блок "Удалённый Новый год" */}
+          <RemoteNewYear />
+
+          {/* Описание приложения */}
+          <div className="bg-gradient-to-br from-slate-800/80 via-purple-900/30 to-slate-800/80 backdrop-blur-md border-2 border-purple-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 text-center bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-300 bg-clip-text text-transparent">
             {t('whatWeOffer')}
           </h2>
@@ -218,7 +225,7 @@ export default function Home() {
             <div className="flex items-start gap-3">
               <span className="text-2xl sm:text-3xl flex-shrink-0 flex items-center justify-center">
                 <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </span>
               <div>
@@ -228,6 +235,25 @@ export default function Home() {
             </div>
           </div>
         </div>
+        </div>
+
+        {/* Информация о благотворительности */}
+        <div className="bg-gradient-to-br from-green-500/20 via-emerald-500/20 to-teal-500/20 backdrop-blur-md border-2 border-green-400/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent">
+              {t('charityInfo')}
+            </h3>
+          </div>
+          <p className="text-white/90 text-xs sm:text-sm md:text-base">
+            {t('charityInfoDesc')}
+          </p>
+        </div>
+
+        {/* Раздел "О программе" */}
+        <AboutProgram />
 
         {/* Дополнительная информация */}
         <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center">

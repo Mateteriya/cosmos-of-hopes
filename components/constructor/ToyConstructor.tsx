@@ -1274,8 +1274,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 <div className="font-bold text-[11px] sm:text-sm mb-2 text-center">✨ {t('howToCreate') || 'Как создать свой шар:'}</div>
                 <div className="space-y-1 text-left">
                   <div>1️⃣ {t('step1') || 'Укрась свой шар как нравится'}</div>
-                  <div>2️⃣ {t('step2') || 'Добавь своё желание или мечту на 2026 год'}</div>
-                  <div>3️⃣ {t('step3') || 'Нажми "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик'}</div>
+                  <div>2️⃣ {t('step2') || 'Добавьте своё желание или мечту на 2026 год'}</div>
+                  <div>3️⃣ {t('step3') || 'Нажмите "волшебную палочку", чтобы превратить его в настоящий ёлочный шарик'}</div>
                   <div>4️⃣ {t('step4') || 'Повесь его на мировую ёлку'}</div>
                 </div>
                 <div className="text-[9px] text-white/70 mt-2 italic text-center border-t border-white/20 pt-2">

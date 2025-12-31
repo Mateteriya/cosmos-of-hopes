@@ -1,0 +1,15 @@
+Команды для выполнения на сервере (после подключения через SSH):
+
+# 1. Создать резервную копию
+cp /etc/jitsi/meet/meet.super2026.online-config.js /etc/jitsi/meet/meet.super2026.online-config.js.backup
+
+# 2. Удалить проблемные строки 1967-1980
+sed -i '1967,1980d' /etc/jitsi/meet/meet.super2026.online-config.js
+
+# 3. Проверить синтаксис
+node -c /etc/jitsi/meet/meet.super2026.online-config.js
+
+# Если ошибок нет, перезапустить Jitsi (если нужно):
+# systemctl restart jitsi-videobridge2
+# systemctl restart prosody
+
