@@ -44,6 +44,8 @@ export default function RoomPage() {
   const [designSelectorOpen, setDesignSelectorOpen] = useState(false);
   const [inviteExpanded, setInviteExpanded] = useState(false);
   const [programExpanded, setProgramExpanded] = useState(false);
+  const [videoChatCollapsed, setVideoChatCollapsed] = useState(false);
+  const [textChatCollapsed, setTextChatCollapsed] = useState(false);
 
   // Получаем roomId из URL параметров после монтирования
   useEffect(() => {
@@ -331,7 +333,7 @@ export default function RoomPage() {
         {/* ПК ВЕРСИЯ - Основной контент - три колонки */}
         <div className="hidden md:flex flex-1 p-3 sm:p-4 pb-20 overflow-y-auto overflow-x-hidden">
           {/* Левая колонка: Приглашение + Дизайн + Видеочат */}
-          <div className="flex-1 flex flex-col gap-2.5 sm:gap-3 mr-3 sm:mr-4">
+          <div className="flex-[1.3] flex flex-col gap-2.5 sm:gap-3 mr-3 sm:mr-4">
             {/* Приглашение друзей и Селектор дизайна в одной строке */}
             <div className="flex-shrink-0 flex flex-row gap-1.5 sm:gap-2">
               <div className="flex-1" style={{ minWidth: 0 }}>
@@ -348,13 +350,20 @@ export default function RoomPage() {
             </div>
 
             {/* Видеочат */}
-            <div className="flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden min-h-[333px] sm:min-h-[417px]">
-              <VideoRoom roomId={room.id} currentUserId={tempUserId} />
+            <div className={`flex-1 bg-slate-800/40 backdrop-blur-md border border-white/20 rounded-lg overflow-hidden p-[1px] transition-all duration-300 ${
+              videoChatCollapsed ? 'min-h-0 max-h-[60px]' : 'min-h-[333px] sm:min-h-[417px]'
+            }`}>
+              <VideoRoom 
+                roomId={room.id} 
+                currentUserId={tempUserId} 
+                isCollapsed={videoChatCollapsed}
+                onToggleCollapse={() => setVideoChatCollapsed(!videoChatCollapsed)}
+              />
             </div>
           </div>
 
           {/* Средняя колонка: Селекторы (только для создателя) - пока пустая */}
-          <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[117px] sm:w-[140px] mr-1.5 sm:mr-2 overflow-visible" style={{ zIndex: 1 }}>
+          <div className="flex-shrink-0 flex flex-col gap-3 sm:gap-4 w-[90px] sm:w-[110px] mr-1.5 sm:mr-2 overflow-visible" style={{ zIndex: 1 }}>
 
             {/* Селекторы (только для создателя) */}
             {isCreator && (
@@ -366,9 +375,9 @@ export default function RoomPage() {
                   isCreator={true}
                 />
                 */}
-                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 opacity-60">
-                  <div className="text-white/70 font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎮 {t('eventProgram')}</div>
-                  <div className="text-white/50 text-xs sm:text-sm text-center">
+                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-1.5 sm:p-2 opacity-60">
+                  <div className="text-white/70 font-bold text-[10px] sm:text-xs mb-0.5 text-center">🎮 {t('eventProgram')}</div>
+                  <div className="text-white/50 text-[9px] sm:text-[10px] text-center">
                     {t('comingInNextVersion')}
                   </div>
                 </div>
@@ -384,8 +393,15 @@ export default function RoomPage() {
             </div>
 
             {/* Компактный чат */}
-            <div className="flex-1 min-h-[300px]">
-              <RoomChat roomId={room.id} currentUserId={tempUserId} />
+            <div className={`flex-1 transition-all duration-300 ${
+              textChatCollapsed ? 'min-h-0 max-h-[60px]' : 'min-h-[300px]'
+            }`}>
+              <RoomChat 
+                roomId={room.id} 
+                currentUserId={tempUserId}
+                isCollapsed={textChatCollapsed}
+                onToggleCollapse={() => setTextChatCollapsed(!textChatCollapsed)}
+              />
             </div>
 
             {/* Селекторы для просмотра (не создатели) */}
@@ -398,9 +414,9 @@ export default function RoomPage() {
                   isCreator={false}
                 />
                 */}
-                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-2 sm:p-3 lg:p-4 opacity-60">
-                  <div className="text-white/70 font-bold text-xs sm:text-sm mb-1 sm:mb-2">🎮 {t('eventProgram')}</div>
-                  <div className="text-white/50 text-xs sm:text-sm text-center">
+                <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg p-1.5 sm:p-2 opacity-60">
+                  <div className="text-white/70 font-bold text-[10px] sm:text-xs mb-0.5 text-center">🎮 {t('eventProgram')}</div>
+                  <div className="text-white/50 text-[9px] sm:text-[10px] text-center">
                     {t('comingInNextVersion')}
                   </div>
                 </div>
@@ -487,9 +503,44 @@ export default function RoomPage() {
 
           {/* Чат текстовый */}
           <div className="flex-shrink-0 relative">
-            <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col" style={{ height: '450px' }}>
+            <div className={`bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col transition-all duration-300 ${
+              textChatCollapsed ? 'max-h-[60px]' : ''
+            }`} style={textChatCollapsed ? {} : { height: '450px' }}>
+              {/* Заголовок с кнопкой свернуть (для мобильной версии) */}
+              <div className={`flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10 flex items-center justify-between transition-all duration-300 ${
+                textChatCollapsed ? '' : 'hidden'
+              }`}>
+                <h3 className="text-white font-bold text-xs sm:text-sm">💬 {t('roomChat')}</h3>
+                <button
+                  onClick={() => setTextChatCollapsed(!textChatCollapsed)}
+                  className="bg-gradient-to-b from-purple-700/90 via-purple-800/90 to-purple-900/90 hover:from-purple-600/90 hover:via-purple-700/90 hover:to-purple-800/90 text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 touch-manipulation border border-white/20 backdrop-blur-sm shadow-md"
+                  style={{
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2)',
+                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)',
+                  }}
+                  title={textChatCollapsed ? t('expand') || 'Развернуть' : t('collapse') || 'Свернуть'}
+                >
+                  {textChatCollapsed ? (
+                    <span className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      {t('expand') || 'Развернуть'}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                      {t('collapse') || 'Свернуть'}
+                    </span>
+                  )}
+                </button>
+              </div>
               {/* Участники внутри чата */}
-              <div className="flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10">
+              <div className={`flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10 transition-all duration-300 ${
+                textChatCollapsed ? 'max-h-0 opacity-0 overflow-hidden p-0 border-0' : 'opacity-100'
+              }`}>
                 <CompactParticipants 
                   roomId={room.id} 
                   currentUserId={tempUserId} 
@@ -497,9 +548,39 @@ export default function RoomPage() {
                   maxInvites={10}
                 />
               </div>
+              {/* Кнопка свернуть вверху (когда развернуто) */}
+              <div className={`flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10 flex items-center justify-between transition-all duration-300 ${
+                textChatCollapsed ? 'hidden' : ''
+              }`}>
+                <h3 className="text-white font-bold text-xs sm:text-sm">💬 {t('roomChat')}</h3>
+                <button
+                  onClick={() => setTextChatCollapsed(!textChatCollapsed)}
+                  className="bg-gradient-to-b from-purple-700/90 via-purple-800/90 to-purple-900/90 hover:from-purple-600/90 hover:via-purple-700/90 hover:to-purple-800/90 text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 touch-manipulation border border-white/20 backdrop-blur-sm shadow-md"
+                  style={{
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2)',
+                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)',
+                  }}
+                  title={t('collapse') || 'Свернуть'}
+                >
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                    {t('collapse') || 'Свернуть'}
+                  </span>
+                </button>
+              </div>
               {/* Окно чата (без заголовка, т.к. участники уже есть) */}
-              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                <RoomChat roomId={room.id} currentUserId={tempUserId} hideHeader={true} />
+              <div className={`flex-1 min-h-0 flex flex-col overflow-hidden transition-all duration-300 ${
+                textChatCollapsed ? 'max-h-0 opacity-0' : 'opacity-100'
+              }`}>
+                <RoomChat 
+                  roomId={room.id} 
+                  currentUserId={tempUserId} 
+                  hideHeader={true}
+                  isCollapsed={textChatCollapsed}
+                  onToggleCollapse={() => setTextChatCollapsed(!textChatCollapsed)}
+                />
               </div>
             </div>
             {/* Стрелочка вниз сбоку от чата */}

@@ -13,9 +13,11 @@ interface RoomChatProps {
   roomId: string;
   currentUserId: string;
   hideHeader?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export default function RoomChat({ roomId, currentUserId, hideHeader = false }: RoomChatProps) {
+export default function RoomChat({ roomId, currentUserId, hideHeader = false, isCollapsed = false, onToggleCollapse }: RoomChatProps) {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<RoomMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -125,16 +127,46 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
     <div className={`flex flex-col ${hideHeader ? 'h-full bg-transparent' : 'h-full bg-slate-800/50 border-2 border-white/20 rounded-lg'} min-h-0`}>
       {/* Заголовок чата */}
       {!hideHeader && (
-        <div className="p-2 sm:p-3 border-b border-white/20 flex-shrink-0">
+        <div className="p-2 sm:p-3 border-b border-white/20 flex-shrink-0 flex items-center justify-between">
           <h3 className="text-white font-bold text-xs sm:text-sm">💬 {t('roomChat')}</h3>
+          {/* Кнопка свернуть/развернуть */}
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className="bg-gradient-to-b from-purple-700/90 via-purple-800/90 to-purple-900/90 hover:from-purple-600/90 hover:via-purple-700/90 hover:to-purple-800/90 text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 touch-manipulation border border-white/20 backdrop-blur-sm shadow-md"
+              style={{
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2)',
+                textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)',
+              }}
+              title={isCollapsed ? t('expand') || 'Развернуть' : t('collapse') || 'Свернуть'}
+            >
+              {isCollapsed ? (
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                  {t('expand') || 'Развернуть'}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                  {t('collapse') || 'Свернуть'}
+                </span>
+              )}
+            </button>
+          )}
         </div>
       )}
 
       {/* Сообщения */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-0 relative chat-messages-area"
-        style={{ minHeight: 0 }}
+        className={`flex-1 overflow-y-auto p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-h-0 relative chat-messages-area transition-all duration-300 ${
+          isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'opacity-100'
+        }`}
+        style={isCollapsed ? {} : { minHeight: 0 }}
       >
         {isLoading ? (
           <div className="text-white/50 text-xs sm:text-sm text-center">{t('loadingMessages')}</div>
@@ -173,7 +205,9 @@ export default function RoomChat({ roomId, currentUserId, hideHeader = false }: 
       </div>
 
       {/* Форма отправки */}
-      <form onSubmit={sendMessage} className="p-2 sm:p-3 border-t border-white/20 flex-shrink-0">
+      <form onSubmit={sendMessage} className={`p-2 sm:p-3 border-t border-white/20 flex-shrink-0 transition-all duration-300 ${
+        isCollapsed ? 'max-h-0 opacity-0 overflow-hidden p-0 border-0' : 'opacity-100'
+      }`}>
         <div className="flex gap-1.5 sm:gap-2">
           <input
             type="text"
