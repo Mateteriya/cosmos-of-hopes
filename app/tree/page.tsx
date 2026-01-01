@@ -480,17 +480,16 @@ function TreePageContent() {
           </svg>
           <span>{t('rooms')}</span>
         </button>
-        {/* Кнопка "ВКЛЮЧИТЬ анимацию" - активна только 1-го января 00:00 */}
+        {/* Кнопка "ВКЛЮЧИТЬ анимацию" - активна с 1-го января 2026 */}
         {(() => {
-          // Проверяем, наступил ли Новый год (1 января 00:00)
+          // Проверяем, наступил ли Новый год (1 января 2026 или позже)
           const now = new Date();
           const year = now.getFullYear();
           const month = now.getMonth(); // 0-11
           const date = now.getDate();
-          const hours = now.getHours();
           
-          // Кнопка активна только 1-го января 00:00 (первые 60 минут) или в режиме разработки
-          const isNewYearTime = year >= 2026 && month === 0 && date === 1 && hours === 0;
+          // Кнопка активна с 1-го января 2026 или в режиме разработки
+          const isNewYearTime = year >= 2026 && (year > 2026 || month > 0 || date >= 1);
           const isButtonEnabled = isNewYearTime || process.env.NODE_ENV !== 'production';
           
           return (
