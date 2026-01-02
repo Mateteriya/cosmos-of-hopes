@@ -9,12 +9,9 @@ import { useRouter } from 'next/navigation';
 import VirtualTree from '@/components/tree/VirtualTree';
 import BallDetailsModal from '@/components/tree/BallDetailsModal';
 import { getToysOnVirtualTree, getToysOnTree, hasUserLikedAnyBall, addSupport, getToyLikesCount } from '@/lib/toys';
-import { getRoomById, getUserRooms, joinRoomByInviteCode } from '@/lib/rooms';
+import { getRoomById } from '@/lib/rooms';
 import type { Toy } from '@/types/toy';
 import type { Room } from '@/types/room';
-import RoomCard from '@/components/rooms/RoomCard';
-import CreateRoomModal from '@/components/rooms/CreateRoomModal';
-import JoinRoomModal from '@/components/rooms/JoinRoomModal';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
 import { getOrCreateUserId } from '@/lib/userId';
 import { useNewYearAnimationController } from '@/components/tree/NewYearAnimationController';
@@ -32,11 +29,6 @@ function TreePageContent() {
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showRoomsPanel, setShowRoomsPanel] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [roomsLoading, setRoomsLoading] = useState(false);
-  const [roomsError, setRoomsError] = useState<string | null>(null);
-  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
-  const [showJoinRoomModal, setShowJoinRoomModal] = useState(false);
   
   // Тип ёлки и путь к модели - только OBJ модель
   const [treeType] = useState<'3d' | 'png'>('3d');
@@ -63,52 +55,6 @@ function TreePageContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Загрузка комнат при открытии панели
-  const loadRooms = async () => {
-    if (!currentUserId) return;
-    try {
-      setRoomsLoading(true);
-      setRoomsError(null);
-      const userRooms = await getUserRooms(currentUserId);
-      setRooms(userRooms || []);
-    } catch (err: any) {
-      console.error('Ошибка загрузки комнат:', err);
-      setRoomsError(err.message || 'Не удалось загрузить комнаты');
-    } finally {
-      setRoomsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (showRoomsPanel && currentUserId) {
-      loadRooms();
-    }
-  }, [showRoomsPanel, currentUserId]);
-
-  const handleRoomCreated = async (room: Room) => {
-    setRooms(prev => [...prev, room]);
-  };
-
-  const handleRoomJoined = (room: Room) => {
-    setRooms(prev => {
-      if (prev.find(r => r.id === room.id)) {
-        return prev;
-      }
-      return [...prev, room];
-    });
-  };
-
-  const handleRoomDeleted = () => {
-    loadRooms();
-  };
-
-  const handleRoomLeft = () => {
-    loadRooms();
-  };
-
-  const handleRoomClick = (room: Room) => {
-    router.push(`/room?room=${room.id}`);
-  };
 
   // Проверяем при монтировании, не наступил ли уже Новый год
   useEffect(() => {
@@ -564,166 +510,60 @@ function TreePageContent() {
         </div>
       </div>
 
-      {/* Панель комнат - только на ПК */}
+      {/* Панель комнат - только на ПК - встроенная страница /rooms через iframe */}
       {showRoomsPanel && !isMobile && (
         <div 
           style={{
             width: '70%',
             height: '100%',
-            backgroundColor: 'rgba(15, 23, 42, 0.98)',
-            backdropFilter: 'blur(12px)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
             position: 'relative',
             borderLeft: '2px solid rgba(255, 255, 255, 0.1)',
-            zIndex: 100001
+            zIndex: 100001,
+            overflow: 'hidden',
+            backgroundColor: 'rgba(15, 23, 42, 0.98)'
           }}
         >
-          <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* Заголовок и кнопка закрытия */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '2rem' }}>
-              <div>
-                <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                  {t('myRooms')}
-                </h1>
-                <p style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Создайте комнату для семьи или друзей, чтобы вместе украшать ёлку
-                </p>
-              </div>
-              <button
-                onClick={() => setShowRoomsPanel(false)}
-                style={{
-                  backgroundColor: 'rgba(100, 116, 139, 0.5)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 'bold',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.7)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.5)';
-                }}
-              >
-                ✕ Закрыть
-              </button>
-            </div>
-
-            {/* Кнопки действий */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <button
-                onClick={() => setShowCreateRoomModal(true)}
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(to right, #9333ea, #ec4899)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.3)';
-                }}
-              >
-                ➕ Создать комнату
-              </button>
-              <button
-                onClick={() => setShowJoinRoomModal(true)}
-                style={{
-                  flex: 1,
-                  background: 'linear-gradient(to right, #2563eb, #06b6d4)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.3)';
-                }}
-              >
-                🔗 Присоединиться по коду
-              </button>
-            </div>
-
-            {/* Ошибка */}
-            {roomsError && (
-              <div style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid rgba(239, 68, 68, 0.5)',
-                borderRadius: '0.5rem',
-                padding: '0.75rem 1rem',
-                color: 'rgb(254, 202, 202)',
-                marginBottom: '1.5rem'
-              }}>
-                {roomsError}
-              </div>
-            )}
-
-            {/* Список комнат */}
-            {roomsLoading ? (
-              <div style={{ color: 'white', textAlign: 'center', padding: '2rem' }}>
-                {t('loadingRooms')}
-              </div>
-            ) : rooms.length === 0 ? (
-              <div style={{
-                backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                backdropFilter: 'blur(12px)',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '0.75rem',
-                padding: '2rem',
-                textAlign: 'center'
-              }}>
-                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.125rem', marginBottom: '0.5rem' }}>
-                  У вас пока нет комнат
-                </p>
-                <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem' }}>
-                  Создайте комнату или присоединитесь к существующей по коду приглашения
-                </p>
-              </div>
-            ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                gap: '1rem'
-              }}>
-                {rooms.map(room => (
-                  <RoomCard
-                    key={room.id}
-                    room={room}
-                    currentUserId={currentUserId}
-                    onRoomClick={handleRoomClick}
-                    onRoomDeleted={handleRoomDeleted}
-                    onRoomLeft={handleRoomLeft}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Кнопка закрытия */}
+          <button
+            onClick={() => setShowRoomsPanel(false)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              backgroundColor: 'rgba(100, 116, 139, 0.8)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1rem',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              transition: 'all 0.3s ease',
+              zIndex: 100002,
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.8)';
+            }}
+          >
+            ✕ Закрыть
+          </button>
+          
+          {/* Встроенная страница комнат через iframe - настоящая страница /rooms */}
+          <iframe
+            src="/rooms"
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              backgroundColor: 'transparent'
+            }}
+            title="Комнаты"
+            allow="fullscreen"
+          />
         </div>
       )}
 
@@ -890,24 +730,6 @@ function TreePageContent() {
         />
       )}
 
-      {/* Модальные окна для комнат */}
-      {showRoomsPanel && !isMobile && (
-        <>
-          <CreateRoomModal
-            isOpen={showCreateRoomModal}
-            onClose={() => setShowCreateRoomModal(false)}
-            onCreate={handleRoomCreated}
-            currentUserId={currentUserId}
-          />
-
-          <JoinRoomModal
-            isOpen={showJoinRoomModal}
-            onClose={() => setShowJoinRoomModal(false)}
-            onJoin={handleRoomJoined}
-            currentUserId={currentUserId}
-          />
-        </>
-      )}
     </div>
   );
 }

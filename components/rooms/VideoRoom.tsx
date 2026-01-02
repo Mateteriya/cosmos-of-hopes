@@ -119,6 +119,7 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+
   useEffect(() => {
     setIsLoading(true);
     
@@ -254,8 +255,29 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
       )}
       {/* Заголовок с кнопками */}
       {!hideHeader && (
-        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2 flex-shrink-0 relative">
           <div className="text-white font-bold text-xs sm:text-sm">{t('videoRoom')}</div>
+          {/* Кнопка переподключения - по центру панельки */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <button
+              onClick={() => {
+                setConferenceLeft(false);
+                if (iframeRef.current) {
+                  iframeRef.current.src = jitsiUrl;
+                }
+              }}
+              className="bg-gradient-to-b from-blue-600/90 via-blue-700/90 to-blue-800/90 hover:from-blue-500/90 hover:via-blue-600/90 hover:to-blue-700/90 text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 touch-manipulation border border-white/20 backdrop-blur-sm shadow-md"
+              style={{
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.2)',
+                textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)',
+              }}
+              title={t('reconnect') || 'Переподключиться'}
+            >
+              <span className="flex items-center gap-1">
+                🔄 {t('reconnect') || 'Переподключиться'}
+              </span>
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             {/* Кнопка свернуть/развернуть */}
             {onToggleCollapse && (
@@ -407,53 +429,6 @@ export default function VideoRoom({ roomId, currentUserId, displayName, hideHead
                 setIsLoading(false);
               }}
             />
-            {/* Кнопки управления конференцией в нашем интерфейсе (для мобильных) */}
-            {!hideHeader && (
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                {/* Кнопка покинуть конференцию (красная, крупная для мобильных) */}
-                <button
-                  onClick={() => {
-                    setConferenceLeft(true);
-                    // Пытаемся закрыть iframe
-                    if (iframeRef.current) {
-                      iframeRef.current.src = 'about:blank';
-                    }
-                    // Перенаправляем на страницу комнаты или закрываем
-                    setTimeout(() => {
-                      window.location.href = window.location.pathname;
-                    }, 500);
-                  }}
-                  className="bg-gradient-to-b from-red-600 via-red-700 to-red-800 hover:from-red-500 hover:via-red-600 hover:to-red-700 text-white font-bold px-4 py-2.5 sm:py-2 rounded-lg text-xs sm:text-sm transition-all shadow-lg border border-white/20 backdrop-blur-sm touch-manipulation"
-                  style={{
-                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 0, 0, 0.2)',
-                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                    minWidth: isMobile ? '120px' : 'auto',
-                    minHeight: isMobile ? '44px' : 'auto', // Минимальная высота для touch на мобильных
-                  }}
-                  title={t('leaveConference') || 'Покинуть конференцию'}
-                >
-                  📞 {t('leaveConference') || 'Покинуть'}
-                </button>
-                {/* Кнопка переподключения (опционально) */}
-                <button
-                  onClick={() => {
-                    setConferenceLeft(false);
-                    if (iframeRef.current) {
-                      iframeRef.current.src = jitsiUrl;
-                    }
-                  }}
-                  className="bg-gradient-to-b from-slate-600 via-slate-700 to-slate-800 hover:from-slate-500 hover:via-slate-600 hover:to-slate-700 text-white font-bold px-3 py-2.5 sm:py-2 rounded-lg text-xs transition-all shadow-lg border border-white/20 backdrop-blur-sm touch-manipulation"
-                  style={{
-                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3)',
-                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
-                    minHeight: isMobile ? '44px' : 'auto',
-                  }}
-                  title={t('reconnect') || 'Переподключиться'}
-                >
-                  🔄
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

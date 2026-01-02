@@ -68,6 +68,48 @@ export async function createToy(userId: string, params: ToyParams): Promise<Toy>
     // (чтобы пользователь не потерял данные)
   }
 
+  // Находим свободную позицию на елке (0-199)
+  // Получаем все занятые позиции
+  const { data: existingToys } = await supabase
+    .from('toys')
+    .select('position_index')
+    .not('position_index', 'is', null)
+    .gte('position_index', 0)
+    .lt('position_index', 200);
+  
+  const occupiedPositions = new Set(
+    (existingToys || [])
+      .map((toy: any) => toy.position_index)
+      .filter((idx: any) => typeof idx === 'number' && idx >= 0 && idx < 200)
+  );
+  
+  // Находим первую свободную позицию
+  let positionIndex: number | null = null;
+  for (let i = 0; i < 200; i++) {
+    if (!occupiedPositions.has(i)) {
+      positionIndex = i;
+      break;
+    }
+  }
+  
+  // Если все позиции 0-199 заняты, используем индекс от 200 (для переполнения)
+  // Эти шары будут размещены внизу елки
+  if (positionIndex === null) {
+    // Находим максимальный индекс среди всех шаров
+    const { data: allToys } = await supabase
+      .from('toys')
+      .select('position_index')
+      .not('position_index', 'is', null)
+      .order('position_index', { ascending: false })
+      .limit(1);
+    
+    const maxIndex = allToys && allToys.length > 0 && (allToys[0] as any)?.position_index 
+      ? (allToys[0] as any).position_index 
+      : 199;
+    
+    positionIndex = Math.max(200, maxIndex + 1);
+  }
+
   // Сохраняем игрушку в базу
   const insertData: any = {
     user_id: userId,
@@ -81,9 +123,10 @@ export async function createToy(userId: string, params: ToyParams): Promise<Toy>
     user_photo_url: userPhotoUrl || null,
     status: 'on_tree',
     room_id: params.room_id || null, // Привязываем к комнате, если указана
+    position_index: positionIndex, // Назначаем позицию на елке
   };
   
-  console.log('Данные для вставки игрушки:', { room_id: insertData.room_id, userId, status: insertData.status });
+  console.log('Данные для вставки игрушки:', { room_id: insertData.room_id, userId, status: insertData.status, position_index: positionIndex });
 
   // Добавляем новые поля, если они есть (после миграции будут доступны)
   if (params.ball_size !== undefined) insertData.ball_size = params.ball_size;
