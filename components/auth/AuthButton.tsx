@@ -5,7 +5,7 @@
  * Показывается в правом верхнем углу, если пользователь не авторизован
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getCurrentUser, signOut } from '@/lib/auth';
 import AuthModal from './AuthModal';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
@@ -20,6 +20,7 @@ export default function AuthButton() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const collapseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -59,25 +60,33 @@ export default function AuthButton() {
       console.error('Error adding resize listener:', error);
     }
     
-    // На мобильном сворачиваем через 3 секунды (только если не авторизован)
-    if (!isLoading && !user) {
-      const timer = setTimeout(() => {
-        if (isMobile) {
+    // На мобильном сворачиваем через 3 секунды (только если не авторизован и модальное окно закрыто)
+    if (!isLoading && !user && !showModal) {
+      // Очищаем предыдущий таймер
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+      }
+      
+      collapseTimerRef.current = setTimeout(() => {
+        if (isMobile && !showModal) {
           setIsCollapsed(true);
+          setIsHovered(false);
         }
       }, 3000);
-      
-      return () => {
-        clearTimeout(timer);
-        try {
-          if (typeof window !== 'undefined') {
-            window.removeEventListener('resize', checkMobile);
-          }
-        } catch (error) {
-          console.error('Error removing resize listener:', error);
-        }
-      };
     }
+    
+    return () => {
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+      }
+      try {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('resize', checkMobile);
+        }
+      } catch (error) {
+        console.error('Error removing resize listener:', error);
+      }
+    };
     
     return () => {
       try {
@@ -88,7 +97,7 @@ export default function AuthButton() {
         console.error('Error removing resize listener:', error);
       }
     };
-  }, [isLoading, user, isMobile]);
+  }, [isLoading, user, isMobile, showModal]);
 
   const checkAuth = async () => {
     try {
@@ -204,13 +213,25 @@ export default function AuthButton() {
           // Свернутая кнопка - только замочек
           <button
             onClick={() => {
+              // Очищаем предыдущий таймер
+              if (collapseTimerRef.current) {
+                clearTimeout(collapseTimerRef.current);
+                collapseTimerRef.current = null;
+              }
+              
+              // Раскрываем кнопки при клике на замочек
               setIsCollapsed(false);
-              setIsHovered(false);
-              setTimeout(() => {
-                if (isMobile && !user && !isLoading) {
-                  setIsCollapsed(true);
-                }
-              }, 3000);
+              setIsHovered(true);
+              
+              // Автоматически сворачиваем через 3 секунды, если модальное окно не открыто
+              if (!showModal) {
+                collapseTimerRef.current = setTimeout(() => {
+                  if (isMobile && !user && !isLoading && !showModal) {
+                    setIsCollapsed(true);
+                    setIsHovered(false);
+                  }
+                }, 3000);
+              }
             }}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-2 py-2 text-xl"
             title={`${t('signUp')} / ${t('signInToAccount')}`}
@@ -224,7 +245,24 @@ export default function AuthButton() {
 
       <AuthModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          // Очищаем предыдущий таймер
+          if (collapseTimerRef.current) {
+            clearTimeout(collapseTimerRef.current);
+            collapseTimerRef.current = null;
+          }
+          
+          // Сбрасываем hover и сворачиваем кнопки обратно на мобильных
+          setIsHovered(false);
+          if (isMobile) {
+            // Сворачиваем через небольшую задержку после закрытия модального окна
+            collapseTimerRef.current = setTimeout(() => {
+              setIsCollapsed(true);
+              setIsHovered(false);
+            }, 500);
+          }
+        }}
         onSuccess={checkAuth}
         initialMode={modalMode}
       />
