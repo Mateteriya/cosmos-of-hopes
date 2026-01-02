@@ -241,19 +241,24 @@ export default function RoomPage() {
         {/* ПК ВЕРСИЯ - Заголовок с таймером */}
         <div className="hidden md:block flex-shrink-0 p-2 sm:p-3 bg-slate-900/80 backdrop-blur-sm border-b border-white/10 relative" style={{ zIndex: 10 }}>
           <div className="flex items-center justify-between gap-2 sm:gap-4">
-            {/* Левая часть: кнопка назад и название комнаты */}
+            {/* Левая часть: кнопки назад, главная и название комнаты */}
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <button
                 onClick={() => router.push('/rooms')}
-                className="bg-slate-700/80 hover:bg-slate-700 text-white font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-lg transition-all text-sm whitespace-nowrap flex-shrink-0"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                title={t('back')}
               >
-                ←
+                <BackIcon size={20} className="text-white" />
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                title={t('home')}
+              >
+                <HomeIcon size={20} className="text-white" />
               </button>
               <div className="min-w-0 flex-1">
                 <h1 className="text-white text-lg sm:text-xl lg:text-2xl font-bold truncate flex items-center gap-2">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
                   {room.name}
                 </h1>
                 <p className="text-white/70 text-xs">Код: {room.invite_code}</p>
@@ -267,6 +272,7 @@ export default function RoomPage() {
           </div>
         </div>
 
+        {/* ВЕРХНЯЯ ПАНЕЛЬ - Мобильная и ПК версии */}
         {/* МОБИЛЬНАЯ ВЕРСИЯ - Верхняя панель */}
         <div className="md:hidden flex-shrink-0 bg-slate-900/80 backdrop-blur-sm border-b border-white/10">
           {/* Строка 1: Навигация и кнопки */}

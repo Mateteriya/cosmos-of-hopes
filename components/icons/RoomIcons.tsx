@@ -30,7 +30,7 @@ export function BackIcon({ className = '', size = 20 }: IconProps) {
   );
 }
 
-// Иконка "Главная" - планета/дом, космическая
+// Иконка "Главная" - домик, современная
 export function HomeIcon({ className = '', size = 20 }: IconProps) {
   return (
     <svg
@@ -39,14 +39,13 @@ export function HomeIcon({ className = '', size = 20 }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
     >
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-      <circle cx="12" cy="12" r="2" fill="currentColor" />
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   );
 }
