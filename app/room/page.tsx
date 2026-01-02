@@ -507,11 +507,13 @@ export default function RoomPage() {
             )}
           </div>
 
-          {/* Чат текстовый */}
-          <div className="flex-shrink-0 relative">
-            <div className={`bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col transition-all duration-300 ${
-              textChatCollapsed ? 'max-h-[60px]' : ''
-            }`} style={textChatCollapsed ? {} : { height: '450px' }}>
+          {/* Чат текстовый с панелькой справа */}
+          <div className="flex-shrink-0 flex gap-2 relative">
+            {/* Чат текстовый - прижат к левому краю */}
+            <div className="flex-1 relative">
+              <div className={`bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden flex flex-col transition-all duration-300 ${
+                textChatCollapsed ? 'max-h-[60px]' : ''
+              }`} style={textChatCollapsed ? {} : { height: '450px' }}>
               {/* Заголовок с кнопкой свернуть (для мобильной версии) */}
               <div className={`flex-shrink-0 px-3 pt-2 pb-1 border-b border-white/10 flex items-center justify-between transition-all duration-300 ${
                 textChatCollapsed ? '' : 'hidden'
@@ -588,39 +590,129 @@ export default function RoomPage() {
                   onToggleCollapse={() => setTextChatCollapsed(!textChatCollapsed)}
                 />
               </div>
+              </div>
             </div>
-            {/* Стрелочка вниз сбоку от чата */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full ml-2 text-white/40 pointer-events-none">
-              <ArrowDownIcon size={16} />
-            </div>
+            {/* Стильная панелька справа с подсказкой о видеоЧате - кликабельная */}
+            <button
+              onClick={() => {
+                // Прокручиваем к видеоЧату
+                const videoChatElement = document.querySelector('[data-video-chat-section]');
+                if (videoChatElement) {
+                  videoChatElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="w-4 flex flex-col items-center justify-center relative touch-manipulation cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ height: textChatCollapsed ? '60px' : '450px' }}
+              title="Перейти к видеоЧату"
+            >
+              {/* Матовая панелька с дырочками (прокомпостированная) */}
+              <div className="w-full h-full bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-lg relative overflow-hidden shadow-inner hover:bg-slate-800/70 transition-colors" style={{
+                backgroundImage: 'radial-gradient(circle at 3px 3px, rgba(255,255,255,0.2) 1.5px, transparent 0), radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.1) 1px, transparent 0)',
+                backgroundSize: '12px 12px, 6px 6px',
+                backgroundPosition: '0 0, 3px 3px',
+              }}>
+                {/* Стрелочка вниз по центру */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5">
+                  <svg 
+                    width="18" 
+                    height="18" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-white/80 drop-shadow-sm"
+                  >
+                    <path d="M12 5v14M19 12l-7 7-7-7" />
+                  </svg>
+                  {/* Подсказка про видеоЧат */}
+                  <div className="text-white/70 text-[9px] font-bold text-center leading-tight" style={{ 
+                    writingMode: 'vertical-rl', 
+                    textOrientation: 'upright',
+                    letterSpacing: '0.5px'
+                  }}>
+                    ВИДЕО
+                  </div>
+                </div>
+              </div>
+            </button>
           </div>
 
-          {/* ВидеоЧат */}
-          <div className="flex-shrink-0 bg-slate-800/40 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden" style={{ minHeight: '375px', maxHeight: '525px' }}>
-            <div className="flex flex-col h-full">
-              {/* Участники внутри видеоЧата */}
-              <div className="flex-shrink-0 px-3 pt-2 pb-1">
-                <CompactParticipants 
-                  roomId={room.id} 
-                  currentUserId={tempUserId} 
-                  isCreator={isCreator}
-                  maxInvites={10}
-                />
+          {/* ВидеоЧат с панелькой слева */}
+          <div className="flex-shrink-0 flex gap-2 relative">
+            {/* Стильная панелька слева с надписью "Ещё" */}
+            <button
+              onClick={() => {
+                // Прокручиваем к следующему контенту (аккордеон для создателя или новогодняя картинка)
+                const nextSection = document.querySelector('[data-next-section]');
+                if (nextSection) {
+                  nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="w-4 flex flex-col items-center justify-center relative touch-manipulation cursor-pointer hover:opacity-80 transition-opacity"
+              style={{ height: '525px', minHeight: '375px' }}
+              title="Ещё"
+            >
+              {/* Матовая панелька с дырочками (прокомпостированная) */}
+              <div className="w-full h-full bg-slate-800/60 backdrop-blur-sm border border-white/10 rounded-lg relative overflow-hidden shadow-inner hover:bg-slate-800/70 transition-colors" style={{
+                backgroundImage: 'radial-gradient(circle at 3px 3px, rgba(255,255,255,0.2) 1.5px, transparent 0), radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.1) 1px, transparent 0)',
+                backgroundSize: '12px 12px, 6px 6px',
+                backgroundPosition: '0 0, 3px 3px',
+              }}>
+                {/* Стрелочка вниз по центру */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5">
+                  <svg 
+                    width="18" 
+                    height="18" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-white/80 drop-shadow-sm"
+                  >
+                    <path d="M12 5v14M19 12l-7 7-7-7" />
+                  </svg>
+                  {/* Подсказка "Ещё" */}
+                  <div className="text-white/70 text-[9px] font-bold text-center leading-tight" style={{ 
+                    writingMode: 'vertical-rl', 
+                    textOrientation: 'upright',
+                    letterSpacing: '0.5px'
+                  }}>
+                    ЕЩЁ
+                  </div>
+                </div>
               </div>
-              {/* Окно видеоЧата */}
-              <div className="flex-1 min-h-0 overflow-visible" style={{ zIndex: 5 }}>
-                <VideoRoom 
-                  roomId={room.id} 
-                  currentUserId={tempUserId} 
-                  hideHeader={true}
-                />
+            </button>
+            {/* ВидеоЧат - прижат к правому краю */}
+            <div data-video-chat-section className="flex-1 bg-slate-800/40 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden" style={{ minHeight: '375px', maxHeight: '525px' }}>
+              <div className="flex flex-col h-full">
+                {/* Участники внутри видеоЧата */}
+                <div className="flex-shrink-0 px-3 pt-2 pb-1">
+                  <CompactParticipants 
+                    roomId={room.id} 
+                    currentUserId={tempUserId} 
+                    isCreator={isCreator}
+                    maxInvites={10}
+                  />
+                </div>
+                {/* Окно видеоЧата */}
+                <div className="flex-1 min-h-0 overflow-visible" style={{ zIndex: 5 }}>
+                  <VideoRoom 
+                    roomId={room.id} 
+                    currentUserId={tempUserId} 
+                    hideHeader={true}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Аккордеон для создателя */}
           {isCreator ? (
-            <div className="flex-shrink-0 flex flex-col gap-3">
+            <div data-next-section className="flex-shrink-0 flex flex-col gap-3">
               {/* Пригласить друзей */}
               <div className="bg-slate-800/50 backdrop-blur-md border-2 border-white/20 rounded-lg overflow-hidden">
                 <button
@@ -667,8 +759,8 @@ export default function RoomPage() {
               </div>
             </div>
           ) : (
-            /* Новогодняя картинка для не-создателя */
-            <div className="flex-shrink-0 w-full h-32 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-md border-2 border-white/20 rounded-lg flex items-center justify-center overflow-hidden">
+            <div data-next-section className="flex-shrink-0 w-full h-32 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 backdrop-blur-md border-2 border-white/20 rounded-lg flex items-center justify-center overflow-hidden">
+              {/* Новогодняя картинка для не-создателя */}
               <div className="text-white/80 text-sm text-center px-4">
                 {t('newYearGreeting') || '🎄 С Новым годом! 🎄'}
               </div>
