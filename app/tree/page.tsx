@@ -9,9 +9,12 @@ import { useRouter } from 'next/navigation';
 import VirtualTree from '@/components/tree/VirtualTree';
 import BallDetailsModal from '@/components/tree/BallDetailsModal';
 import { getToysOnVirtualTree, getToysOnTree, hasUserLikedAnyBall, addSupport, getToyLikesCount } from '@/lib/toys';
-import { getRoomById } from '@/lib/rooms';
+import { getRoomById, getUserRooms, joinRoomByInviteCode } from '@/lib/rooms';
 import type { Toy } from '@/types/toy';
 import type { Room } from '@/types/room';
+import RoomCard from '@/components/rooms/RoomCard';
+import CreateRoomModal from '@/components/rooms/CreateRoomModal';
+import JoinRoomModal from '@/components/rooms/JoinRoomModal';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
 import { getOrCreateUserId } from '@/lib/userId';
 import { useNewYearAnimationController } from '@/components/tree/NewYearAnimationController';
@@ -27,6 +30,13 @@ function TreePageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showRoomsPanel, setShowRoomsPanel] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+  const [roomsError, setRoomsError] = useState<string | null>(null);
+  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
+  const [showJoinRoomModal, setShowJoinRoomModal] = useState(false);
   
   // Тип ёлки и путь к модели - только OBJ модель
   const [treeType] = useState<'3d' | 'png'>('3d');
@@ -42,6 +52,63 @@ function TreePageContent() {
       setIsNewYearAnimation(true);
     },
   });
+
+  // Определяем мобильное устройство
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Загрузка комнат при открытии панели
+  const loadRooms = async () => {
+    if (!currentUserId) return;
+    try {
+      setRoomsLoading(true);
+      setRoomsError(null);
+      const userRooms = await getUserRooms(currentUserId);
+      setRooms(userRooms || []);
+    } catch (err: any) {
+      console.error('Ошибка загрузки комнат:', err);
+      setRoomsError(err.message || 'Не удалось загрузить комнаты');
+    } finally {
+      setRoomsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showRoomsPanel && currentUserId) {
+      loadRooms();
+    }
+  }, [showRoomsPanel, currentUserId]);
+
+  const handleRoomCreated = async (room: Room) => {
+    setRooms(prev => [...prev, room]);
+  };
+
+  const handleRoomJoined = (room: Room) => {
+    setRooms(prev => {
+      if (prev.find(r => r.id === room.id)) {
+        return prev;
+      }
+      return [...prev, room];
+    });
+  };
+
+  const handleRoomDeleted = () => {
+    loadRooms();
+  };
+
+  const handleRoomLeft = () => {
+    loadRooms();
+  };
+
+  const handleRoomClick = (room: Room) => {
+    router.push(`/room?room=${room.id}`);
+  };
 
   // Проверяем при монтировании, не наступил ли уже Новый год
   useEffect(() => {
@@ -356,53 +423,62 @@ function TreePageContent() {
   return (
     <div 
       className="relative w-full" 
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        width: '100%', 
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'row'
+      }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {/* Виртуальная ёлка - рендерим ПЕРЕД кнопками, чтобы кнопки были поверх */}
-      {currentUserId && (
-        <VirtualTree
-          toys={toys}
-          currentUserId={currentUserId}
-          onBallClick={handleBallClick}
-          onBallLike={handleBallLike}
-          userHasLiked={userHasLiked}
-          isRoom={!!currentRoom}
-          treeType={treeType}
-          treeModel={treeModel}
-          isNewYearAnimation={isNewYearAnimation}
-          onAnimationComplete={() => {
-            console.log('[TreePage] Анимация завершена');
-            // Анимация завершена, можно оставить состояние или сбросить
-            // Для тестирования автоматически сбрасываем через некоторое время
-            setTimeout(() => {
-              setIsNewYearAnimation(false);
-              console.log('[TreePage] Анимация сброшена для повторного тестирования');
-            }, 5000); // Сбрасываем через 5 секунд после завершения
-          }}
-        />
-      )}
-
-      {/* Обертка для области кнопок - гарантирует, что кнопки всегда кликабельны */}
       <div 
         style={{ 
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          width: '200px',
-          height: '300px',
-          zIndex: 100002,
-          pointerEvents: 'none'
+          width: showRoomsPanel && !isMobile ? '30%' : '100%',
+          height: '100%',
+          transition: 'width 0.3s ease',
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
-        {/* Кнопки навигации - СПРАВА ВВЕРХУ */}
+        {currentUserId && (
+          <VirtualTree
+            toys={toys}
+            currentUserId={currentUserId}
+            onBallClick={handleBallClick}
+            onBallLike={handleBallLike}
+            userHasLiked={userHasLiked}
+            isRoom={!!currentRoom}
+            treeType={treeType}
+            treeModel={treeModel}
+            isNewYearAnimation={isNewYearAnimation}
+            isNarrowContainer={showRoomsPanel && !isMobile}
+            onAnimationComplete={() => {
+              console.log('[TreePage] Анимация завершена');
+              // Анимация завершена, можно оставить состояние или сбросить
+              // Для тестирования автоматически сбрасываем через некоторое время
+              setTimeout(() => {
+                setIsNewYearAnimation(false);
+                console.log('[TreePage] Анимация сброшена для повторного тестирования');
+              }, 5000); // Сбрасываем через 5 секунд после завершения
+            }}
+          />
+        )}
+        
+        {/* Кнопка "ВКЛЮЧИТЬ анимацию" - внутри контейнера ёлки, двигается вместе с ней */}
         <div 
+          className="mobile-nav-buttons"
           style={{ 
             position: 'absolute',
             top: '1rem',
-            right: '1rem',
+            right: '1rem', // Всегда справа внутри контейнера ёлки
             display: 'flex',
             flexDirection: 'column',
             gap: '0.75rem',
@@ -410,13 +486,262 @@ function TreePageContent() {
             zIndex: 100003
           }}
         >
+          {/* Кнопка "ВКЛЮЧИТЬ анимацию" - активна с 1-го января 2026 */}
+          {(() => {
+            // Проверяем, наступил ли Новый год (1 января 2026 или позже)
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11
+            const date = now.getDate();
+            
+            // Кнопка активна с 1-го января 2026 или в режиме разработки
+            const isNewYearTime = year >= 2026 && (year > 2026 || month > 0 || date >= 1);
+            const isButtonEnabled = isNewYearTime || process.env.NODE_ENV !== 'production';
+            
+            return (
+              <button
+                onClick={() => {
+                  if (!isButtonEnabled) return;
+                  
+                  // Переключаем анимацию вкл/выкл
+                  setIsNewYearAnimation(!isNewYearAnimation);
+                  console.log(`[TreePage] ${!isNewYearAnimation ? 'Включение' : 'Выключение'} новогодней анимации`);
+                }}
+                disabled={!isButtonEnabled}
+                className="mobile-nav-btn mobile-btn-animation"
+                style={isMobile ? {} : { 
+                  background: isButtonEnabled 
+                    ? (isNewYearAnimation 
+                        ? 'linear-gradient(to right, #16a34a, #22c55e)' 
+                        : 'linear-gradient(to right, #ca8a04, #ea580c)')
+                    : 'linear-gradient(to right, #6b7280, #4b5563)',
+                  color: 'white',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: 'bold',
+                  cursor: isButtonEnabled ? 'pointer' : 'not-allowed',
+                  boxShadow: isButtonEnabled ? '0 4px 6px rgba(0, 0, 0, 0.3)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  pointerEvents: 'auto',
+                  position: 'relative',
+                  zIndex: 100004,
+                  opacity: isButtonEnabled ? 1 : 0.5,
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isMobile && isButtonEnabled) {
+                    e.currentTarget.style.background = isNewYearAnimation
+                      ? 'linear-gradient(to right, #15803d, #16a34a)'
+                      : 'linear-gradient(to right, #a16207, #c2410c)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isMobile && isButtonEnabled) {
+                    e.currentTarget.style.background = isNewYearAnimation
+                      ? 'linear-gradient(to right, #16a34a, #22c55e)'
+                      : 'linear-gradient(to right, #ca8a04, #ea580c)';
+                  }
+                }}
+                title={isButtonEnabled 
+                  ? (isNewYearAnimation ? 'Выключить новогоднюю анимацию' : 'Включить новогоднюю анимацию')
+                  : 'Анимация будет доступна 1-го января в 00:00'}
+              >
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  {isNewYearAnimation ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  )}
+                </svg>
+                <span className="btn-text">{isNewYearAnimation ? 'ВЫКЛ анимацию' : 'ВКЛ анимацию'}</span>
+              </button>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* Панель комнат - только на ПК */}
+      {showRoomsPanel && !isMobile && (
+        <div 
+          style={{
+            width: '70%',
+            height: '100%',
+            backgroundColor: 'rgba(15, 23, 42, 0.98)',
+            backdropFilter: 'blur(12px)',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            position: 'relative',
+            borderLeft: '2px solid rgba(255, 255, 255, 0.1)',
+            zIndex: 100001
+          }}
+        >
+          <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* Заголовок и кнопка закрытия */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '2rem' }}>
+              <div>
+                <h1 style={{ color: 'white', fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                  {t('myRooms')}
+                </h1>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Создайте комнату для семьи или друзей, чтобы вместе украшать ёлку
+                </p>
+              </div>
+              <button
+                onClick={() => setShowRoomsPanel(false)}
+                style={{
+                  backgroundColor: 'rgba(100, 116, 139, 0.5)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 'bold',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.7)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(100, 116, 139, 0.5)';
+                }}
+              >
+                ✕ Закрыть
+              </button>
+            </div>
+
+            {/* Кнопки действий */}
+            <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <button
+                onClick={() => setShowCreateRoomModal(true)}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(to right, #9333ea, #ec4899)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                ➕ Создать комнату
+              </button>
+              <button
+                onClick={() => setShowJoinRoomModal(true)}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(to right, #2563eb, #06b6d4)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1.5rem',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.3)';
+                }}
+              >
+                🔗 Присоединиться по коду
+              </button>
+            </div>
+
+            {/* Ошибка */}
+            {roomsError && (
+              <div style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid rgba(239, 68, 68, 0.5)',
+                borderRadius: '0.5rem',
+                padding: '0.75rem 1rem',
+                color: 'rgb(254, 202, 202)',
+                marginBottom: '1.5rem'
+              }}>
+                {roomsError}
+              </div>
+            )}
+
+            {/* Список комнат */}
+            {roomsLoading ? (
+              <div style={{ color: 'white', textAlign: 'center', padding: '2rem' }}>
+                {t('loadingRooms')}
+              </div>
+            ) : rooms.length === 0 ? (
+              <div style={{
+                backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                backdropFilter: 'blur(12px)',
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '0.75rem',
+                padding: '2rem',
+                textAlign: 'center'
+              }}>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '1.125rem', marginBottom: '0.5rem' }}>
+                  У вас пока нет комнат
+                </p>
+                <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem' }}>
+                  Создайте комнату или присоединитесь к существующей по коду приглашения
+                </p>
+              </div>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '1rem'
+              }}>
+                {rooms.map(room => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    currentUserId={currentUserId}
+                    onRoomClick={handleRoomClick}
+                    onRoomDeleted={handleRoomDeleted}
+                    onRoomLeft={handleRoomLeft}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Обертка для области кнопок - гарантирует, что кнопки всегда кликабельны */}
+      {/* Кнопка "На главную" - ЛЕВЫЙ ВЕРХНИЙ УГОЛ */}
         <button
           type="button"
           onClick={() => {
-            console.log('[TreePage] Клик по кнопке "На главную"');
+          console.log('[TreePage] Клик по кнопке "На главную"');
             router.push('/');
           }}
+        className="mobile-nav-btn mobile-btn-home"
           style={{ 
+          position: 'fixed',
+          top: '1rem',
+          left: '1rem',
+          zIndex: 100004,
+          ...(isMobile ? {} : { 
             backgroundColor: '#1e293b',
             color: 'white',
             padding: '0.75rem 1.25rem',
@@ -430,32 +755,50 @@ function TreePageContent() {
             alignItems: 'center',
             gap: '0.5rem',
             pointerEvents: 'auto',
-            position: 'relative',
-            zIndex: 100004
+            transition: 'all 0.3s ease'
+          })
           }}
           onMouseEnter={(e) => {
+          if (!isMobile) {
             e.currentTarget.style.backgroundColor = '#334155';
+          }
           }}
           onMouseLeave={(e) => {
+          if (!isMobile) {
             e.currentTarget.style.backgroundColor = '#1e293b';
+          }
           }}
         >
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          <span>{t('home')}</span>
+        <span className="btn-text">{t('home')}</span>
         </button>
+      
+      {/* Кнопка "Комнаты" - ПРАВЫЙ НИЖНИЙ УГОЛ */}
         <button
           type="button"
           onClick={() => {
-            console.log('[TreePage] Клик по кнопке "Комнаты"');
+          console.log('[TreePage] Клик по кнопке "Комнаты"');
+          if (isMobile) {
+            // На мобильных - переход на страницу комнат
             router.push('/rooms');
+          } else {
+            // На ПК - открываем панель комнат
+            setShowRoomsPanel(true);
+          }
           }}
+        className="mobile-nav-btn mobile-btn-rooms mobile-btn-rooms-elliptic"
           style={{ 
+          position: 'fixed',
+          bottom: '1rem',
+          right: '1rem',
+          zIndex: 100004,
+          ...(isMobile ? {} : { 
             background: 'linear-gradient(to right, #2563eb, #06b6d4)',
             color: 'white',
-            padding: '0.75rem 1.25rem',
-            borderRadius: '0.5rem',
+            padding: '0.75rem 2.5rem',
+            borderRadius: '2rem',
             border: 'none',
             fontSize: '0.875rem',
             fontWeight: 'bold',
@@ -465,94 +808,26 @@ function TreePageContent() {
             alignItems: 'center',
             gap: '0.5rem',
             pointerEvents: 'auto',
-            position: 'relative',
-            zIndex: 100004
+            transition: 'all 0.3s ease'
+          })
           }}
           onMouseEnter={(e) => {
+          if (!isMobile) {
             e.currentTarget.style.background = 'linear-gradient(to right, #1d4ed8, #0891b2)';
+          }
           }}
           onMouseLeave={(e) => {
+          if (!isMobile) {
             e.currentTarget.style.background = 'linear-gradient(to right, #2563eb, #06b6d4)';
+          }
           }}
         >
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          <span>{t('rooms')}</span>
+        <span className="btn-text">{t('rooms')}</span>
         </button>
-        {/* Кнопка "ВКЛЮЧИТЬ анимацию" - активна с 1-го января 2026 */}
-        {(() => {
-          // Проверяем, наступил ли Новый год (1 января 2026 или позже)
-          const now = new Date();
-          const year = now.getFullYear();
-          const month = now.getMonth(); // 0-11
-          const date = now.getDate();
-          
-          // Кнопка активна с 1-го января 2026 или в режиме разработки
-          const isNewYearTime = year >= 2026 && (year > 2026 || month > 0 || date >= 1);
-          const isButtonEnabled = isNewYearTime || process.env.NODE_ENV !== 'production';
-          
-          return (
-            <button
-              onClick={() => {
-                if (!isButtonEnabled) return;
-                
-                if (isNewYearAnimation) {
-                  // Если анимация уже запущена, сбрасываем для перезапуска
-                  setIsNewYearAnimation(false);
-                  setTimeout(() => {
-                    setIsNewYearAnimation(true);
-                    console.log('[TreePage] Перезапуск новогодней анимации');
-                  }, 100);
-                } else {
-                  console.log('[TreePage] Запуск новогодней анимации');
-                  setIsNewYearAnimation(true);
-                }
-              }}
-              disabled={!isButtonEnabled}
-              style={{ 
-                background: isButtonEnabled 
-                  ? 'linear-gradient(to right, #ca8a04, #ea580c)' 
-                  : 'linear-gradient(to right, #6b7280, #4b5563)',
-                color: 'white',
-                padding: '0.75rem 1.25rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 'bold',
-                cursor: isButtonEnabled ? 'pointer' : 'not-allowed',
-                boxShadow: isButtonEnabled ? '0 4px 6px rgba(0, 0, 0, 0.3)' : 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                pointerEvents: 'auto',
-                position: 'relative',
-                zIndex: 100004,
-                opacity: isButtonEnabled ? 1 : 0.5,
-              }}
-              onMouseEnter={(e) => {
-                if (isButtonEnabled) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #a16207, #c2410c)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isButtonEnabled) {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #ca8a04, #ea580c)';
-                }
-              }}
-              title={isButtonEnabled 
-                ? 'Включить новогоднюю анимацию' 
-                : 'Анимация будет доступна 1-го января в 00:00'}
-            >
-              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-              <span>{isNewYearAnimation ? '🔄 Перезапуск' : '🎆 ВКЛЮЧИТЬ анимацию'}</span>
-            </button>
-          );
-        })()}
-        </div>
-      </div>
+
 
       {/* Информация о комнате */}
       {currentRoom && (
@@ -613,6 +888,25 @@ function TreePageContent() {
           currentUserId={currentUserId}
           onLikeChange={handleLikeChange}
         />
+      )}
+
+      {/* Модальные окна для комнат */}
+      {showRoomsPanel && !isMobile && (
+        <>
+          <CreateRoomModal
+            isOpen={showCreateRoomModal}
+            onClose={() => setShowCreateRoomModal(false)}
+            onCreate={handleRoomCreated}
+            currentUserId={currentUserId}
+          />
+
+          <JoinRoomModal
+            isOpen={showJoinRoomModal}
+            onClose={() => setShowJoinRoomModal(false)}
+            onJoin={handleRoomJoined}
+            currentUserId={currentUserId}
+          />
+        </>
       )}
     </div>
   );

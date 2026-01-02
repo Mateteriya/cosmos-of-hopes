@@ -1859,8 +1859,8 @@ function NewYearAnimation({
       }
       // Включаем черный фон для космоса
       if (!blackBackgroundShownRef.current) {
-        blackBackgroundShownRef.current = true;
-        setShowBlackBackground(true);
+      blackBackgroundShownRef.current = true;
+      setShowBlackBackground(true);
         console.log('🌌 Черный космос включен! Елка взорвана! Время:', elapsed.toFixed(2), 'сек');
       }
     } else {
@@ -2156,7 +2156,7 @@ function NewYearAnimation({
           <mesh position={[0, 0, -200]} renderOrder={-10}>
             <planeGeometry args={[1000, 1000]} />
             <meshBasicMaterial color="#000000" side={THREE.DoubleSide} />
-          </mesh>
+        </mesh>
           {/* Дополнительный фон ближе для надежности */}
           <mesh position={[0, 0, -100]} renderOrder={-9}>
             <planeGeometry args={[800, 800]} />
@@ -2174,12 +2174,16 @@ function NewYearAnimation({
 }
 
 // Основной компонент сцены (оптимизирован для миллионов шаров)
-function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked, treeImageUrl, treeType, treeModel, isNewYearAnimation, onAnimationComplete, glowEnabled = false, showSnow = true, onSnowVisibilityChange }: VirtualTreeProps & { showSnow?: boolean; onSnowVisibilityChange?: (visible: boolean) => void }) {
+function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked, treeImageUrl, treeType, treeModel, isNewYearAnimation, isNarrowContainer = false, onAnimationComplete, glowEnabled = false, autoGlowEnabled: externalAutoGlowEnabled = false, showSnow = true, onSnowVisibilityChange }: VirtualTreeProps & { showSnow?: boolean; onSnowVisibilityChange?: (visible: boolean) => void; autoGlowEnabled?: boolean; isNarrowContainer?: boolean }) {
   const { camera, scene } = useThree();
   const [visibleToys, setVisibleToys] = useState<Toy[]>([]);
   const [treeOpacity, setTreeOpacity] = useState<number>(1.0); // Прозрачность елки - непрозрачная
-  const [autoGlowEnabled, setAutoGlowEnabled] = useState<boolean>(false); // Автоматическая подсветка при анимации
-  const [cameraDistance, setCameraDistance] = useState<number>(18); // Расстояние камеры
+  const [internalAutoGlowEnabled, setInternalAutoGlowEnabled] = useState<boolean>(false); // Автоматическая подсветка при анимации
+  
+  // Используем внешний autoGlowEnabled, если передан (для зацикленной анимации кнопки)
+  const effectiveAutoGlowEnabled = externalAutoGlowEnabled || internalAutoGlowEnabled;
+  const baseCameraDistance = 18; // Базовое расстояние камеры
+  const [cameraDistance, setCameraDistance] = useState<number>(baseCameraDistance); // Расстояние камеры
   const [showBallsOnTree, setShowBallsOnTree] = useState<boolean>(true); // Показывать ли шары на елке
   const [showSnowState, setShowSnowState] = useState<boolean>(showSnow); // Состояние для управления видимостью снега
   const animationStartTimeRef = useRef<number | null>(null); // Время начала анимации
@@ -2453,6 +2457,15 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
     }
   });
 
+  // Адаптируем расстояние камеры при узком контейнере (отдаляем на 50% для уменьшения размера)
+  useEffect(() => {
+    if (isNarrowContainer) {
+      setCameraDistance(baseCameraDistance * 1.5); // Отдаляем на 50% для уменьшения размера ёлки
+    } else {
+      setCameraDistance(baseCameraDistance);
+    }
+  }, [isNarrowContainer]);
+  
   // Обновляем позицию камеры при изменении расстояния
   useEffect(() => {
     camera.position.set(0, 2, cameraDistance);
@@ -2788,19 +2801,19 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
         <Suspense fallback={null} key={`obj-${treeModel}`}>
           {/* На мобильных устройствах загружаем без MTL для ускорения */}
           {typeof window !== 'undefined' && window.innerWidth < 768 ? (
-            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
+            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={effectiveAutoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
           ) : treeModel.startsWith('/') ? (
-            <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
+            <ErrorBoundary fallback={<OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={effectiveAutoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />}>
               <OBJTreeWithMTL 
                 objPath={treeModel} 
                 mtlPath={treeModel.endsWith('.obj') ? treeModel.replace(/\.obj$/, '.mtl') : treeModel + '.mtl'}
-                glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled}
+                glowEnabled={glowEnabled} autoGlowEnabled={effectiveAutoGlowEnabled}
                 isNewYearAnimation={isNewYearAnimation}
                 treeOpacity={treeOpacity}
               />
             </ErrorBoundary>
           ) : (
-            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={autoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
+            <OBJTreeWithoutMTL objPath={treeModel} glowEnabled={glowEnabled} autoGlowEnabled={effectiveAutoGlowEnabled} isNewYearAnimation={isNewYearAnimation} treeOpacity={treeOpacity} />
           )}
         </Suspense>
         </group>
@@ -2830,7 +2843,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
       {/* Новогодняя анимация (1 января) */}
       {isNewYearAnimation && (
         <NewYearAnimation 
-          toys={toys}
+          toys={toys} 
           currentUserId={currentUserId}
           onComplete={onAnimationComplete}
           onTreeOpacityChange={(opacity) => {
@@ -2838,7 +2851,7 @@ function TreeScene({ toys, currentUserId, onBallClick, onBallLike, userHasLiked,
           }}
           onGlowEnable={() => {
             // Включаем автоматическую подсветку елки при анимации
-            setAutoGlowEnabled(true);
+            setInternalAutoGlowEnabled(true);
           }}
           onCameraDistanceChange={(distance) => {
             // Обновляем расстояние камеры для отдаления елки
@@ -2887,12 +2900,61 @@ export default function VirtualTree({
   treeType = '3d',
   treeModel,
   isNewYearAnimation = false,
+  isNarrowContainer = false,
   onAnimationComplete,
-}: VirtualTreeProps) {
+}: VirtualTreeProps & { isNarrowContainer?: boolean }) {
   // Состояние для переключателя подсветки
   const [glowEnabled, setGlowEnabled] = useState(false);
   // Состояние для управления видимостью снега (останавливается на 38 секунде)
   const [showSnow, setShowSnow] = useState<boolean>(true);
+  // Определяем мобильное устройство
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Локальная анимация подсветки (зацикленная версия анимации с 1 по 4 секунду)
+  const glowAnimationStartTimeRef = useRef<number | null>(null);
+  const [localAutoGlowEnabled, setLocalAutoGlowEnabled] = useState<boolean>(false);
+  
+  // Компонент для управления зацикленной анимацией (1-4 секунды)
+  function GlowAnimationController() {
+    useFrame(() => {
+      if (glowEnabled && glowAnimationStartTimeRef.current !== null) {
+        const elapsed = (Date.now() - glowAnimationStartTimeRef.current) / 1000;
+        // Цикл: 1-4 секунды (3 секунды длительности)
+        const cycleTime = ((elapsed - 1) % 3) + 1; // От 1 до 4 секунды
+        
+        // Если вышли за 4 секунды, сбрасываем на 1 секунду
+        if (cycleTime >= 4) {
+          glowAnimationStartTimeRef.current = Date.now() - 1000; // Сбрасываем на 1 секунду
+        }
+        
+        // Подсветка активна на 1-4 секундах
+        setLocalAutoGlowEnabled(cycleTime >= 1 && cycleTime < 4);
+      }
+    });
+    return null;
+  }
+  
+  // Управление зацикленной анимацией подсветки (1-4 секунды)
+  useEffect(() => {
+    if (glowEnabled) {
+      // Запускаем анимацию - начинаем с 1 секунды (пропускаем первую секунду)
+      glowAnimationStartTimeRef.current = Date.now() - 1000; // Начинаем с 1 секунды
+      setLocalAutoGlowEnabled(true);
+    } else {
+      // Останавливаем анимацию
+      glowAnimationStartTimeRef.current = null;
+      setLocalAutoGlowEnabled(false);
+    }
+  }, [glowEnabled]);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Проверяем, можно ли включить подсветку (только после 23:59 31 декабря, т.е. с 1 января)
   // Используем локальное время пользователя, а не UTC
@@ -2917,7 +2979,20 @@ export default function VirtualTree({
   const glowTooltip = isGlowEnabled ? 'Переключить подсветку ёлки' : 'Подсветку елочки можно будет включить 1го января..';
 
   return (
-    <div className="w-full bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 relative" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden', backgroundColor: '#1e1b4b' }}>
+    <div 
+      className="w-full bg-gradient-to-b from-indigo-950 via-purple-950 to-indigo-950 relative" 
+      style={{ 
+        position: isNarrowContainer ? 'absolute' : 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: isNarrowContainer ? 'auto' : 0, 
+        bottom: 0, 
+        width: '100%', 
+        height: '100%', 
+        overflow: 'hidden', 
+        backgroundColor: '#1e1b4b' 
+      }}
+    >
       {/* Переключатель подсветки - виден всем, но активен только с 1 января */}
       <button
         onClick={() => {
@@ -2926,14 +3001,18 @@ export default function VirtualTree({
           }
         }}
         disabled={!isGlowEnabled}
-        className={`absolute top-20 left-4 z-50 bg-slate-800/90 backdrop-blur-md border-2 border-white/30 rounded-lg px-4 py-2 text-white text-xs font-bold shadow-xl transition-all ${
+        className={`mobile-glow-btn absolute top-20 left-4 z-50 ${isMobile ? '' : 'desktop-glow-btn backdrop-blur-md border-2 rounded-lg px-4 py-2 text-white text-xs font-bold shadow-xl transition-all'} ${glowEnabled ? 'glow-btn-active' : 'glow-btn-inactive'} ${
           isGlowEnabled 
-            ? 'hover:bg-slate-700 cursor-pointer' 
+            ? (isMobile ? '' : 'cursor-pointer')
             : 'opacity-60 cursor-not-allowed'
         }`}
         title={glowTooltip}
       >
-        {glowEnabled ? '💡 Подсветка: ВКЛ' : '💡 Подсветка: ВЫКЛ'}
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="glow-icon">
+          {/* Лампочка - простая и понятная иконка */}
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1zM11 19h2v2h-2v-2z" />
+        </svg>
+        <span className="glow-btn-text">Подсветка</span>
       </button>
       <div 
         style={{ 
@@ -2959,6 +3038,7 @@ export default function VirtualTree({
           dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? Math.min(window.devicePixelRatio, 1.5) : undefined} // Ограничиваем DPR на мобильных
         >
         <Suspense fallback={null}>
+          <GlowAnimationController />
           <TreeScene
             toys={isRoom || userHasLiked ? toys : toys.filter(t => t.user_id !== currentUserId)}
             currentUserId={currentUserId}
@@ -2969,8 +3049,10 @@ export default function VirtualTree({
             treeType={treeType}
             treeModel={treeModel}
             isNewYearAnimation={isNewYearAnimation}
+            isNarrowContainer={isNarrowContainer}
             onAnimationComplete={onAnimationComplete}
-            glowEnabled={glowEnabled}
+            glowEnabled={false} // Отключаем обычную подсветку
+            autoGlowEnabled={localAutoGlowEnabled} // Используем зацикленную анимацию
             showSnow={showSnow}
             onSnowVisibilityChange={(visible) => {
               setShowSnow(visible);

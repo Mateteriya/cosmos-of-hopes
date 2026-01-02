@@ -150,3 +150,287 @@ body {
 .star-move-4 {
   animation: star-move-4 25s ease-in-out infinite;
 }
+
+/* Мобильные кнопки навигации - круглые с эффектами */
+@media (max-width: 768px) {
+  .mobile-nav-buttons {
+    gap: 1rem !important;
+  }
+  
+  .mobile-nav-btn {
+    width: 56px !important;
+    height: 56px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    background: rgba(30, 41, 59, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  /* Кнопка "на главную" - всегда в левом верхнем углу на мобильных */
+  .mobile-btn-home {
+    background: rgba(30, 41, 59, 0.95) !important;
+    position: fixed !important; /* Фиксированное позиционирование для левого верхнего угла */
+    top: 1rem !important;
+    left: 1rem !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 56px !important;
+    height: 56px !important;
+  }
+  
+  .mobile-btn-rooms {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(6, 182, 212, 0.95)) !important;
+  }
+  
+  /* Эллиптическая кнопка комнат в правом нижнем углу */
+  .mobile-btn-rooms-elliptic {
+    width: 112px !important; /* В 2 раза шире круглой кнопки */
+    height: 56px !important;
+    border-radius: 28px !important; /* Эллипс */
+    padding: 0 !important;
+    position: fixed !important; /* Фиксированное позиционирование для правого нижнего угла */
+    bottom: 1rem !important;
+    right: 1rem !important;
+    top: auto !important;
+    left: auto !important;
+  }
+  
+  .mobile-btn-rooms-elliptic .btn-text {
+    display: flex !important; /* Показываем текст на мобильных */
+    align-items: center !important;
+    margin-left: 0.5rem !important;
+  }
+  
+  .mobile-btn-rooms-elliptic svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .mobile-btn-animation {
+    background: linear-gradient(135deg, rgba(202, 138, 4, 0.95), rgba(234, 88, 12, 0.95)) !important;
+  }
+  
+  .mobile-nav-btn .btn-text {
+    display: none !important;
+  }
+  
+  .mobile-nav-btn svg {
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2.5 !important;
+  }
+  
+  /* Неон при ховер */
+  .mobile-nav-btn:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(99, 102, 241, 0.6),
+      0 0 40px rgba(99, 102, 241, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(99, 102, 241, 0.6) !important;
+  }
+  
+  .mobile-btn-home:hover {
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(148, 163, 184, 0.6),
+      0 0 40px rgba(148, 163, 184, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
+  }
+  
+  .mobile-btn-rooms:hover {
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(37, 99, 235, 0.8),
+      0 0 40px rgba(6, 182, 212, 0.6),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(37, 99, 235, 0.8) !important;
+  }
+  
+  .mobile-btn-animation:hover {
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.2),
+      0 0 20px rgba(234, 88, 12, 0.8),
+      0 0 40px rgba(202, 138, 4, 0.6),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(234, 88, 12, 0.8) !important;
+  }
+  
+  /* Эффект нажатости */
+  .mobile-nav-btn:active {
+    transform: translateY(0) scale(0.95) !important;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Двойная рамка */
+  .mobile-nav-btn::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .mobile-nav-btn:hover::before {
+    opacity: 1;
+  }
+  
+  /* Кнопка подсветки */
+  .mobile-glow-btn {
+    width: 56px !important;
+    height: 56px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    backdrop-filter: blur(12px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  /* Не нажатое состояние - прозрачный фон, неоновая рамка */
+  .mobile-glow-btn.glow-btn-inactive {
+    background: transparent !important;
+    border: 2px solid rgba(99, 102, 241, 0.6) !important;
+    box-shadow: 
+      0 0 0 1px rgba(99, 102, 241, 0.3),
+      0 0 20px rgba(99, 102, 241, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  /* Нажатое состояние - приглушенный теплый оранжевый фон */
+  .mobile-glow-btn.glow-btn-active {
+    background: rgba(180, 70, 20, 0.5) !important;
+    border: 2px solid rgba(200, 85, 30, 0.7) !important;
+    box-shadow: 
+      0 0 0 1px rgba(200, 85, 30, 0.3),
+      0 4px 12px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .mobile-glow-btn .glow-btn-text {
+    display: none !important;
+  }
+  
+  .mobile-glow-btn .glow-icon {
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2.5 !important;
+  }
+  
+  /* Ховер для не нажатого состояния - усиленный неон */
+  .mobile-glow-btn:hover:not(:disabled).glow-btn-inactive {
+    transform: translateY(-2px) scale(1.05) !important;
+    border-color: rgba(99, 102, 241, 0.9) !important;
+    box-shadow: 
+      0 0 0 1px rgba(99, 102, 241, 0.4),
+      0 0 30px rgba(99, 102, 241, 0.6),
+      0 0 50px rgba(99, 102, 241, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  /* Ховер для нажатого состояния - слегка усиленный приглушенный оранжевый */
+  .mobile-glow-btn:hover:not(:disabled).glow-btn-active {
+    transform: translateY(-2px) scale(1.05) !important;
+    background: rgba(180, 70, 20, 0.65) !important;
+    border-color: rgba(200, 85, 30, 0.85) !important;
+    box-shadow: 
+      0 0 0 1px rgba(200, 85, 30, 0.4),
+      0 0 30px rgba(200, 85, 30, 0.5),
+      0 0 50px rgba(200, 85, 30, 0.3),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  
+  /* Эффект нажатости */
+  .mobile-glow-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.95) !important;
+  }
+}
+
+/* Стили для десктопной версии кнопки подсветки (вне медиа-запроса) */
+/* Перекрываем стили mobile-glow-btn для десктопной версии */
+.mobile-glow-btn.desktop-glow-btn.glow-btn-inactive {
+  background: transparent !important;
+  border: 2px solid rgba(99, 102, 241, 0.6) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 
+    0 0 0 1px rgba(99, 102, 241, 0.3),
+    0 0 20px rgba(99, 102, 241, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.mobile-glow-btn.desktop-glow-btn.glow-btn-active {
+  background: rgba(180, 70, 20, 0.5) !important;
+  border: 2px solid rgba(200, 85, 30, 0.7) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 
+    0 0 0 1px rgba(200, 85, 30, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0.5rem 1rem !important;
+}
+
+/* Ховер для десктопной версии - не нажатое состояние */
+.mobile-glow-btn.desktop-glow-btn:hover:not(:disabled).glow-btn-inactive {
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(99, 102, 241, 0.9) !important;
+  box-shadow: 
+    0 0 0 1px rgba(99, 102, 241, 0.4),
+    0 0 30px rgba(99, 102, 241, 0.6),
+    0 0 50px rgba(99, 102, 241, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Ховер для десктопной версии - нажатое состояние */
+.mobile-glow-btn.desktop-glow-btn:hover:not(:disabled).glow-btn-active {
+  transform: translateY(-2px) scale(1.02) !important;
+  background: rgba(180, 70, 20, 0.65) !important;
+  border-color: rgba(200, 85, 30, 0.85) !important;
+  box-shadow: 
+    0 0 0 1px rgba(200, 85, 30, 0.4),
+    0 0 30px rgba(200, 85, 30, 0.5),
+    0 0 50px rgba(200, 85, 30, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Эффект нажатости для десктопной версии */
+.mobile-glow-btn.desktop-glow-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98) !important;
+}
