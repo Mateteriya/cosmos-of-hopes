@@ -170,13 +170,35 @@ export default function CreateRoomModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-white/30 rounded-xl p-4 sm:p-6 max-w-md w-full shadow-2xl">
-        <h2 className="text-white font-bold text-xl sm:text-2xl mb-3 sm:mb-4">{t('createRoom')}</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 overflow-y-auto">
+      <div 
+        className="bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-white/30 rounded-2xl w-[95vw] sm:w-full sm:max-w-md shadow-2xl max-h-[90vh] sm:max-h-none overflow-y-auto backdrop-blur-xl"
+        style={{
+          position: 'absolute',
+          top: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          margin: 0,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        {/* Заголовок с улучшенной типографикой */}
+        <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-white/10">
+          <h2 className="text-white font-bold text-xl sm:text-2xl tracking-tight" style={{ 
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-0.02em'
+          }}>
+            {t('createRoom')}
+          </h2>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        {/* Форма с улучшенными отступами */}
+        <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-5">
           <div>
-            <label className="block text-white/80 text-xs sm:text-sm mb-1.5 sm:mb-2">
+            <label className="block text-white/90 text-sm sm:text-base font-semibold mb-2 sm:mb-2.5 px-1" style={{ 
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.01em'
+            }}>
               {t('roomName')}
             </label>
             <input
@@ -184,19 +206,34 @@ export default function CreateRoomModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('roomNameExample')}
-              className="w-full bg-slate-700/50 border border-white/20 rounded-lg px-3 sm:px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+              className="w-full bg-slate-700/60 border-2 border-white/20 rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 text-white placeholder-white/50 focus:outline-none focus:border-purple-500/80 focus:ring-2 focus:ring-purple-500/30 text-base sm:text-base transition-all shadow-inner"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)',
+              }}
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="block text-white/80 text-xs sm:text-sm mb-1.5 sm:mb-2">
+            <label className="block text-white/90 text-sm sm:text-base font-semibold mb-2 sm:mb-2.5 px-1" style={{ 
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              letterSpacing: '0.01em'
+            }}>
               {t('selectTimezone')}
             </label>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="w-full bg-slate-700/50 border border-white/20 rounded-lg px-3 sm:px-4 py-2 text-white focus:outline-none focus:border-purple-500 text-sm sm:text-base"
+              className="w-full bg-slate-700/60 border-2 border-white/20 rounded-xl px-4 sm:px-5 py-3 sm:py-3.5 text-white focus:outline-none focus:border-purple-500/80 focus:ring-2 focus:ring-purple-500/30 text-base sm:text-base transition-all shadow-inner appearance-none cursor-pointer"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 1rem center',
+                paddingRight: '2.5rem',
+              }}
               disabled={isLoading}
             >
               {TIMEZONES.map(tz => (
@@ -208,24 +245,35 @@ export default function CreateRoomModal({
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 rounded-lg px-3 sm:px-4 py-2 text-red-200 text-xs sm:text-sm">
+            <div className="bg-red-500/20 border-2 border-red-500/50 rounded-xl px-4 py-3 text-red-200 text-sm font-medium" style={{
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)',
+            }}>
               {error}
             </div>
           )}
 
-          <div className="flex gap-2 sm:gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-3 pt-2 sm:pt-3">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 bg-slate-700/50 hover:bg-slate-700 text-white font-bold px-3 sm:px-4 py-2 rounded-lg transition-all disabled:opacity-50 text-sm sm:text-base"
+              className="flex-1 bg-slate-700/60 hover:bg-slate-700/80 text-white font-semibold px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl transition-all disabled:opacity-50 text-base sm:text-base touch-manipulation min-h-[48px] sm:min-h-0 border-2 border-white/10 hover:border-white/20 shadow-lg"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              }}
             >
               {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-3 sm:px-4 py-2 rounded-lg transition-all disabled:opacity-50 text-sm sm:text-base"
+              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-4 sm:px-5 py-3 sm:py-3.5 rounded-xl transition-all disabled:opacity-50 text-base sm:text-base touch-manipulation min-h-[48px] sm:min-h-0 border-2 border-white/20 shadow-lg hover:shadow-xl"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                boxShadow: '0 4px 6px -1px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              }}
             >
               {isLoading ? t('creating') : t('create')}
             </button>

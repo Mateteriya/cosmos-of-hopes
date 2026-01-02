@@ -28,10 +28,30 @@ export default function LanguageSwitcher() {
       <select
         value={language}
         onChange={(e) => setLanguage(e.target.value as 'ru' | 'en')}
-        className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-white font-bold text-xs sm:text-base cursor-pointer active:border-white/50 transition-colors shadow-xl max-w-[100px] sm:max-w-none"
+        className="bg-slate-800/95 backdrop-blur-md border-2 border-white/30 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-white font-semibold text-xs sm:text-base cursor-pointer active:border-white/50 transition-all duration-300 shadow-xl max-w-[100px] sm:max-w-none hover:border-cyan-400/80 hover:bg-slate-700/95 hover:shadow-cyan-400/30 font-[var(--font-inter)] tracking-wide"
+        style={{
+          fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif',
+          letterSpacing: '0.025em',
+        }}
       >
-        <option value="ru">{isMobile ? '🇷🇺 Рус' : '🇷🇺 Русский'}</option>
-        <option value="en">{isMobile ? '🇺🇸 Eng' : '🇺🇸 English'}</option>
+        <option 
+          value="ru" 
+          className="bg-slate-800 text-white font-semibold"
+          style={{
+            fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif',
+          }}
+        >
+          {isMobile ? '🇷🇺 Рус' : '🇷🇺 Русский'}
+        </option>
+        <option 
+          value="en"
+          className="bg-slate-800 text-white font-semibold"
+          style={{
+            fontFamily: 'var(--font-inter), system-ui, -apple-system, sans-serif',
+          }}
+        >
+          {isMobile ? '🇺🇸 Eng' : '🇺🇸 English'}
+        </option>
       </select>
     </div>
   );
