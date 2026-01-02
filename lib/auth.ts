@@ -17,6 +17,8 @@ export async function signUp(email: string, password: string) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
     (typeof window !== 'undefined' ? window.location.origin : 'https://super2026.online');
   
+  console.log('[Auth] SignUp attempt:', { email, appUrl });
+  
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -26,8 +28,15 @@ export async function signUp(email: string, password: string) {
   });
 
   if (error) {
+    console.error('[Auth] SignUp error:', error);
     throw new Error(error.message);
   }
+
+  console.log('[Auth] SignUp success:', { 
+    user: data.user?.id, 
+    email: data.user?.email,
+    emailSent: data.user?.email_confirmed_at ? 'already confirmed' : 'confirmation email should be sent'
+  });
 
   return data;
 }
@@ -93,6 +102,54 @@ export async function getSession() {
   }
 
   return session;
+}
+
+/**
+ * Сброс пароля (отправка email для сброса)
+ */
+export async function resetPassword(email: string) {
+  // Получаем URL приложения из переменных окружения или используем текущий домен
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 
+    (typeof window !== 'undefined' ? window.location.origin : 'https://super2026.online');
+  
+  console.log('[Auth] Reset password attempt:', { email, appUrl });
+  console.log('[Auth] Redirect URL will be:', `${appUrl}/auth/callback?type=recovery`);
+  
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${appUrl}/auth/callback?type=recovery`,
+  });
+
+  if (error) {
+    console.error('[Auth] Reset password error:', error);
+    console.error('[Auth] Error details:', JSON.stringify(error, null, 2));
+    throw new Error(error.message);
+  }
+
+  console.log('[Auth] Reset password response:', data);
+  console.log('[Auth] Reset password email should be sent to:', email);
+  
+  // Важно: Supabase всегда возвращает success, даже если email не найден (из соображений безопасности)
+  // Письмо отправляется только если пользователь с таким email существует
+  return data;
+}
+
+/**
+ * Обновление пароля (после перехода по ссылке сброса)
+ */
+export async function updatePassword(newPassword: string) {
+  console.log('[Auth] Updating password...');
+  
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  if (error) {
+    console.error('[Auth] Update password error:', error);
+    throw new Error(error.message);
+  }
+
+  console.log('[Auth] Password updated successfully');
+  return data;
 }
 
 /**

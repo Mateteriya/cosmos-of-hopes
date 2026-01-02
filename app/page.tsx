@@ -18,6 +18,7 @@ import {
 import RemoteNewYear from '@/components/info/RemoteNewYear';
 import AboutProgram from '@/components/info/AboutProgram';
 import AppRating from '@/components/info/AppRating';
+import ConditionalAuthButton from '@/components/auth/ConditionalAuthButton';
 
 export default function Home() {
   const router = useRouter();
@@ -73,6 +74,9 @@ export default function Home() {
         <LanguageSwitcher />
         <AutoTranslator />
       </div>
+      
+      {/* Временная кнопка выхода для отладки - удалить после исправления меню */}
+      <ConditionalAuthButton />
       
       {/* Модальное окно запроса уведомлений для второго захода */}
       {showNotificationPrompt && (

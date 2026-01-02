@@ -7,11 +7,71 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { updatePassword } from '@/lib/auth';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'setPassword'>('loading');
   const [message, setMessage] = useState('Обработка подтверждения...');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [recoveryTokens, setRecoveryTokens] = useState<{ accessToken: string; refreshToken: string } | null>(null);
+
+  // КРИТИЧЕСКИ ВАЖНО: Проверяем recovery ДО основного useEffect
+  // Это предотвращает автоматическую установку сессии Supabase
+  useEffect(() => {
+    // Проверяем, является ли это recovery flow СРАЗУ при монтировании
+    if (typeof window === 'undefined') return;
+    
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const searchParams = new URLSearchParams(window.location.search);
+    const type = hashParams.get('type') || searchParams.get('type');
+    
+    if (type === 'recovery') {
+      console.log('[AuthCallback] Early recovery detection - clearing URL hash immediately');
+      
+      // КРИТИЧЕСКИ ВАЖНО: Очищаем hash из URL СРАЗУ, чтобы Supabase не мог автоматически установить сессию
+      // Это должно произойти ДО того, как Supabase клиент успеет обработать токены
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        // Сохраняем токены в sessionStorage перед очисткой URL
+        sessionStorage.setItem('recovery_access_token', accessToken);
+        sessionStorage.setItem('recovery_refresh_token', refreshToken);
+        console.log('[AuthCallback] Recovery tokens saved to sessionStorage');
+      }
+      
+      // Очищаем hash из URL
+      const newUrl = window.location.pathname + (window.location.search || '');
+      window.history.replaceState({}, '', newUrl);
+      console.log('[AuthCallback] Hash cleared from URL to prevent auto-session');
+      
+      // Немедленно выходим из сессии, если она есть
+      supabase.auth.signOut().then(() => {
+        console.log('[AuthCallback] Early signOut completed');
+      }).catch((err) => {
+        console.error('[AuthCallback] Early signOut error:', err);
+      });
+      
+      // Устанавливаем слушатель изменений сессии, чтобы немедленно выходить,
+      // если Supabase попытается автоматически установить сессию
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          console.warn('[AuthCallback] Session auto-set detected during recovery! Signing out immediately...');
+          supabase.auth.signOut().catch((err) => {
+            console.error('[AuthCallback] Failed to sign out after auto-login:', err);
+          });
+        }
+      });
+      
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, []); // Выполняется только один раз при монтировании
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -21,38 +81,113 @@ export default function AuthCallbackPage() {
         console.log('[AuthCallback] Hash:', window.location.hash);
         console.log('[AuthCallback] Search:', window.location.search);
 
-        // Сначала проверяем hash параметры (стандартный формат Supabase)
+        // КРИТИЧЕСКИ ВАЖНО: Проверяем recovery САМЫМ ПЕРВЫМ делом, ДО ВСЕГО
+        // Сначала проверяем URL на наличие recovery параметров
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+        const type = hashParams.get('type') || searchParams.get('type');
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
+
+        // Если это recovery, НЕМЕДЛЕННО выходим из сессии (если она есть)
+        // и НЕ устанавливаем новую сессию
+        if (type === 'recovery') {
+          console.log('[AuthCallback] ⚠️ RECOVERY FLOW DETECTED - preventing auto-login');
+          
+          // Проверяем, есть ли уже сессия (Supabase мог установить её автоматически)
+          const { data: { session: existingSession } } = await supabase.auth.getSession();
+          if (existingSession) {
+            console.warn('[AuthCallback] Session already exists, signing out...');
+            await supabase.auth.signOut();
+            // Проверяем еще раз
+            const { data: { session: sessionAfterSignOut } } = await supabase.auth.getSession();
+            if (sessionAfterSignOut) {
+              console.error('[AuthCallback] Session still exists after signOut!');
+              // Пытаемся еще раз
+              await supabase.auth.signOut();
+            }
+          }
+          
+          // Пытаемся получить токены из URL или из sessionStorage (если URL уже очищен)
+          let finalAccessToken = accessToken;
+          let finalRefreshToken = refreshToken;
+          
+          if (!finalAccessToken || !finalRefreshToken) {
+            // Пытаемся получить из sessionStorage
+            finalAccessToken = sessionStorage.getItem('recovery_access_token') || null;
+            finalRefreshToken = sessionStorage.getItem('recovery_refresh_token') || null;
+            console.log('[AuthCallback] Tokens retrieved from sessionStorage:', { 
+              hasAccessToken: !!finalAccessToken, 
+              hasRefreshToken: !!finalRefreshToken 
+            });
+          }
+          
+          if (finalAccessToken && finalRefreshToken) {
+            // Сохраняем токены для последующего использования при обновлении пароля
+            // НЕ устанавливаем сессию сразу, чтобы пользователь не вошел автоматически
+            setRecoveryTokens({ accessToken: finalAccessToken, refreshToken: finalRefreshToken });
+            setStatus('setPassword');
+            setMessage('Установите новый пароль для вашего аккаунта');
+            console.log('[AuthCallback] Recovery tokens saved, showing password form');
+            return; // НЕ продолжаем обработку дальше - показываем форму
+          } else {
+            throw new Error('Токены для сброса пароля не найдены в URL или sessionStorage');
+          }
+        }
+
+        // Продолжаем обычную обработку только если это НЕ recovery
         const error = hashParams.get('error');
         const errorDescription = hashParams.get('error_description');
+
+        console.log('[AuthCallback] Hash params:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type, error });
 
         if (error) {
           console.error('[AuthCallback] Error in hash:', error, errorDescription);
           setStatus('error');
-          setMessage(errorDescription || 'Ошибка при подтверждении email');
+          
+          // Переводим английские сообщения на русский
+          let errorMsg = errorDescription || 'Ошибка при обработке запроса';
+          const errorLower = errorMsg.toLowerCase();
+          if (errorLower.includes('expired') || errorLower.includes('истек')) {
+            errorMsg = 'Ссылка истекла. Запросите новую ссылку.';
+          } else if (errorLower.includes('invalid') || errorLower.includes('неверн')) {
+            errorMsg = 'Неверная ссылка. Запросите новую ссылку.';
+          } else if (errorLower.includes('token')) {
+            errorMsg = 'Неверный токен. Запросите новую ссылку.';
+          }
+          
+          setMessage(errorMsg);
           setTimeout(() => {
             router.push('/');
-          }, 3000);
+          }, 4000);
           return;
         }
 
         if (accessToken && refreshToken) {
-          console.log('[AuthCallback] Found tokens in hash, setting session...');
-          // Устанавливаем сессию
+          console.log('[AuthCallback] Found tokens in hash, type:', type);
+          
+          // Устанавливаем сессию (только для НЕ recovery операций)
           const { data, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
           if (sessionError) {
-            throw sessionError;
+            // Переводим ошибки на русский
+            let errorMsg = sessionError.message || 'Ошибка при установке сессии';
+            const errorLower = errorMsg.toLowerCase();
+            if (errorLower.includes('expired') || errorLower.includes('истек')) {
+              errorMsg = 'Ссылка истекла. Запросите новую ссылку.';
+            } else if (errorLower.includes('invalid') || errorLower.includes('неверн')) {
+              errorMsg = 'Неверная ссылка. Запросите новую ссылку.';
+            }
+            throw new Error(errorMsg);
           }
 
           if (data.user) {
-            console.log('[AuthCallback] Session set successfully, user:', data.user.email);
+            console.log('[AuthCallback] Session set successfully, user:', data.user.email, 'type:', type);
             
+            // Для регистрации - мигрируем данные
             // Мигрируем данные анонимного пользователя к зарегистрированному
             try {
               const { migrateAnonymousDataToUser } = await import('@/lib/userMigration');
@@ -139,10 +274,30 @@ export default function AuthCallbackPage() {
       } catch (error: any) {
         console.error('[AuthCallback] Error:', error);
         setStatus('error');
-        setMessage(error.message || 'Ошибка при подтверждении email');
+        
+        // Переводим английские сообщения об ошибках на русский
+        let errorMessage = error.message || 'Ошибка при обработке запроса';
+        
+        // Переводим распространенные ошибки Supabase
+        const errorLower = errorMessage.toLowerCase();
+        if (errorLower.includes('expired') || errorLower.includes('истек')) {
+          errorMessage = 'Ссылка истекла. Запросите новую ссылку.';
+        } else if (errorLower.includes('invalid') || errorLower.includes('неверн')) {
+          errorMessage = 'Неверная ссылка. Запросите новую ссылку.';
+        } else if (errorLower.includes('token')) {
+          errorMessage = 'Неверный токен. Запросите новую ссылку.';
+        } else if (errorLower.includes('email') && errorLower.includes('confirm')) {
+          errorMessage = 'Ошибка при подтверждении email. Попробуйте еще раз.';
+        } else if (errorLower.includes('password') && errorLower.includes('reset')) {
+          errorMessage = 'Ошибка при сбросе пароля. Запросите новую ссылку.';
+        } else if (errorLower.includes('session') || errorLower.includes('сессия')) {
+          errorMessage = 'Ошибка при установке сессии. Попробуйте войти заново.';
+        }
+        
+        setMessage(errorMessage);
         setTimeout(() => {
           router.push('/');
-        }, 3000);
+        }, 4000);
       }
     };
 
@@ -185,6 +340,125 @@ export default function AuthCallbackPage() {
             >
               Вернуться на сайт
             </button>
+          </>
+        )}
+
+        {status === 'setPassword' && (
+          <>
+            <div className="text-4xl mb-4">🔐</div>
+            <h2 className="text-xl font-bold text-white mb-2">Установка нового пароля</h2>
+            <p className="text-slate-300 mb-4">{message}</p>
+            
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setPasswordError(null);
+                
+                // Валидация
+                if (newPassword.length < 6) {
+                  setPasswordError('Пароль должен быть не менее 6 символов');
+                  return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                  setPasswordError('Пароли не совпадают');
+                  return;
+                }
+                
+                setIsSettingPassword(true);
+                try {
+                  // Сначала устанавливаем сессию с сохраненными токенами для обновления пароля
+                  if (recoveryTokens) {
+                    console.log('[AuthCallback] Setting session for password update...');
+                    const { error: sessionError } = await supabase.auth.setSession({
+                      access_token: recoveryTokens.accessToken,
+                      refresh_token: recoveryTokens.refreshToken,
+                    });
+
+                    if (sessionError) {
+                      throw new Error('Сессия истекла. Запросите новую ссылку для сброса пароля.');
+                    }
+                  }
+
+                  // Обновляем пароль
+                  await updatePassword(newPassword);
+                  
+                  // Выходим из сессии, чтобы пользователь мог войти с новым паролем
+                  await supabase.auth.signOut();
+                  
+                  // Очищаем токены из sessionStorage
+                  sessionStorage.removeItem('recovery_access_token');
+                  sessionStorage.removeItem('recovery_refresh_token');
+                  
+                  setStatus('success');
+                  setMessage('Пароль успешно изменен! Теперь вы можете войти в свой аккаунт с новым паролем.');
+                  setTimeout(() => {
+                    router.push('/');
+                  }, 2000);
+                } catch (error: any) {
+                  // Переводим ошибки на русский
+                  let errorMsg = error.message || 'Ошибка при установке пароля';
+                  const errorLower = errorMsg.toLowerCase();
+                  if (errorLower.includes('expired') || errorLower.includes('истек')) {
+                    errorMsg = 'Ссылка истекла. Запросите новую ссылку для сброса пароля.';
+                  } else if (errorLower.includes('invalid') || errorLower.includes('неверн')) {
+                    errorMsg = 'Неверная ссылка. Запросите новую ссылку для сброса пароля.';
+                  } else if (errorLower.includes('session')) {
+                    errorMsg = 'Сессия истекла. Запросите новую ссылку для сброса пароля.';
+                  }
+                  setPasswordError(errorMsg);
+                } finally {
+                  setIsSettingPassword(false);
+                }
+              }}
+              className="space-y-4 text-left"
+            >
+              <div>
+                <label className="block text-white/80 text-sm mb-2">
+                  Новый пароль
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Минимум 6 символов"
+                  required
+                  minLength={6}
+                  className="w-full bg-slate-700/50 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+                  disabled={isSettingPassword}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-white/80 text-sm mb-2">
+                  Подтвердите пароль
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Повторите пароль"
+                  required
+                  minLength={6}
+                  className="w-full bg-slate-700/50 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-purple-500"
+                  disabled={isSettingPassword}
+                />
+              </div>
+              
+              {passwordError && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-lg px-4 py-2 text-red-200 text-sm">
+                  {passwordError}
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                disabled={isSettingPassword}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isSettingPassword ? 'Установка пароля...' : 'Установить новый пароль'}
+              </button>
+            </form>
           </>
         )}
 
