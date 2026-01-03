@@ -101,23 +101,39 @@ export default function AuthCallbackPage() {
         const accessToken = hashParams.get('access_token');
         const refreshToken = hashParams.get('refresh_token');
 
-        // Если это recovery, НЕМЕДЛЕННО выходим из сессии (если она есть)
-        // и НЕ устанавливаем новую сессию
+        // Если это recovery, проверяем сессию, но НЕ выходим из неё
+        // Сессия уже должна быть установлена в раннем useEffect
         if (type === 'recovery') {
-          console.log('[AuthCallback] ⚠️ RECOVERY FLOW DETECTED - preventing auto-login');
+          console.log('[AuthCallback] ⚠️ RECOVERY FLOW DETECTED - checking existing session');
           
-          // Проверяем, есть ли уже сессия (Supabase мог установить её автоматически)
+          // Проверяем, есть ли уже сессия (должна быть установлена в раннем useEffect)
           const { data: { session: existingSession } } = await supabase.auth.getSession();
           if (existingSession) {
-            console.warn('[AuthCallback] Session already exists, signing out...');
-            await supabase.auth.signOut();
-            // Проверяем еще раз
-            const { data: { session: sessionAfterSignOut } } = await supabase.auth.getSession();
-            if (sessionAfterSignOut) {
-              console.error('[AuthCallback] Session still exists after signOut!');
-              // Пытаемся еще раз
-              await supabase.auth.signOut();
+            console.log('[AuthCallback] ✅ Active session found for recovery, user:', existingSession.user?.email);
+            // НЕ выходим из сессии - она нужна для обновления пароля!
+            // Просто сохраняем email и токены для формы
+            if (existingSession.user?.email) {
+              const savedEmail = sessionStorage.getItem('recovery_email');
+              if (!savedEmail) {
+                setRecoveryEmail(existingSession.user.email);
+                sessionStorage.setItem('recovery_email', existingSession.user.email);
+              }
             }
+            
+            // Сохраняем токены из sessionStorage для формы
+            const savedAccessToken = sessionStorage.getItem('recovery_access_token');
+            const savedRefreshToken = sessionStorage.getItem('recovery_refresh_token');
+            if (savedAccessToken && savedRefreshToken) {
+              setRecoveryTokens({ accessToken: savedAccessToken, refreshToken: savedRefreshToken });
+            }
+            
+            // Показываем форму сразу, т.к. сессия уже активна
+            setStatus('setPassword');
+            setMessage('Установите новый пароль для вашего аккаунта');
+            console.log('[AuthCallback] Showing password form with active session');
+            return; // НЕ продолжаем обработку дальше - показываем форму
+          } else {
+            console.warn('[AuthCallback] No active session found - will try to set from tokens');
           }
           
           // Пытаемся получить токены из URL или из sessionStorage (если URL уже очищен)
@@ -421,72 +437,41 @@ export default function AuthCallbackPage() {
                 
                 setIsSettingPassword(true);
                 try {
-                  // Проверяем, что сессия еще активна
+                  // Проверяем, что сессия еще активна (должна быть установлена ранее)
                   let { data: { session: currentSession } } = await supabase.auth.getSession();
                   
-                  // Если сессия не активна, пытаемся установить её с токенами
-                  // Пытаемся несколько раз, т.к. токены могут истекать быстро
+                  // Если сессия не активна, пытаемся восстановить её с токенами
                   if (!currentSession) {
+                    console.warn('[AuthCallback] Session not found at form submit, trying to restore...');
                     if (recoveryTokens) {
-                      console.log('[AuthCallback] Session not found, setting session from recovery tokens...');
-                      
-                      let sessionRestored = false;
-                      let attempts = 0;
-                      const maxAttempts = 3;
-                      
-                      while (!sessionRestored && attempts < maxAttempts) {
-                        attempts++;
-                        const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                          access_token: recoveryTokens.accessToken,
-                          refresh_token: recoveryTokens.refreshToken,
-                        });
+                      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                        access_token: recoveryTokens.accessToken,
+                        refresh_token: recoveryTokens.refreshToken,
+                      });
 
-                        if (sessionError) {
-                          console.error(`[AuthCallback] Attempt ${attempts} failed to set session:`, sessionError);
-                          // Проверяем тип ошибки
-                          const errorMsg = sessionError.message || '';
-                          if (errorMsg.toLowerCase().includes('expired') || errorMsg.toLowerCase().includes('invalid')) {
-                            throw new Error('Ссылка для сброса пароля истекла. Запросите новую ссылку.');
-                          }
-                          
-                          if (attempts < maxAttempts) {
-                            // Небольшая задержка перед повторной попыткой
-                            await new Promise(resolve => setTimeout(resolve, 200));
-                            continue;
-                          }
-                          
-                          throw new Error('Не удалось установить сессию. Запросите новую ссылку для сброса пароля.');
+                      if (sessionError) {
+                        console.error('[AuthCallback] Failed to restore session:', sessionError);
+                        const errorMsg = sessionError.message || '';
+                        if (errorMsg.toLowerCase().includes('expired') || errorMsg.toLowerCase().includes('invalid')) {
+                          throw new Error('Ссылка для сброса пароля истекла. Запросите новую ссылку.');
                         }
-                        
+                        throw new Error('Не удалось установить сессию. Запросите новую ссылку для сброса пароля.');
+                      }
+                      
+                      if (sessionData.session) {
                         currentSession = sessionData.session;
-                        sessionRestored = true;
-                        console.log('[AuthCallback] Session restored successfully on attempt', attempts);
+                        console.log('[AuthCallback] Session restored successfully');
                       }
                     } else {
                       throw new Error('Токены для сброса пароля не найдены. Запросите новую ссылку.');
                     }
+                  } else {
+                    console.log('[AuthCallback] ✅ Active session confirmed, user:', currentSession.user?.email);
                   }
 
-                  // Проверяем, что сессия действительно активна
+                  // Финальная проверка: убеждаемся, что сессия действительно активна
                   if (!currentSession) {
                     throw new Error('Сессия не найдена. Запросите новую ссылку для сброса пароля.');
-                  }
-
-                  // Дополнительная проверка: убеждаемся, что сессия действительно активна перед обновлением
-                  const { data: { session: finalCheck } } = await supabase.auth.getSession();
-                  if (!finalCheck) {
-                    console.warn('[AuthCallback] Session lost before password update, trying to restore one more time...');
-                    if (recoveryTokens) {
-                      const { error: lastAttemptError } = await supabase.auth.setSession({
-                        access_token: recoveryTokens.accessToken,
-                        refresh_token: recoveryTokens.refreshToken,
-                      });
-                      if (lastAttemptError) {
-                        throw new Error('Сессия истекла во время ввода пароля. Запросите новую ссылку для сброса пароля.');
-                      }
-                    } else {
-                      throw new Error('Сессия истекла во время ввода пароля. Запросите новую ссылку для сброса пароля.');
-                    }
                   }
 
                   // Обновляем пароль (сессия активна)
