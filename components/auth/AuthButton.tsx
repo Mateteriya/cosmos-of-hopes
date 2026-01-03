@@ -16,7 +16,7 @@ export default function AuthButton() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'signin' | 'signup'>('signup');
+  const [modalMode, setModalMode] = useState<'signin' | 'signup'>('signin'); // По умолчанию показываем форму входа
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -331,22 +331,16 @@ export default function AuthButton() {
                 collapseTimerRef.current = null;
               }
               
-              // Раскрываем кнопки при клике на замочек
+              // При клике на замочек открываем форму ВХОДА (приоритет)
+              setModalMode('signin');
+              setShowModal(true);
+              
+              // Раскрываем кнопки при клике на замочек (для визуального эффекта)
               setIsCollapsed(false);
               setIsHovered(true);
-              
-              // Автоматически сворачиваем через 3 секунды, если модальное окно не открыто
-              if (!showModal) {
-                collapseTimerRef.current = setTimeout(() => {
-                  if (isMobile && !user && !isLoading && !showModal) {
-                    setIsCollapsed(true);
-                    setIsHovered(false);
-                  }
-                }, 3000);
-              }
             }}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-lg shadow-2xl transition-all transform hover:scale-105 backdrop-blur-md border-2 border-white/20 px-2 py-2 text-xl"
-            title={`${t('signUp')} / ${t('signInToAccount')}`}
+            title={t('signInToAccount') || 'Вход'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />

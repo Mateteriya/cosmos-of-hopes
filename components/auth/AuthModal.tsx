@@ -4,7 +4,7 @@
  * Модальное окно для регистрации и входа
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signUp, signIn, getCurrentUser, resetPassword } from '@/lib/auth';
 import { migrateUserData } from '@/lib/userMigration';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
@@ -20,10 +20,17 @@ export default function AuthModal({
   isOpen,
   onClose,
   onSuccess,
-  initialMode = 'signup',
+  initialMode = 'signin', // По умолчанию показываем форму входа
 }: AuthModalProps) {
   const { t } = useLanguage();
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+  
+  // Обновляем режим при изменении initialMode
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+    }
+  }, [initialMode, isOpen]);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
