@@ -113,11 +113,10 @@ export default function AuthCallbackPage() {
             // НЕ выходим из сессии - она нужна для обновления пароля!
             // Просто сохраняем email и токены для формы
             if (existingSession.user?.email) {
-              const savedEmail = sessionStorage.getItem('recovery_email');
-              if (!savedEmail) {
-                setRecoveryEmail(existingSession.user.email);
-                sessionStorage.setItem('recovery_email', existingSession.user.email);
-              }
+              // Всегда устанавливаем email в state для отображения в форме
+              setRecoveryEmail(existingSession.user.email);
+              // Сохраняем в sessionStorage для надежности
+              sessionStorage.setItem('recovery_email', existingSession.user.email);
             }
             
             // Сохраняем токены из sessionStorage для формы
@@ -174,16 +173,16 @@ export default function AuthCallbackPage() {
               } else if (sessionData.session) {
                 currentSession = sessionData.session;
                 console.log('[AuthCallback] Session set successfully, user:', sessionData.user?.email);
-                // Сохраняем email, если его еще нет
-                if (sessionData.user?.email && !savedEmail) {
+                // Сохраняем email (всегда, для отображения в форме)
+                if (sessionData.user?.email) {
                   setRecoveryEmail(sessionData.user.email);
                   sessionStorage.setItem('recovery_email', sessionData.user.email);
                 }
               }
             } else {
               console.log('[AuthCallback] Active session found, user:', currentSession.user?.email);
-              // Сохраняем email из активной сессии
-              if (currentSession.user?.email && !savedEmail) {
+              // Сохраняем email из активной сессии (всегда, для отображения в форме)
+              if (currentSession.user?.email) {
                 setRecoveryEmail(currentSession.user.email);
                 sessionStorage.setItem('recovery_email', currentSession.user.email);
               }
