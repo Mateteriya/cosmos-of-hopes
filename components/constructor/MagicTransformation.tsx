@@ -188,6 +188,7 @@ function Toy3D({
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
+        tex.anisotropy = 16; // Улучшенная фильтрация для высокого качества
         
         // НЕ используем offset - это может создавать артефакты
         // Вместо этого используем текстуру как есть
@@ -211,12 +212,12 @@ function Toy3D({
   const gradientTexture = useMemo(() => {
     if (effects.gradient && !texture) {
       const canvas = document.createElement('canvas');
-      canvas.width = 512; // Увеличиваем разрешение для лучшего качества
-      canvas.height = 512;
+      canvas.width = 2048; // Увеличиваем разрешение для высокого качества
+      canvas.height = 2048;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         // Создаем радиальный градиент с более плавными переходами
-        const gradient = ctx.createRadialGradient(256, 256, 50, 256, 256, 256);
+        const gradient = ctx.createRadialGradient(1024, 1024, 200, 1024, 1024, 1024);
         
         // Преобразуем HEX цвет в RGB
         const hex = color.replace('#', '');
@@ -243,7 +244,7 @@ function Toy3D({
         gradient.addColorStop(1, `rgb(${darkR}, ${darkG}, ${darkB})`);
         
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 512, 512);
+        ctx.fillRect(0, 0, 2048, 2048);
         const tex = new THREE.CanvasTexture(canvas);
         tex.wrapS = THREE.ClampToEdgeWrapping;
         tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -262,18 +263,18 @@ function Toy3D({
   const patternTexture = useMemo(() => {
     if (pattern === 'stripes' && !texture && !gradientTexture) {
       const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
+      canvas.width = 1024; // Увеличиваем разрешение для высокого качества
+      canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.fillStyle = color;
-        ctx.fillRect(0, 0, 256, 256);
+        ctx.fillRect(0, 0, 1024, 1024);
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 40; // Увеличиваем толщину линии пропорционально разрешению
         for (let i = 0; i < 10; i++) {
           ctx.beginPath();
-          ctx.moveTo(0, i * 25.6);
-          ctx.lineTo(256, i * 25.6);
+          ctx.moveTo(0, i * 102.4);
+          ctx.lineTo(1024, i * 102.4);
           ctx.stroke();
         }
         const tex = new THREE.CanvasTexture(canvas);
@@ -283,21 +284,22 @@ function Toy3D({
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
+        tex.anisotropy = 16; // Улучшенная фильтрация для высокого качества
         return tex;
       }
     } else if (pattern === 'dots' && !texture && !gradientTexture) {
       const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
+      canvas.width = 1024; // Увеличиваем разрешение для высокого качества
+      canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.fillStyle = color;
-        ctx.fillRect(0, 0, 256, 256);
+        ctx.fillRect(0, 0, 1024, 1024);
         ctx.fillStyle = '#fff';
-        for (let x = 0; x < 256; x += 64) {
-          for (let y = 0; y < 256; y += 64) {
+        for (let x = 0; x < 1024; x += 256) {
+          for (let y = 0; y < 1024; y += 256) {
             ctx.beginPath();
-            ctx.arc(x, y, 15, 0, Math.PI * 2);
+            ctx.arc(x, y, 60, 0, Math.PI * 2); // Увеличиваем размер точек пропорционально разрешению
             ctx.fill();
           }
         }
@@ -308,6 +310,7 @@ function Toy3D({
         tex.generateMipmaps = true;
         tex.minFilter = THREE.LinearMipmapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
+        tex.anisotropy = 16; // Улучшенная фильтрация для высокого качества
         return tex;
       }
     }
@@ -331,10 +334,11 @@ function Toy3D({
       roughness = 0.2; // Металл - высокий металлизм
     }
     
-    // Если есть текстура, корректируем параметры
+    // Если есть текстура, корректируем параметры для лучшей 3D-видимости
     if (texture || patternTexture || gradientTexture) {
-      metalness = texture ? 0.1 : metalness * 0.5;
-      roughness = texture ? 0.2 : roughness;
+      // Улучшаем параметры для подчеркивания 3D-формы даже с эффектами
+      metalness = texture ? 0.2 : (effects.gradient || effects.glow ? 0.3 : metalness * 0.6);
+      roughness = texture ? 0.15 : (effects.gradient || effects.glow ? 0.25 : roughness * 0.7);
     }
     
     // Определяем цвет материала: 
@@ -386,6 +390,9 @@ function Toy3D({
       opacity: 1.0,
       flatShading: false, // Плавные грани для реалистичности
       envMapIntensity: surfaceType === 'glossy' ? 1.5 : surfaceType === 'metal' ? 2.0 : 0.5, // Отражения для глянца и металла
+      // Добавляем specular для эффекта отблеска света
+      specular: new THREE.Color(0xffffff),
+      shininess: surfaceType === 'glossy' ? 100 : surfaceType === 'metal' ? 80 : 30, // Блеск для подчеркивания 3D-формы
     });
     
       // ПРИОРИТЕТ: Пользовательский рисунок > Градиент > Узор
@@ -397,6 +404,8 @@ function Toy3D({
         mat.map.wrapS = THREE.RepeatWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
+        // Улучшенная фильтрация для высокого качества
+        if (mat.map.anisotropy !== undefined) mat.map.anisotropy = 16;
         // Не используем offset - это может создавать черную полосу
         if (mat.map.offset) mat.map.offset.set(0, 0);
         if (mat.map.repeat) mat.map.repeat.set(1, 1);
@@ -406,12 +415,14 @@ function Toy3D({
         mat.map.wrapS = THREE.ClampToEdgeWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
+        if (mat.map.anisotropy !== undefined) mat.map.anisotropy = 16;
       } else if (patternTexture && patternTexture.image) {
         mat.map = patternTexture;
         mat.map.needsUpdate = true;
         mat.map.wrapS = THREE.ClampToEdgeWrapping;
         mat.map.wrapT = THREE.ClampToEdgeWrapping;
         mat.map.flipY = false;
+        if (mat.map.anisotropy !== undefined) mat.map.anisotropy = 16;
       } else {
         mat.map = null;
       }
@@ -499,6 +510,8 @@ function Toy3D({
         material.map.wrapS = THREE.RepeatWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        // Улучшенная фильтрация для высокого качества
+        if (material.map.anisotropy !== undefined) material.map.anisotropy = 16;
         // Не используем offset - это может создавать черную полосу
         if (material.map.offset) material.map.offset.set(0, 0);
         if (material.map.repeat) material.map.repeat.set(1, 1);
@@ -508,12 +521,14 @@ function Toy3D({
         material.map.wrapS = THREE.ClampToEdgeWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        if (material.map.anisotropy !== undefined) material.map.anisotropy = 16;
       } else if (patternTexture && patternTexture.image) {
         material.map = patternTexture;
         material.map.needsUpdate = true;
         material.map.wrapS = THREE.ClampToEdgeWrapping;
         material.map.wrapT = THREE.ClampToEdgeWrapping;
         material.map.flipY = false;
+        if (material.map.anisotropy !== undefined) material.map.anisotropy = 16;
       } else {
         material.map = null;
       }
