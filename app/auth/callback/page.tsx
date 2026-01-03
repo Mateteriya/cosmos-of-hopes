@@ -18,6 +18,7 @@ export default function AuthCallbackPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isSettingPassword, setIsSettingPassword] = useState(false);
   const [recoveryTokens, setRecoveryTokens] = useState<{ accessToken: string; refreshToken: string } | null>(null);
+  const [recoveryEmail, setRecoveryEmail] = useState<string | null>(null);
 
   // КРИТИЧЕСКИ ВАЖНО: Проверяем recovery ДО основного useEffect
   // Это предотвращает автоматическую установку сессии Supabase
@@ -30,31 +31,42 @@ export default function AuthCallbackPage() {
     const type = hashParams.get('type') || searchParams.get('type');
     
     if (type === 'recovery') {
-      console.log('[AuthCallback] Early recovery detection - clearing URL hash immediately');
+      console.log('[AuthCallback] Early recovery detection - setting session first, then clearing hash');
       
-      // КРИТИЧЕСКИ ВАЖНО: Очищаем hash из URL СРАЗУ, чтобы Supabase не мог автоматически установить сессию
-      // Это должно произойти ДО того, как Supabase клиент успеет обработать токены
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       
       if (accessToken && refreshToken) {
-        // Сохраняем токены в sessionStorage перед очисткой URL
-        sessionStorage.setItem('recovery_access_token', accessToken);
-        sessionStorage.setItem('recovery_refresh_token', refreshToken);
-        console.log('[AuthCallback] Recovery tokens saved to sessionStorage');
+        // ВАЖНО: Сначала устанавливаем сессию, чтобы получить email и продлить срок действия токенов
+        // ТОЛЬКО ПОТОМ очищаем hash
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ data: sessionData, error: sessionError }) => {
+          if (sessionError) {
+            console.error('[AuthCallback] Failed to set session in early detection:', sessionError);
+            // Сохраняем токены для попытки позже
+            sessionStorage.setItem('recovery_access_token', accessToken);
+            sessionStorage.setItem('recovery_refresh_token', refreshToken);
+          } else if (sessionData.session) {
+            console.log('[AuthCallback] Session set successfully in early detection, user:', sessionData.user?.email);
+            // Сохраняем email для отображения в форме
+            if (sessionData.user?.email) {
+              sessionStorage.setItem('recovery_email', sessionData.user.email);
+            }
+            // Сохраняем токены
+            sessionStorage.setItem('recovery_access_token', accessToken);
+            sessionStorage.setItem('recovery_refresh_token', refreshToken);
+          }
+          
+          // ТЕПЕРЬ очищаем hash из URL
+          const newUrl = window.location.pathname + (window.location.search || '');
+          window.history.replaceState({}, '', newUrl);
+          console.log('[AuthCallback] Hash cleared from URL');
+        }).catch((err) => {
+          console.error('[AuthCallback] Error in early session setup:', err);
+        });
       }
-      
-      // Очищаем hash из URL
-      const newUrl = window.location.pathname + (window.location.search || '');
-      window.history.replaceState({}, '', newUrl);
-      console.log('[AuthCallback] Hash cleared from URL to prevent auto-session');
-      
-      // Немедленно выходим из сессии, если она есть
-      supabase.auth.signOut().then(() => {
-        console.log('[AuthCallback] Early signOut completed');
-      }).catch((err) => {
-        console.error('[AuthCallback] Early signOut error:', err);
-      });
       
       // Устанавливаем слушатель изменений сессии
       // НО: мы разрешаем установку сессии для recovery (чтобы продлить срок действия токенов)
@@ -122,42 +134,42 @@ export default function AuthCallbackPage() {
             });
           }
           
+          // Получаем email из sessionStorage (если был сохранен)
+          const savedEmail = sessionStorage.getItem('recovery_email');
+          if (savedEmail) {
+            setRecoveryEmail(savedEmail);
+          }
+          
           if (finalAccessToken && finalRefreshToken) {
-            // ВАЖНО: Устанавливаем сессию СРАЗУ и ПОВТОРНО при необходимости
-            // Recovery токены имеют короткий срок жизни, поэтому нужно установить сессию сразу
-            console.log('[AuthCallback] Setting session immediately to prevent token expiration...');
+            // Проверяем, есть ли уже активная сессия (возможно, установлена в раннем useEffect)
+            let { data: { session: currentSession } } = await supabase.auth.getSession();
             
-            // Пытаемся установить сессию несколько раз, если первая попытка не удалась
-            let sessionSet = false;
-            let attempts = 0;
-            const maxAttempts = 3;
-            
-            while (!sessionSet && attempts < maxAttempts) {
-              attempts++;
+            // Если сессии нет, пытаемся установить её
+            if (!currentSession) {
+              console.log('[AuthCallback] No active session, setting session from tokens...');
               const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
                 access_token: finalAccessToken,
                 refresh_token: finalRefreshToken,
               });
 
               if (sessionError) {
-                console.warn(`[AuthCallback] Attempt ${attempts} failed to set session:`, sessionError);
-                if (attempts < maxAttempts) {
-                  // Небольшая задержка перед повторной попыткой
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  continue;
-                }
-                // Если все попытки не удались, все равно показываем форму
-                // Попробуем установить сессию позже при отправке формы
-              } else {
+                console.warn('[AuthCallback] Failed to set session:', sessionError);
+                // Все равно показываем форму - попробуем установить сессию позже
+              } else if (sessionData.session) {
+                currentSession = sessionData.session;
                 console.log('[AuthCallback] Session set successfully, user:', sessionData.user?.email);
-                sessionSet = true;
-                // Проверяем, что сессия действительно активна
-                const { data: { session: verifySession } } = await supabase.auth.getSession();
-                if (verifySession) {
-                  console.log('[AuthCallback] Session verified and active');
-                } else {
-                  console.warn('[AuthCallback] Session set but not found on verification');
+                // Сохраняем email, если его еще нет
+                if (sessionData.user?.email && !savedEmail) {
+                  setRecoveryEmail(sessionData.user.email);
+                  sessionStorage.setItem('recovery_email', sessionData.user.email);
                 }
+              }
+            } else {
+              console.log('[AuthCallback] Active session found, user:', currentSession.user?.email);
+              // Сохраняем email из активной сессии
+              if (currentSession.user?.email && !savedEmail) {
+                setRecoveryEmail(currentSession.user.email);
+                sessionStorage.setItem('recovery_email', currentSession.user.email);
               }
             }
             
@@ -384,6 +396,11 @@ export default function AuthCallbackPage() {
           <>
             <div className="text-4xl mb-4">🔐</div>
             <h2 className="text-xl font-bold text-white mb-2">Установка нового пароля</h2>
+            {recoveryEmail && (
+              <p className="text-cyan-400 text-sm mb-2">
+                Для аккаунта: <span className="font-semibold">{recoveryEmail}</span>
+              </p>
+            )}
             <p className="text-slate-300 mb-4">{message}</p>
             
             <form 
@@ -479,9 +496,10 @@ export default function AuthCallbackPage() {
                   // Выходим из сессии, чтобы пользователь мог войти с новым паролем
                   await supabase.auth.signOut();
                   
-                  // Очищаем токены из sessionStorage
+                  // Очищаем токены и email из sessionStorage
                   sessionStorage.removeItem('recovery_access_token');
                   sessionStorage.removeItem('recovery_refresh_token');
+                  sessionStorage.removeItem('recovery_email');
                   
                   setStatus('success');
                   setMessage('Пароль успешно изменен! Теперь вы можете войти в свой аккаунт с новым паролем.');
