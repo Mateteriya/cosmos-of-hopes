@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { ToyShape, ToyPattern, ToySticker, ToyParams } from '@/types/toy';
 import CanvasEditor from './CanvasEditor';
 import MagicTransformation from './MagicTransformation';
@@ -237,6 +238,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [countryDropdownUp, setCountryDropdownUp] = useState(false);
   const [countryDropdownPosition, setCountryDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const countryButtonRef = useRef<HTMLButtonElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -484,6 +486,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
     }
   }, [isOldBrowser]);
 
+  // Устанавливаем mounted для портала
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Закрываем панели при клике вне их
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -526,11 +533,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       const openUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
       setCountryDropdownUp(openUp);
       
-      // Сохраняем позицию кнопки для fixed позиционирования меню
+      // Сохраняем позицию кнопки для fixed позиционирования меню через портал
+      // Убеждаемся, что позиция не выходит за границы экрана
+      const calculatedTop = openUp ? Math.max(0, rect.top - dropdownHeight) : rect.bottom;
+      const calculatedLeft = Math.max(0, Math.min(rect.left, window.innerWidth - rect.width));
+      
       setCountryDropdownPosition({
-        top: openUp ? rect.top - dropdownHeight : rect.bottom,
-        left: rect.left,
-        width: rect.width,
+        top: calculatedTop,
+        left: calculatedLeft,
+        width: Math.min(rect.width, window.innerWidth - calculatedLeft),
       });
     }
     setShowCountryDropdown(!showCountryDropdown);
@@ -1813,7 +1824,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       </span>
                       <span className="text-white/60">▼</span>
                     </button>
-                    {showCountryDropdown && (
+                    {showCountryDropdown && mounted && countryDropdownPosition && createPortal(
                       <>
                         {/* Overlay для закрытия меню при клике вне его */}
                         <div
@@ -1825,10 +1836,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           className="fixed z-[10000] max-h-[200px] overflow-y-auto bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-emerald-500/40 shadow-xl"
                           style={{ 
                             zIndex: 10000,
-                            top: countryDropdownPosition ? `${countryDropdownPosition.top}px` : 'auto',
-                            left: countryDropdownPosition ? `${countryDropdownPosition.left}px` : 'auto',
-                            width: countryDropdownPosition ? `${countryDropdownPosition.width}px` : '100%',
+                            top: `${countryDropdownPosition.top}px`,
+                            left: `${countryDropdownPosition.left}px`,
+                            width: `${countryDropdownPosition.width}px`,
                           }}
+                          onClick={(e) => e.stopPropagation()}
                         >
                         {COUNTRIES.map((country) => (
                           <button
@@ -1856,7 +1868,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                           </button>
                         ))}
                         </div>
-                      </>
+                      </>,
+                      document.body
                     )}
                   </div>
                 </div>
