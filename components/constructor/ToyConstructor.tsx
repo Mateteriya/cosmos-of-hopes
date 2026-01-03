@@ -236,6 +236,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
   const [birthYear, setBirthYear] = useState<number | null>(null);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [countryDropdownUp, setCountryDropdownUp] = useState(false);
+  const [countryDropdownPosition, setCountryDropdownPosition] = useState<{ top: number; left: number; width: number } | null>(null);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const countryButtonRef = useRef<HTMLButtonElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -522,7 +523,15 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
       const dropdownHeight = 200; // max-h-[200px]
       
       // Если места внизу меньше, чем нужно, и места вверху больше - открываем вверх
-      setCountryDropdownUp(spaceBelow < dropdownHeight && spaceAbove > spaceBelow);
+      const openUp = spaceBelow < dropdownHeight && spaceAbove > spaceBelow;
+      setCountryDropdownUp(openUp);
+      
+      // Сохраняем позицию кнопки для fixed позиционирования меню
+      setCountryDropdownPosition({
+        top: openUp ? rect.top - dropdownHeight : rect.bottom,
+        left: rect.left,
+        width: rect.width,
+      });
     }
     setShowCountryDropdown(!showCountryDropdown);
   };
@@ -1772,11 +1781,11 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                 </div>
 
                 {/* Выбор страны */}
-                <div className="mb-1">
+                <div className="mb-1" style={{ position: 'relative', zIndex: 1 }}>
                   <label className="block text-[9px] font-black text-white/80 mb-0.5 uppercase tracking-wider">
                     {t('selectCountry')}
                   </label>
-                  <div className="relative" ref={countryDropdownRef}>
+                  <div className="relative" ref={countryDropdownRef} style={{ zIndex: 1000 }}>
                     <button
                       ref={countryButtonRef}
                       type="button"
@@ -1805,11 +1814,22 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       <span className="text-white/60">▼</span>
                     </button>
                     {showCountryDropdown && (
-                      <div 
-                        className={`absolute z-50 w-full max-h-[200px] overflow-y-auto bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-emerald-500/40 shadow-xl ${
-                          countryDropdownUp ? 'bottom-full mb-1' : 'top-full mt-1'
-                        }`}
-                      >
+                      <>
+                        {/* Overlay для закрытия меню при клике вне его */}
+                        <div
+                          className="fixed inset-0 z-[9999]"
+                          onClick={() => setShowCountryDropdown(false)}
+                        />
+                        {/* Выпадающее меню с fixed позиционированием для отображения поверх панели */}
+                        <div 
+                          className="fixed z-[10000] max-h-[200px] overflow-y-auto bg-slate-800/95 backdrop-blur-md rounded-lg border-2 border-emerald-500/40 shadow-xl"
+                          style={{ 
+                            zIndex: 10000,
+                            top: countryDropdownPosition ? `${countryDropdownPosition.top}px` : 'auto',
+                            left: countryDropdownPosition ? `${countryDropdownPosition.left}px` : 'auto',
+                            width: countryDropdownPosition ? `${countryDropdownPosition.width}px` : '100%',
+                          }}
+                        >
                         {COUNTRIES.map((country) => (
                           <button
                             key={country.code}
@@ -1835,7 +1855,8 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                             </div>
                           </button>
                         ))}
-                      </div>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
