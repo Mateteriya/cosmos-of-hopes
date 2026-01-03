@@ -133,10 +133,10 @@ export default function AuthCallbackPage() {
             });
 
             if (sessionError) {
-              console.error('[AuthCallback] Failed to set session:', sessionError);
-              // Если сессия не установилась, все равно показываем форму
-              // Возможно, токены уже истекли
-              setPasswordError('Сессия истекла. Запросите новую ссылку для сброса пароля.');
+              console.warn('[AuthCallback] Failed to set session immediately:', sessionError);
+              // НЕ показываем ошибку сразу - возможно, это временная проблема
+              // Попробуем установить сессию позже при отправке формы
+              // Просто логируем предупреждение
             } else {
               console.log('[AuthCallback] Session set successfully, user:', sessionData.user?.email);
               // Сессия установлена, но мы не входим автоматически
@@ -387,24 +387,40 @@ export default function AuthCallbackPage() {
                 setIsSettingPassword(true);
                 try {
                   // Проверяем, что сессия еще активна
-                  const { data: { session: currentSession } } = await supabase.auth.getSession();
+                  let { data: { session: currentSession } } = await supabase.auth.getSession();
                   
-                  if (!currentSession && recoveryTokens) {
-                    // Если сессия не активна, пытаемся восстановить её
-                    console.log('[AuthCallback] Session expired, trying to restore...');
-                    const { error: sessionError } = await supabase.auth.setSession({
-                      access_token: recoveryTokens.accessToken,
-                      refresh_token: recoveryTokens.refreshToken,
-                    });
+                  // Если сессия не активна, пытаемся установить её с токенами
+                  if (!currentSession) {
+                    if (recoveryTokens) {
+                      console.log('[AuthCallback] Session not found, setting session from recovery tokens...');
+                      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                        access_token: recoveryTokens.accessToken,
+                        refresh_token: recoveryTokens.refreshToken,
+                      });
 
-                    if (sessionError) {
-                      throw new Error('Сессия истекла. Запросите новую ссылку для сброса пароля.');
+                      if (sessionError) {
+                        console.error('[AuthCallback] Failed to set session:', sessionError);
+                        // Проверяем тип ошибки
+                        const errorMsg = sessionError.message || '';
+                        if (errorMsg.toLowerCase().includes('expired') || errorMsg.toLowerCase().includes('invalid')) {
+                          throw new Error('Ссылка для сброса пароля истекла. Запросите новую ссылку.');
+                        }
+                        throw new Error('Не удалось установить сессию. Запросите новую ссылку для сброса пароля.');
+                      }
+                      
+                      currentSession = sessionData.session;
+                      console.log('[AuthCallback] Session restored successfully');
+                    } else {
+                      throw new Error('Токены для сброса пароля не найдены. Запросите новую ссылку.');
                     }
-                  } else if (!currentSession) {
+                  }
+
+                  // Проверяем, что сессия действительно активна
+                  if (!currentSession) {
                     throw new Error('Сессия не найдена. Запросите новую ссылку для сброса пароля.');
                   }
 
-                  // Обновляем пароль (сессия уже активна)
+                  // Обновляем пароль (сессия активна)
                   await updatePassword(newPassword);
                   
                   // Выходим из сессии, чтобы пользователь мог войти с новым паролем
