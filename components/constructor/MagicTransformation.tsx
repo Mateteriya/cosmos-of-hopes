@@ -911,16 +911,21 @@ export default function MagicTransformation({
             </div>
           }>
             <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-            {/* Нормальное освещение без избыточности */}
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[5, 5, 5]} intensity={1.2} castShadow />
-            <directionalLight position={[-5, 3, -5]} intensity={0.7} />
+            {/* Улучшенное освещение для подчеркивания 3D-формы и отблеска */}
+            <ambientLight intensity={0.4} />
+            {/* Основной направленный свет для отблеска (specular highlight) */}
+            <directionalLight position={[5, 8, 5]} intensity={1.5} castShadow />
+            {/* Дополнительные источники света для подчеркивания 3D-формы */}
+            <directionalLight position={[-5, 3, -5]} intensity={0.8} />
             <directionalLight position={[0, -5, 0]} intensity={0.6} />
+            {/* Точечные источники для объемности */}
             <pointLight position={[-5, -5, -5]} intensity={0.8} color={color || '#ffffff'} />
             <pointLight position={[5, 5, 5]} intensity={0.8} color={color || '#ffffff'} />
             <pointLight position={[0, 5, 0]} intensity={0.7} color="#ffffff" />
             <pointLight position={[0, -5, 0]} intensity={0.5} color="#ffffff" />
-            <spotLight position={[0, 8, 0]} angle={0.6} penumbra={0.5} intensity={1.0} castShadow />
+            {/* Spot light для создания яркого отблеска на шаре */}
+            <spotLight position={[8, 8, 8]} angle={0.4} penumbra={0.3} intensity={2.0} castShadow />
+            <spotLight position={[0, 10, 0]} angle={0.5} penumbra={0.4} intensity={1.2} castShadow />
             
             <Stars radius={100} depth={50} count={5000} factor={4} fade speed={1} />
             
