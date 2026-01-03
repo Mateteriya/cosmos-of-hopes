@@ -390,9 +390,7 @@ function Toy3D({
       opacity: 1.0,
       flatShading: false, // Плавные грани для реалистичности
       envMapIntensity: surfaceType === 'glossy' ? 1.5 : surfaceType === 'metal' ? 2.0 : 0.5, // Отражения для глянца и металла
-      // Добавляем specular для эффекта отблеска света
-      specular: new THREE.Color(0xffffff),
-      shininess: surfaceType === 'glossy' ? 100 : surfaceType === 'metal' ? 80 : 30, // Блеск для подчеркивания 3D-формы
+      // Для отблеска используем правильные настройки metalness и roughness
     });
     
       // ПРИОРИТЕТ: Пользовательский рисунок > Градиент > Узор
