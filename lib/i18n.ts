@@ -311,7 +311,7 @@ export const translations = {
         signOut: 'Выйти',
         signOutError: 'Ошибка при выходе',
         authError: 'Произошла ошибка',
-        forgotPassword: 'Забыл пароль? Сбросить',
+        forgotPassword: 'Забыт пароль? Сбросить',
         resetPassword: 'Сброс пароля',
         resetPasswordInstructions: 'Введите ваш email, и мы отправим вам ссылку для сброса пароля.',
         passwordResetEmailSent: 'Если этот email зарегистрирован, письмо для сброса пароля отправлено. Проверьте почту (включая папку "Спам").',
