@@ -1133,7 +1133,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       <span className="text-lg">✨</span>
                     </button>
                     <button
-                      onClick={() => setSurfaceType('matte')}
+                      onClick={() => setSurfaceType(surfaceType === 'matte' ? 'glossy' : 'matte')}
                       className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         surfaceType === 'matte'
                           ? 'border-purple-400 bg-gradient-to-br from-purple-500/40 via-pink-500/30 to-rose-500/40 shadow-md scale-105'
@@ -1144,7 +1144,7 @@ export default function ToyConstructor({ onSave, userId }: ToyConstructorProps) 
                       <span className="text-lg">🔳</span>
                     </button>
                     <button
-                      onClick={() => setSurfaceType('metal')}
+                      onClick={() => setSurfaceType(surfaceType === 'metal' ? 'glossy' : 'metal')}
                       className={`p-2.5 rounded-lg border-2 transition-all touch-manipulation ${
                         surfaceType === 'metal'
                           ? 'border-amber-400 bg-gradient-to-br from-amber-500/40 via-yellow-500/30 to-orange-500/40 shadow-md scale-105'
