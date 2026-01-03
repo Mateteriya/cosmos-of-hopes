@@ -381,9 +381,9 @@ function Toy3D({
       // Цвет материала - ТОЧНО тот, который выбрал пользователь (или белый для texture)
       // НО: если есть текстура, цвет должен быть белым, чтобы текстура отображалась правильно
       color: texture ? new THREE.Color('#ffffff') : new THREE.Color(materialColor), // Используем THREE.Color для гарантии правильного формата
-      // Emissive только для эффекта glow
+      // Emissive только для эффекта glow - уменьшена интенсивность для сохранения 3D-формы
       emissive: effects.glow ? new THREE.Color(materialColor) : new THREE.Color('#000000'),
-      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0, // Без glow - без свечения
+      emissiveIntensity: effects.glow ? Math.max(glowIntensity * 0.15, 0.1) : 0, // Уменьшена интенсивность для сохранения 3D-формы
       metalness: metalness,
       roughness: roughness,
       transparent: false,
@@ -496,9 +496,9 @@ function Toy3D({
       // Обновляем цвет материала - ТОЧНО таким, как выбран пользователем
       material.color = new THREE.Color(materialColorToUse);
       
-      // Emissive только для эффекта glow
+      // Emissive только для эффекта glow - уменьшена интенсивность для сохранения 3D-формы
       material.emissive = effects.glow ? new THREE.Color(glowColor) : new THREE.Color('#000000');
-      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.5, 0.3) : 0; // Без glow - без свечения
+      material.emissiveIntensity = effects.glow ? Math.max(glowIntensity * 0.15, 0.1) : 0; // Уменьшена интенсивность для сохранения 3D-формы
       
       // Обновляем текстуру с правильным приоритетом
       // ПРИОРИТЕТ: Пользовательский рисунок > Градиент > Узор
@@ -547,20 +547,20 @@ function Toy3D({
         <sphereGeometry args={[1, 64, 64]} />
       </mesh>
       
-      {/* Эффект блеска (sparkle) - улучшенный, более яркий */}
+      {/* Эффект блеска (sparkle) - тонкий, не перекрывающий 3D-форму */}
       {effects.sparkle && (
         <>
-          {/* Основные частицы блеска */}
+          {/* Основные частицы блеска - уменьшено количество и размер */}
           <points scale={ballSize}>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                count={150}
+                count={30}
                 array={new Float32Array(
-                  Array.from({ length: 150 * 3 }, () => {
+                  Array.from({ length: 30 * 3 }, () => {
                     const angle = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
-                    const r = 1.02 + Math.random() * 0.1; // Немного выше поверхности
+                    const r = 1.005 + Math.random() * 0.005; // Очень близко к поверхности
                     return [
                       r * Math.sin(phi) * Math.cos(angle),
                       r * Math.sin(phi) * Math.sin(angle),
@@ -569,28 +569,28 @@ function Toy3D({
                   }).flat()
                 )}
                 itemSize={3}
-                args={[new Float32Array(150 * 3), 3]}
+                args={[new Float32Array(30 * 3), 3]}
               />
             </bufferGeometry>
             <pointsMaterial
               color="#FFD700"
-              size={0.15}
+              size={0.05}
               transparent
-              opacity={1}
+              opacity={0.4}
               sizeAttenuation={true}
             />
           </points>
-          {/* Дополнительные яркие частицы */}
+          {/* Дополнительные яркие частицы - уменьшено количество */}
           <points scale={ballSize}>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                count={50}
+                count={10}
                 array={new Float32Array(
-                  Array.from({ length: 50 * 3 }, () => {
+                  Array.from({ length: 10 * 3 }, () => {
                     const angle = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
-                    const r = 1.03;
+                    const r = 1.006;
                     return [
                       r * Math.sin(phi) * Math.cos(angle),
                       r * Math.sin(phi) * Math.sin(angle),
@@ -599,34 +599,34 @@ function Toy3D({
                   }).flat()
                 )}
                 itemSize={3}
-                args={[new Float32Array(50 * 3), 3]}
+                args={[new Float32Array(10 * 3), 3]}
               />
             </bufferGeometry>
             <pointsMaterial
               color="#FFFFFF"
-              size={0.25}
+              size={0.08}
               transparent
-              opacity={1}
+              opacity={0.5}
               sizeAttenuation={true}
             />
           </points>
         </>
       )}
       
-      {/* Эффект звезд на поверхности - улучшенный, более заметный */}
+      {/* Эффект звезд на поверхности - тонкий, не перекрывающий 3D-форму */}
       {effects.stars && (
         <>
-          {/* Основные звезды */}
+          {/* Основные звезды - уменьшено количество и размер */}
           <points scale={ballSize}>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                count={40}
+                count={12}
                 array={new Float32Array(
-                  Array.from({ length: 40 * 3 }, () => {
+                  Array.from({ length: 12 * 3 }, () => {
                     const angle = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
-                    const r = 1.02;
+                    const r = 1.005;
                     return [
                       r * Math.sin(phi) * Math.cos(angle),
                       r * Math.sin(phi) * Math.sin(angle),
@@ -635,28 +635,28 @@ function Toy3D({
                   }).flat()
                 )}
                 itemSize={3}
-                args={[new Float32Array(40 * 3), 3]}
+                args={[new Float32Array(12 * 3), 3]}
               />
             </bufferGeometry>
             <pointsMaterial
               color="#FFFFFF"
-              size={0.2}
+              size={0.06}
               transparent
-              opacity={1}
+              opacity={0.4}
               sizeAttenuation={true}
             />
           </points>
-          {/* Яркие центральные звезды */}
+          {/* Яркие центральные звезды - уменьшено количество */}
           <points scale={ballSize}>
             <bufferGeometry>
               <bufferAttribute
                 attach="attributes-position"
-                count={15}
+                count={5}
                 array={new Float32Array(
-                  Array.from({ length: 15 * 3 }, () => {
+                  Array.from({ length: 5 * 3 }, () => {
                     const angle = Math.random() * Math.PI * 2;
                     const phi = Math.acos(2 * Math.random() - 1);
-                    const r = 1.025;
+                    const r = 1.006;
                     return [
                       r * Math.sin(phi) * Math.cos(angle),
                       r * Math.sin(phi) * Math.sin(angle),
@@ -665,14 +665,14 @@ function Toy3D({
                   }).flat()
                 )}
                 itemSize={3}
-                args={[new Float32Array(15 * 3), 3]}
+                args={[new Float32Array(5 * 3), 3]}
               />
             </bufferGeometry>
             <pointsMaterial
               color="#FFFF00"
-              size={0.35}
+              size={0.08}
               transparent
-              opacity={1}
+              opacity={0.5}
               sizeAttenuation={true}
             />
           </points>
@@ -691,40 +691,40 @@ function Toy3D({
         <meshStandardMaterial color="#F5F5DC" />
       </mesh>
 
-      {/* Многослойное свечение вокруг игрушки (улучшенное) */}
+      {/* Многослойное свечение вокруг игрушки - тонкое, не перекрывающее 3D-форму */}
       {effects.glow && (
         <>
-          {/* Внешний слой свечения */}
+          {/* Внешний слой свечения - уменьшена интенсивность */}
           <mesh ref={(el) => { if (el) glowRefs.current[0] = el; }}>
             <sphereGeometry args={[1, 32, 32]} />
             <meshStandardMaterial
               color={color}
               emissive={color}
-              emissiveIntensity={glowIntensity * 0.8}
+              emissiveIntensity={glowIntensity * 0.2}
               transparent
-              opacity={0.4}
+              opacity={0.15}
             />
           </mesh>
-          {/* Средний слой свечения */}
+          {/* Средний слой свечения - уменьшена интенсивность */}
           <mesh ref={(el) => { if (el) glowRefs.current[1] = el; }}>
-            <sphereGeometry args={[1.1, 32, 32]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={glowIntensity * 0.5}
-              transparent
-              opacity={0.25}
-            />
-          </mesh>
-          {/* Внутренний яркий слой */}
-          <mesh ref={(el) => { if (el) glowRefs.current[2] = el; }}>
             <sphereGeometry args={[1.05, 32, 32]} />
             <meshStandardMaterial
               color={color}
               emissive={color}
-              emissiveIntensity={glowIntensity * 1.2}
+              emissiveIntensity={glowIntensity * 0.15}
               transparent
-              opacity={0.5}
+              opacity={0.1}
+            />
+          </mesh>
+          {/* Внутренний слой - уменьшена интенсивность */}
+          <mesh ref={(el) => { if (el) glowRefs.current[2] = el; }}>
+            <sphereGeometry args={[1.02, 32, 32]} />
+            <meshStandardMaterial
+              color={color}
+              emissive={color}
+              emissiveIntensity={glowIntensity * 0.25}
+              transparent
+              opacity={0.2}
             />
           </mesh>
         </>
