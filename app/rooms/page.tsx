@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import RoomCard from '@/components/rooms/RoomCard';
 import CreateRoomModal from '@/components/rooms/CreateRoomModal';
+import JoinRoomByCode from '@/components/rooms/JoinRoomByCode';
 import NotificationPrompt from '@/components/notifications/NotificationPrompt';
 import { getUserRooms } from '@/lib/rooms';
 import { useLanguage } from '@/components/constructor/LanguageProvider';
@@ -31,6 +32,7 @@ export default function RoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
   const [tempUserId] = useState<string>(() => getTempUserId());
 
@@ -135,13 +137,19 @@ export default function RoomsPage() {
           </div>
         </div>
 
-        {/* Кнопка создания комнаты */}
-        <div className="mb-6">
+        {/* Кнопки создания и присоединения */}
+        <div className="mb-6 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
           >
             ➕ {t('createRoom')}
+          </button>
+          <button
+            onClick={() => setShowJoinModal(true)}
+            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold px-6 py-3 rounded-lg shadow-xl transition-all transform hover:scale-105"
+          >
+            🔑 {t('joinRoomByCode')}
           </button>
         </div>
 
@@ -185,6 +193,12 @@ export default function RoomsPage() {
         onClose={() => setShowCreateModal(false)}
         onCreate={handleRoomCreated}
         currentUserId={tempUserId}
+      />
+      <JoinRoomByCode
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        currentUserId={tempUserId}
+        onJoined={loadRooms}
       />
 
       {/* Запрос уведомлений после создания комнаты */}

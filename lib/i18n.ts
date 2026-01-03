@@ -243,6 +243,14 @@ export const translations = {
         confirm: 'Подтвердить',
         timezoneTooltip: 'Часовой пояс комнаты',
         timezone: 'Часовой пояс',
+        joinRoomByCode: 'Присоединиться по коду',
+        enterInviteCode: 'Введите код приглашения',
+        joinRoom: 'Присоединиться',
+        joining: 'Присоединение...',
+        roomNotFound: 'Комната с таким кодом не найдена',
+        joinRoomError: 'Ошибка присоединения к комнате',
+        inviteCodeRequired: 'Введите код приглашения',
+        inviteCodePlaceholder: 'Например: S8HBYE',
         
         // Главная страница
         appTitle: '✨ Вселенная Желаний ✨',
@@ -624,6 +632,14 @@ export const translations = {
         confirm: 'Confirm',
         timezoneTooltip: 'Room timezone',
         timezone: 'Timezone',
+        joinRoomByCode: 'Join by code',
+        enterInviteCode: 'Enter invite code',
+        joinRoom: 'Join',
+        joining: 'Joining...',
+        roomNotFound: 'Room with this code not found',
+        joinRoomError: 'Error joining room',
+        inviteCodeRequired: 'Enter invite code',
+        inviteCodePlaceholder: 'For example: S8HBYE',
         
         // Authentication
         signUp: 'Sign Up',
