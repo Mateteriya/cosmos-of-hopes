@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS toys (
   status TEXT NOT NULL DEFAULT 'on_tree' CHECK (status IN ('on_tree', 'transformed', 'in_cosmos')),
   transformed_at TIMESTAMP,
   
+  -- Позиция на ёлке
+  position_index INTEGER, -- Индекс позиции на ёлке (0-199 для основных позиций, 200+ для переполнения)
+  
   -- Позиция в космосе (после трансформации)
   cosmos_x FLOAT,
   cosmos_y FLOAT,
@@ -55,6 +58,7 @@ CREATE INDEX IF NOT EXISTS idx_toys_user_id ON toys(user_id);
 CREATE INDEX IF NOT EXISTS idx_toys_room_id ON toys(room_id);
 CREATE INDEX IF NOT EXISTS idx_toys_status ON toys(status);
 CREATE INDEX IF NOT EXISTS idx_toys_transformed_at ON toys(transformed_at);
+CREATE INDEX IF NOT EXISTS idx_toys_position_index ON toys(position_index);
 
 -- Таблица профилей пользователей
 CREATE TABLE IF NOT EXISTS user_profiles (
